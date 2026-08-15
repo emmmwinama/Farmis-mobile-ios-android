@@ -1,0 +1,59 @@
+name: farmio_mobile
+description: Farmio farmer mobile app
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+
+  # HTTP
+  dio: ^5.4.0
+
+  # Routing
+  go_router: ^13.2.0
+
+  # Secure storage
+  flutter_secure_storage: ^9.0.0
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # Formatting
+  intl: ^0.19.0
+
+  # Environment
+  flutter_dotenv: ^5.1.0
+
+  # Charts
+  fl_chart: ^0.68.0
+
+  # Shimmer loading
+  shimmer: ^3.0.0
+
+  # Field boundary / farm map
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+
+  # Document evidence upload
+  image_picker: ^1.1.2
+
+  # PDF report export
+  path_provider: ^2.1.4
+  share_plus: ^10.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
