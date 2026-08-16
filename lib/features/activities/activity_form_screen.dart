@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
-import '../../core/sync/offline_queued_exception.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/crop_field.dart';
 import '../../shared/agronomy/crop_timeline_catalog.dart';
@@ -145,16 +143,8 @@ class _ActivityFormScreenState
         }).where((o) => o['description']!.isNotEmpty).toList(),
       });
       if (mounted) Navigator.pop(context);
-    } on OfflineQueuedException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
-        Navigator.pop(context);
-      }
-    } on DioException catch (e) {
-      final msg = e.response?.data?['error'] as String?;
-      setState(() => _error = msg ?? 'Failed to save activity.');
+    } catch (e) {
+      setState(() => _error = 'Failed to save activity.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }

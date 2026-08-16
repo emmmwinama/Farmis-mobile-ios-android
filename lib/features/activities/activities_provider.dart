@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'activities_repository.dart';
-import '../../core/sync/sync_queue_provider.dart';
+import '../../core/db/database_provider.dart';
 import '../../models/activity.dart';
 import '../../models/activity_detail.dart';
 
 final activitiesRepositoryProvider = Provider<ActivitiesRepository>(
-      (ref) => ActivitiesRepository(ref.read(syncQueueProvider.notifier)),
+      (ref) => ActivitiesRepository(ref.read(databaseProvider)),
 );
 
 final activitiesDataProvider =

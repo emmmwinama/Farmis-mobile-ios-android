@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/farmio_card.dart';
 import '../../shared/widgets/glass_panel.dart';
-import '../../shared/widgets/sync_status_indicator.dart';
 
 class CaptureHubScreen extends StatelessWidget {
   const CaptureHubScreen({super.key});
@@ -12,8 +11,7 @@ class CaptureHubScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return _HubScaffold(
       title: 'Capture',
-      subtitle: 'Use original forms. Failed online submissions should queue for sync.',
-      actions: const [SyncStatusIndicator()],
+      subtitle: 'Log field activity, harvests and records from these forms.',
       children: [
         _ActionCard(
           icon: Icons.assignment_outlined,
@@ -143,13 +141,6 @@ class BusinessHubScreen extends StatelessWidget {
           color: FarmioColors.primary,
         ),
         _ActionCard(
-          icon: Icons.groups_outlined,
-          title: 'Team permissions',
-          body: 'Members, roles and access readiness.',
-          route: '/team',
-          color: FarmioColors.info,
-        ),
-        _ActionCard(
           icon: Icons.inventory_2_outlined,
           title: 'Inventory stock',
           body: 'Harvest inventory, stock value and inventory sales.',
@@ -275,13 +266,6 @@ class InsightsHubScreen extends StatelessWidget {
           route: '/report-builder',
           color: FarmioColors.purple,
         ),
-        _ActionCard(
-          icon: Icons.analytics_outlined,
-          title: 'Graph catalog',
-          body: 'Charts, maps and export visualizations.',
-          route: '/graph-catalog',
-          color: FarmioColors.info,
-        ),
       ],
     );
   }
@@ -294,41 +278,13 @@ class MoreHubScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return _HubScaffold(
       title: 'More',
-      subtitle: 'Account, subscription, function coverage and locked modules.',
+      subtitle: 'Farm profile and app settings.',
       children: [
         _ActionCard(
           icon: Icons.person_outline,
           title: 'Profile',
-          body: 'User, farm and subscription details.',
+          body: 'Farm name, location and app lock.',
           route: '/profile',
-          color: FarmioColors.primary,
-        ),
-        _ActionCard(
-          icon: Icons.apps_outlined,
-          title: 'Function map',
-          body: 'See mobile coverage for every web module.',
-          route: '/functions',
-          color: FarmioColors.info,
-        ),
-        _ActionCard(
-          icon: Icons.workspace_premium_outlined,
-          title: 'Subscription',
-          body: 'Plan limits and tier status.',
-          route: '/subscriptions',
-          color: FarmioColors.purple,
-        ),
-        _ActionCard(
-          icon: Icons.settings_outlined,
-          title: 'Settings',
-          body: 'Farm switching, password and profile settings.',
-          route: '/settings',
-          color: FarmioColors.slate500,
-        ),
-        _ActionCard(
-          icon: Icons.api_outlined,
-          title: 'Mobile API',
-          body: 'Endpoint coverage for mobile features and sync.',
-          route: '/mobile-api',
           color: FarmioColors.primary,
         ),
       ],
@@ -340,13 +296,11 @@ class _HubScaffold extends StatelessWidget {
   final String title;
   final String subtitle;
   final List<Widget> children;
-  final List<Widget> actions;
 
   const _HubScaffold({
     required this.title,
     required this.subtitle,
     required this.children,
-    this.actions = const [],
   });
 
   @override
@@ -357,10 +311,7 @@ class _HubScaffold extends StatelessWidget {
       backgroundColor: FarmioColors.background,
       appBar: AppBar(
         title: Text(title),
-        actions: [
-          ...actions,
-          const SizedBox(width: 12),
-        ],
+        actions: const [SizedBox(width: 12)],
       ),
       body: FrostedScaffoldBackground(
         child: ListView(

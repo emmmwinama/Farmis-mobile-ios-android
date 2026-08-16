@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'yields_repository.dart';
-import '../../core/sync/sync_queue_provider.dart';
+import '../../core/db/database_provider.dart';
 import '../../models/yield.dart';
 
 final yieldsRepositoryProvider = Provider<YieldsRepository>(
-      (ref) => YieldsRepository(ref.read(syncQueueProvider.notifier)),
+      (ref) => YieldsRepository(ref.read(databaseProvider)),
 );
 
 final yieldsProvider =

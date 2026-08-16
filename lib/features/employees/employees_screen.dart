@@ -1,7 +1,5 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/sync/offline_queued_exception.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/employee.dart';
 import '../../shared/utils/formatters.dart';
@@ -47,6 +45,10 @@ class EmployeesScreen extends ConsumerWidget {
             0,
             (sum, e) => sum + _monthlyEstimate(e),
           );
+          final roleCounts = <String, int>{};
+          for (final employee in data) {
+            roleCounts[employee.role] = (roleCounts[employee.role] ?? 0) + 1;
+          }
 
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(employeesProvider),
@@ -57,6 +59,14 @@ class EmployeesScreen extends ConsumerWidget {
                   total: data.length,
                   active: active,
                   monthlyPayroll: monthlyPayroll,
+                ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: roleCounts.entries
+                      .map((e) => _RoleBadge(role: e.key, count: e.value))
+                      .toList(),
                 ),
                 const SizedBox(height: 18),
                 const Text(
@@ -136,18 +146,6 @@ class _EmployeeFormState extends State<_EmployeeForm> {
       });
       widget.ref.invalidate(employeesProvider);
       if (mounted) Navigator.of(context).pop();
-    } on OfflineQueuedException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
-        Navigator.of(context).pop();
-      }
-    } on DioException catch (e) {
-      final data = e.response?.data;
-      setState(() => _error = data is Map<String, dynamic>
-          ? data['error'] as String? ?? 'Could not add worker.'
-          : 'Could not add worker.');
     } catch (_) {
       setState(() => _error = 'Could not add worker. Check your connection.');
     } finally {
@@ -370,6 +368,32 @@ class _EmployeeCard extends StatelessWidget {
           if (!employee.isActive)
             const _StatusPill(label: 'Inactive', color: FarmioColors.slate500),
         ],
+      ),
+    );
+  }
+}
+
+class _RoleBadge extends StatelessWidget {
+  final String role;
+  final int count;
+
+  const _RoleBadge({required this.role, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: FarmioColors.infoBg,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        '$role · $count',
+        style: const TextStyle(
+          color: FarmioColors.info,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }

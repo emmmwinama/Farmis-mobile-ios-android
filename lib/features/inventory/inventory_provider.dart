@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'inventory_repository.dart';
-import '../../core/sync/sync_queue_provider.dart';
+import '../../core/db/database_provider.dart';
 import '../../models/inventory_item.dart';
 
 final inventoryRepositoryProvider = Provider<InventoryRepository>(
-  (ref) => InventoryRepository(ref.read(syncQueueProvider.notifier)),
+  (ref) => InventoryRepository(ref.read(databaseProvider)),
 );
 
 final inventoryItemsProvider =

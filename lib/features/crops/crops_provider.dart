@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'crops_repository.dart';
-import '../../core/sync/sync_queue_provider.dart';
+import '../../core/db/database_provider.dart';
 import '../../models/crop_field.dart';
 import '../../models/crop_detail.dart';
 import '../../models/crop_type.dart';
 
 final cropsRepositoryProvider = Provider<CropsRepository>(
-      (ref) => CropsRepository(ref.read(syncQueueProvider.notifier)),
+      (ref) => CropsRepository(ref.read(databaseProvider)),
 );
 
 // Filter: 'active', 'archived', 'all'

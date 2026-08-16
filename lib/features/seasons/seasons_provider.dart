@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'seasons_repository.dart';
+import '../../core/db/database_provider.dart';
 import '../../models/season.dart';
 
 final seasonsRepositoryProvider = Provider<SeasonsRepository>(
-  (_) => SeasonsRepository(),
+  (ref) => SeasonsRepository(ref.read(databaseProvider)),
 );
 
 final seasonsProvider = FutureProvider.autoDispose<SeasonsData>((ref) {

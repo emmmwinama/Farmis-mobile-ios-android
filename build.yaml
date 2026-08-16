@@ -1,0 +1,12 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # Store DateTime columns as ISO8601 TEXT instead of unix-epoch
+          # INTEGER. Every model's fromJson expects ISO8601 strings, and
+          # storing as text avoids drift's default epoch round-trip through
+          # local time (DateTime.fromMillisecondsSinceEpoch without isUtc),
+          # which silently shifts wall-clock values by the device's UTC
+          # offset on read-back.
+          store_date_time_values_as_text: true

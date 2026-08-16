@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import '../../core/sync/offline_queued_exception.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/field_boundary.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
@@ -60,13 +59,6 @@ class _FieldBoundaryEditorScreenState
       ref.invalidate(fieldBoundaryProvider(widget.fieldId));
       ref.invalidate(fieldMapProvider);
       if (mounted) Navigator.pop(context);
-    } on OfflineQueuedException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
-        Navigator.pop(context);
-      }
     } catch (e) {
       setState(() => _error = 'Failed to save boundary.');
     } finally {

@@ -1,44 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/auth/auth_provider.dart';
 import '../../core/theme/app_theme.dart';
-import '../../models/farm.dart';
 import '../../models/weather.dart';
-import '../farm_context/farm_context_provider.dart';
 import 'weather_provider.dart';
 
-class WeatherScreen extends ConsumerStatefulWidget {
+class WeatherScreen extends ConsumerWidget {
   const WeatherScreen({super.key});
 
   @override
-  ConsumerState<WeatherScreen> createState() => _WeatherScreenState();
-}
-
-class _WeatherScreenState extends ConsumerState<WeatherScreen> {
-  bool _switchingFarm = false;
-
-  Future<void> _switchFarm(String farmId) async {
-    setState(() => _switchingFarm = true);
-    try {
-      await ref.read(farmContextRepositoryProvider).switchFarm(farmId);
-      await ref.read(authProvider.notifier).refreshProfile();
-      ref.invalidate(farmContextProvider);
-      ref.invalidate(weatherProvider);
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not switch farm. Try again.')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _switchingFarm = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final weather = ref.watch(weatherProvider);
-    final farmContext = ref.watch(farmContextProvider);
 
     return Scaffold(
       backgroundColor: FarmioColors.background,
@@ -46,26 +17,6 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
         title: const Text('Weather',
             style: TextStyle(fontWeight: FontWeight.w800)),
         actions: [
-          if (_switchingFarm)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            )
-          else
-            farmContext.maybeWhen(
-              data: (ctx) => ctx.farms.length > 1
-                  ? _FarmSwitcher(
-                      farms: ctx.farms,
-                      activeFarmId: ctx.activeFarmId,
-                      onSelected: _switchFarm,
-                    )
-                  : const SizedBox.shrink(),
-              orElse: () => const SizedBox.shrink(),
-            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(weatherProvider),
@@ -128,66 +79,6 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   )),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FarmSwitcher extends StatelessWidget {
-  final List<FarmModel> farms;
-  final String? activeFarmId;
-  final ValueChanged<String> onSelected;
-
-  const _FarmSwitcher({
-    required this.farms,
-    required this.activeFarmId,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final matches = farms.where((f) => f.id == activeFarmId);
-    final active = matches.isEmpty ? null : matches.first;
-    return PopupMenuButton<String>(
-      tooltip: 'Switch farm',
-      onSelected: onSelected,
-      itemBuilder: (context) => farms
-          .map((f) => PopupMenuItem<String>(
-                value: f.id,
-                child: Row(
-                  children: [
-                    if (f.id == activeFarmId)
-                      const Icon(Icons.check_rounded,
-                          size: 18, color: FarmioColors.primary)
-                    else
-                      const SizedBox(width: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(f.name, overflow: TextOverflow.ellipsis),
-                    ),
-                  ],
-                ),
-              ))
-          .toList(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.home_work_outlined, size: 18),
-            const SizedBox(width: 6),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 90),
-              child: Text(
-                active?.name ?? 'Select farm',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13),
-              ),
-            ),
-            const Icon(Icons.arrow_drop_down_rounded),
-          ],
         ),
       ),
     );

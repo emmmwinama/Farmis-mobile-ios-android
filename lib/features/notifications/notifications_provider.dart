@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'notifications_repository.dart';
+import '../../core/db/database_provider.dart';
 import '../../models/app_notification.dart';
 
 final notificationsRepositoryProvider = Provider<NotificationsRepository>(
-  (_) => NotificationsRepository(),
+  (ref) => NotificationsRepository(ref.read(databaseProvider)),
 );
 
 final notificationsProvider =

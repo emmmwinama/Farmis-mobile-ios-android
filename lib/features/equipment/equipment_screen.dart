@@ -1,7 +1,5 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/sync/offline_queued_exception.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/equipment_item.dart';
 import '../../models/overhead.dart';
@@ -313,18 +311,8 @@ class _EquipmentFormState extends ConsumerState<_EquipmentForm> {
       });
       ref.invalidate(equipmentProvider);
       if (mounted) Navigator.pop(context);
-    } on OfflineQueuedException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
-        Navigator.pop(context);
-      }
-    } on DioException catch (e) {
-      final data = e.response?.data;
-      setState(() => _error = data is Map<String, dynamic>
-          ? data['error'] as String? ?? 'Could not save equipment.'
-          : 'Could not save equipment.');
+    } catch (e) {
+      setState(() => _error = 'Could not save equipment.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -463,18 +451,8 @@ class _EquipmentCostFormState extends ConsumerState<EquipmentCostForm> {
       });
       ref.invalidate(equipmentProvider);
       if (mounted) Navigator.pop(context);
-    } on OfflineQueuedException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
-        Navigator.pop(context);
-      }
-    } on DioException catch (e) {
-      final data = e.response?.data;
-      setState(() => _error = data is Map<String, dynamic>
-          ? data['error'] as String? ?? 'Could not save cost.'
-          : 'Could not save cost.');
+    } catch (e) {
+      setState(() => _error = 'Could not save cost.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }

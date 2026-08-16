@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../core/api/api_client.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/report.dart';
 import '../../shared/filters/report_record_filters.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
+import '../report_builder/report_builder_provider.dart';
 import 'reports_provider.dart';
 
 // Report tabs matching the web app
@@ -513,7 +513,7 @@ class _ChartsOverview extends StatelessWidget {
   }
 }
 
-class _ReportExportPanel extends StatelessWidget {
+class _ReportExportPanel extends ConsumerWidget {
   final ReportRecordFilters filters;
   final ReportData data;
   final Set<ReportTab> selectedTabs;
@@ -527,21 +527,7 @@ class _ReportExportPanel extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final sections = selectedTabs
-        .map((tab) => 'report=${tab.name}')
-        .join('&');
-    final filterParams = filters.toQuery().entries
-        .map((entry) => '${entry.key}=${Uri.encodeComponent('${entry.value}')}')
-        .join('&');
-    final params = [
-      if (sections.isNotEmpty) sections,
-      if (filterParams.isNotEmpty) filterParams,
-    ].join('&');
-    final exportUrl = params.isEmpty
-        ? '/mobile/reports/export?format=pdf'
-        : '/mobile/reports/export?$params&format=pdf';
-
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -623,15 +609,6 @@ class _ReportExportPanel extends StatelessWidget {
             }).toList(),
           ),
           const SizedBox(height: 14),
-          SelectableText(
-            exportUrl,
-            style: const TextStyle(
-              color: FarmioColors.info,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -640,7 +617,7 @@ class _ReportExportPanel extends StatelessWidget {
                   label: const Text('PDF'),
                   onPressed: selectedTabs.isEmpty
                       ? null
-                      : () => _generatePdf(context, exportUrl),
+                      : () => _generatePdf(context, ref),
                 ),
               ),
               const SizedBox(width: 10),
@@ -684,22 +661,17 @@ class _ReportExportPanel extends StatelessWidget {
     }
   }
 
-  Future<void> _generatePdf(BuildContext context, String exportUrl) async {
+  Future<void> _generatePdf(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
       const SnackBar(content: Text('Generating PDF report...')),
     );
     try {
-      final response = await ApiClient.getBytes(exportUrl);
-      final bytes = response.data ?? const <int>[];
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            'PDF generated (${(bytes.length / 1024).toStringAsFixed(1)} KB).',
-          ),
-        ),
-      );
+      final path = await ref.read(reportBuilderRepositoryProvider).exportPdf(
+            selectedTabs.map((tab) => tab.name).toList(),
+            filters: filters,
+          );
+      await Share.shareXFiles([XFile(path)], text: 'Farmio report export');
     } catch (_) {
       if (!context.mounted) return;
       messenger.showSnackBar(

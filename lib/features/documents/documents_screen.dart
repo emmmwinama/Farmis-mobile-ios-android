@@ -1,6 +1,5 @@
-import 'dart:convert';
+import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -132,25 +131,17 @@ class _Thumbnail extends StatelessWidget {
       );
     }
 
-    if (doc.url.startsWith('data:')) {
-      final base64Part = doc.url.split(',').skip(1).join(',');
-      try {
-        return Image.memory(
-          base64Decode(base64Part),
-          fit: BoxFit.cover,
-          width: double.infinity,
-        );
-      } catch (_) {
-        return Container(
-          color: FarmioColors.slate100,
-          alignment: Alignment.center,
-          child: const Icon(Icons.broken_image_outlined,
-              size: 36, color: FarmioColors.textMuted),
-        );
-      }
-    }
-
-    return Image.network(doc.url, fit: BoxFit.cover, width: double.infinity);
+    return Image.file(
+      File(doc.url),
+      fit: BoxFit.cover,
+      width: double.infinity,
+      errorBuilder: (_, __, ___) => Container(
+        color: FarmioColors.slate100,
+        alignment: Alignment.center,
+        child: const Icon(Icons.broken_image_outlined,
+            size: 36, color: FarmioColors.textMuted),
+      ),
+    );
   }
 }
 
@@ -222,33 +213,28 @@ class _UploadFormState extends ConsumerState<_UploadForm> {
         });
         return;
       }
-      final mimeType = _mimeTypeFor(_picked!.name);
-      final dataUrl = 'data:$mimeType;base64,${base64Encode(bytes)}';
 
-      await ref.read(documentsRepositoryProvider).uploadDocument({
-        'name': _nameCtrl.text.trim(),
-        'type': _type,
-        'url': dataUrl,
-        'size': bytes.length,
-        'notes': _notesCtrl.text.trim(),
-      });
+      await ref.read(documentsRepositoryProvider).uploadDocument(
+            name: _nameCtrl.text.trim(),
+            type: _type,
+            bytes: bytes,
+            extension: _extensionFor(_picked!.name),
+            notes: _notesCtrl.text.trim(),
+          );
       ref.invalidate(documentsProvider);
       if (mounted) Navigator.pop(context);
-    } on DioException catch (e) {
-      final data = e.response?.data;
-      setState(() => _error = data is Map<String, dynamic>
-          ? data['error'] as String? ?? 'Could not upload document.'
-          : 'Could not upload document.');
+    } catch (_) {
+      setState(() => _error = 'Could not upload document.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
-  String _mimeTypeFor(String name) {
+  String _extensionFor(String name) {
     final lower = name.toLowerCase();
-    if (lower.endsWith('.png')) return 'image/png';
-    if (lower.endsWith('.webp')) return 'image/webp';
-    return 'image/jpeg';
+    if (lower.endsWith('.png')) return 'png';
+    if (lower.endsWith('.webp')) return 'webp';
+    return 'jpg';
   }
 
   @override

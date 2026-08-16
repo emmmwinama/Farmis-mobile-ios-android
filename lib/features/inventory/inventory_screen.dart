@@ -1,7 +1,5 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/sync/offline_queued_exception.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/inventory_item.dart';
 import '../../shared/utils/formatters.dart';
@@ -203,18 +201,8 @@ class _AddItemFormState extends ConsumerState<_AddItemForm> {
       });
       ref.invalidate(inventoryItemsProvider);
       if (mounted) Navigator.pop(context);
-    } on OfflineQueuedException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
-        Navigator.pop(context);
-      }
-    } on DioException catch (e) {
-      final data = e.response?.data;
-      setState(() => _error = data is Map<String, dynamic>
-          ? data['error'] as String? ?? 'Could not save item.'
-          : 'Could not save item.');
+    } catch (e) {
+      setState(() => _error = 'Could not save item.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -363,18 +351,8 @@ class _SellFormState extends ConsumerState<_SellForm> {
       });
       ref.invalidate(inventoryItemsProvider);
       if (mounted) Navigator.pop(context);
-    } on OfflineQueuedException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
-        Navigator.pop(context);
-      }
-    } on DioException catch (e) {
-      final data = e.response?.data;
-      setState(() => _error = data is Map<String, dynamic>
-          ? data['error'] as String? ?? 'Could not save sale.'
-          : 'Could not save sale.');
+    } catch (e) {
+      setState(() => _error = 'Could not save sale.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }

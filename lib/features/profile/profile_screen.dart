@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/auth/auth_provider.dart';
+import '../../core/auth/pin_provider.dart';
+import '../../core/db/app_database.dart';
 import '../../core/theme/app_theme.dart';
+import 'farm_profile_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final auth = ref.watch(authProvider);
+    final profile = ref.watch(farmProfileProvider);
 
     return Scaffold(
       backgroundColor: FarmioColors.background,
@@ -17,161 +19,123 @@ class ProfileScreen extends ConsumerWidget {
         title: const Text('Profile',
             style: TextStyle(fontWeight: FontWeight.w800)),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // User card
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: FarmioColors.border),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: FarmioColors.primary,
-                  child: Text(
-                    (auth?.user.name ?? 'F')[0].toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.white, fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        auth?.user.name ?? 'Farmer',
-                        style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w800,
-                          color: FarmioColors.textPrimary,
-                        ),
-                      ),
-                      Text(
-                        auth?.user.email ?? '',
-                        style: const TextStyle(
-                          fontSize: 13, color: FarmioColors.textMuted,
-                        ),
-                      ),
-                      if (auth?.subscription != null) ...[
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: FarmioColors.primary.withValues(alpha:0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            '${auth!.subscription!.tierName} · '
-                            '${auth.subscription!.status}',
-                            style: const TextStyle(
-                              fontSize: 11, fontWeight: FontWeight.w700,
-                              color: FarmioColors.primary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Farm card
-          if (auth?.farm != null) ...[
+      body: profile.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, __) => const Center(
+          child: Text('Could not load the farm profile.'),
+        ),
+        data: (data) => ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: FarmioColors.border),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  const Text('Farm',
-                      style: TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w700,
-                        color: FarmioColors.textMuted,
-                      )),
-                  const SizedBox(height: 6),
-                  Text(auth!.farm!.name,
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: FarmioColors.primary,
+                    child: Text(
+                      (data?.name.isNotEmpty == true ? data!.name[0] : 'F')
+                          .toUpperCase(),
                       style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w700,
-                        color: FarmioColors.textPrimary,
-                      )),
-                  Text(auth.farm!.location,
-                      style: const TextStyle(
-                        fontSize: 13, color: FarmioColors.textMuted,
-                      )),
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          data?.name ?? 'My Farm',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: FarmioColors.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          data?.location ?? 'Location not set',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: FarmioColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Edit farm details',
+                    icon: const Icon(Icons.edit_outlined),
+                    onPressed: () => _showEditForm(context, ref, data),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-          ],
-
-          _ProfileAction(
-            icon: Icons.apps_outlined,
-            title: 'Farmis functions',
-            subtitle: 'See mobile coverage for every web dashboard module',
-            onTap: () => context.push('/functions'),
-          ),
-          const SizedBox(height: 12),
-          _ProfileAction(
-            icon: Icons.file_present_outlined,
-            title: 'Record packs',
-            subtitle: 'Prepare loan, buyer, audit and insurance evidence',
-            onTap: () => context.push('/records'),
-          ),
-          const SizedBox(height: 12),
-          _ProfileAction(
-            icon: Icons.people_alt_outlined,
-            title: 'Employees',
-            subtitle: 'Manage payroll capacity and team evidence',
-            onTap: () => context.push('/employees'),
-          ),
-          const SizedBox(height: 12),
-          _ProfileAction(
-            icon: Icons.fact_check_outlined,
-            title: 'Seasonal templates',
-            subtitle: 'Plan crop activities using Farmio web workflows',
-            onTap: () => context.push('/templates'),
-          ),
-          const SizedBox(height: 12),
-          _ProfileAction(
-            icon: Icons.workspace_premium,
-            title: 'Subscription plans',
-            subtitle: 'Compare public FarmIS plan limits and features',
-            onTap: () => context.push('/subscriptions'),
-          ),
-          const SizedBox(height: 16),
-
-          // Sign out
-          SizedBox(
-            height: 52,
-            child: ElevatedButton.icon(
-              icon:  const Icon(Icons.logout),
-              label: const Text('Sign out'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: FarmioColors.danger,
-              ),
-              onPressed: () async {
-                await ref.read(authProvider.notifier).logout();
-                if (context.mounted) context.go('/login');
-              },
+            _ProfileAction(
+              icon: Icons.file_present_outlined,
+              title: 'Record packs',
+              subtitle: 'Prepare loan, buyer, audit and insurance evidence',
+              onTap: () => context.push('/records'),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            _ProfileAction(
+              icon: Icons.people_alt_outlined,
+              title: 'Employees',
+              subtitle: 'Manage payroll capacity and team evidence',
+              onTap: () => context.push('/employees'),
+            ),
+            const SizedBox(height: 12),
+            _ProfileAction(
+              icon: Icons.fact_check_outlined,
+              title: 'Seasonal templates',
+              subtitle: 'Plan crop activities using proven workflows',
+              onTap: () => context.push('/templates'),
+            ),
+            const SizedBox(height: 12),
+            _ProfileAction(
+              icon: Icons.download_outlined,
+              title: 'Import existing data',
+              subtitle: 'Bring in fields, crops and records from the old app',
+              onTap: () => context.push('/import'),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 52,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.lock_outline),
+                label: const Text('Lock app'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: FarmioColors.danger,
+                ),
+                onPressed: () => ref.read(pinProvider.notifier).lock(),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Future<void> _showEditForm(
+    BuildContext context,
+    WidgetRef ref,
+    FarmProfileData? current,
+  ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _FarmProfileForm(current: current),
     );
   }
 }
@@ -237,6 +201,158 @@ class _ProfileAction extends StatelessWidget {
             ),
             const Icon(Icons.chevron_right, color: FarmioColors.textMuted),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FarmProfileForm extends ConsumerStatefulWidget {
+  final FarmProfileData? current;
+  const _FarmProfileForm({required this.current});
+
+  @override
+  ConsumerState<_FarmProfileForm> createState() => _FarmProfileFormState();
+}
+
+class _FarmProfileFormState extends ConsumerState<_FarmProfileForm> {
+  late final _nameCtrl =
+      TextEditingController(text: widget.current?.name ?? '');
+  late final _locationCtrl =
+      TextEditingController(text: widget.current?.location ?? '');
+  late final _latCtrl = TextEditingController(
+      text: widget.current?.locationLat?.toString() ?? '');
+  late final _lngCtrl = TextEditingController(
+      text: widget.current?.locationLng?.toString() ?? '');
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _locationCtrl.dispose();
+    _latCtrl.dispose();
+    _lngCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_nameCtrl.text.trim().isEmpty || _locationCtrl.text.trim().isEmpty) {
+      setState(() => _error = 'Farm name and location are required.');
+      return;
+    }
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await ref.read(farmProfileRepositoryProvider).saveProfile(
+            name: _nameCtrl.text.trim(),
+            location: _locationCtrl.text.trim(),
+            locationLat: double.tryParse(_latCtrl.text.trim()),
+            locationLng: double.tryParse(_lngCtrl.text.trim()),
+          );
+      ref.invalidate(farmProfileProvider);
+      if (mounted) Navigator.pop(context);
+    } catch (_) {
+      setState(() => _error = 'Could not save farm details.');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.of(context).viewInsets.bottom;
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottom),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Farm details',
+                    style: TextStyle(
+                      color: FarmioColors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    )),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _nameCtrl,
+                  decoration: const InputDecoration(labelText: 'Farm name'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _locationCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Location',
+                    helperText: 'City or district, e.g. Zomba',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _latCtrl,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(signed: true, decimal: true),
+                        decoration: const InputDecoration(
+                            labelText: 'Latitude (optional)'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: _lngCtrl,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(signed: true, decimal: true),
+                        decoration: const InputDecoration(
+                            labelText: 'Longitude (optional)'),
+                      ),
+                    ),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 6),
+                  child: Text(
+                    'Latitude/longitude sharpen the weather forecast; otherwise the location name is used.',
+                    style: TextStyle(
+                        fontSize: 11, color: FarmioColors.textMuted),
+                  ),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(_error!,
+                      style: const TextStyle(color: FarmioColors.danger)),
+                ],
+                const SizedBox(height: 18),
+                SizedBox(
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: _saving ? null : _save,
+                    child: _saving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Text('Save'),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

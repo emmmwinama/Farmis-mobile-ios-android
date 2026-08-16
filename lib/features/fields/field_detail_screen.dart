@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
-import '../../core/api/api_error.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/field_detail.dart';
 import '../../shared/utils/formatters.dart';
@@ -98,15 +96,8 @@ class _FieldErrorView extends StatelessWidget {
     );
   }
 
-  static String _messageFor(Object error) {
-    if (error is DioException && error.error is ApiError) {
-      final apiError = error.error as ApiError;
-      return apiError.statusCode == null
-          ? apiError.message
-          : '${apiError.message} (${apiError.statusCode})';
-    }
-    return 'The field details could not be loaded.';
-  }
+  static String _messageFor(Object error) =>
+      'The field details could not be loaded.';
 }
 
 class _DetailContent extends StatelessWidget {

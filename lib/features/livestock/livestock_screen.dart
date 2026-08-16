@@ -1,7 +1,5 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/sync/offline_queued_exception.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/livestock.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
@@ -207,18 +205,8 @@ class _AddAnimalFormState extends ConsumerState<_AddAnimalForm> {
       });
       ref.invalidate(livestockProvider);
       if (mounted) Navigator.pop(context);
-    } on OfflineQueuedException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
-        Navigator.pop(context);
-      }
-    } on DioException catch (e) {
-      final data = e.response?.data;
-      setState(() => _error = data is Map<String, dynamic>
-          ? data['error'] as String? ?? 'Could not save animal.'
-          : 'Could not save animal.');
+    } catch (e) {
+      setState(() => _error = 'Could not save animal.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }

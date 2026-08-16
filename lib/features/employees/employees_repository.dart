@@ -1,28 +1,36 @@
-import '../../core/api/api_client.dart';
-import '../../core/sync/offline_fallback.dart';
-import '../../core/sync/sync_queue_provider.dart';
+import 'package:drift/drift.dart';
+import '../../core/db/app_database.dart';
+import '../../core/db/db_utils.dart';
 import '../../models/employee.dart';
 
 class EmployeesRepository {
-  EmployeesRepository(this._syncQueue);
+  EmployeesRepository(this._db);
 
-  final SyncQueueNotifier _syncQueue;
+  final AppDatabase _db;
 
   Future<List<EmployeeModel>> getEmployees() async {
-    final response = await ApiClient.get('/mobile/employees');
-    return (response.data as List)
-        .map((e) => EmployeeModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final rows = await _db.select(_db.employees).get();
+    return rows.map((r) => EmployeeModel.fromJson(r.toJson())).toList();
   }
 
   Future<EmployeeModel> createEmployee(Map<String, dynamic> data) async {
-    final response = await withOfflineFallback(
-      request: () => ApiClient.post('/mobile/employees', data),
-      syncQueue: _syncQueue,
-      type: 'employee',
-      path: '/mobile/employees',
-      payload: data,
-    );
-    return EmployeeModel.fromJson(response.data as Map<String, dynamic>);
+    final id = newId();
+    await _db.into(_db.employees).insert(EmployeesCompanion.insert(
+          id: id,
+          name: data['name'] as String,
+          role: data['role'] as String,
+          payRate: asDouble(data['payRate']),
+          payRateUnit: data['payRateUnit'] as String,
+          phone: Value(asStringOrNull(data['phone'])),
+        ));
+    return EmployeeModel.fromJson({
+      'id': id,
+      'name': data['name'],
+      'role': data['role'],
+      'payRate': asDouble(data['payRate']),
+      'payRateUnit': data['payRateUnit'],
+      'phone': asStringOrNull(data['phone']),
+      'isActive': true,
+    });
   }
 }

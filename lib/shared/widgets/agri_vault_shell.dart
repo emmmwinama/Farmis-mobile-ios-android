@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
-import 'sync_status_indicator.dart';
 
 class AgriVaultShell extends StatefulWidget {
   final Widget child;
@@ -43,15 +42,6 @@ class _AgriVaultShellState extends State<AgriVaultShell> {
               leading: const Padding(
                 padding: EdgeInsets.symmetric(vertical: 14),
                 child: _BrandMark(),
-              ),
-              trailing: const Expanded(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: EdgeInsets.only(bottom: 16),
-                    child: SyncStatusIndicator(compact: true),
-                  ),
-                ),
               ),
               destinations: _items
                   .map((item) => NavigationRailDestination(
@@ -109,7 +99,6 @@ class _AgriVaultShellState extends State<AgriVaultShell> {
     }
     if (location == '/finance' ||
         location == '/employees' ||
-        location == '/team' ||
         location == '/inventory' ||
         location == '/equipment') {
       return 2;
@@ -121,7 +110,6 @@ class _AgriVaultShellState extends State<AgriVaultShell> {
         location == '/notifications' ||
         location == '/credit-score' ||
         location == '/report-builder' ||
-        location == '/graph-catalog' ||
         location == '/weather') {
       return 3;
     }

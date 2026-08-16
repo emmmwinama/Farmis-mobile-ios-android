@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dio/dio.dart';
-import '../../core/auth/auth_provider.dart';
-import '../../core/api/api_error.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_mode_provider.dart';
 import '../../models/crop_detail.dart';
@@ -15,7 +12,6 @@ import '../../shared/filters/report_record_filters.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_card.dart';
 import '../../shared/widgets/glass_panel.dart';
-import '../../shared/widgets/sync_status_indicator.dart';
 import '../crops/crops_provider.dart';
 import 'dashboard_provider.dart';
 
@@ -34,20 +30,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final dashboard = ref.watch(dashboardProvider(_filters));
-    final auth      = ref.watch(authProvider);
-    final name      = auth?.user.name ?? 'Farmer';
     final currentData = dashboard.valueOrNull;
     if (currentData != null) {
       _lastData = currentData;
     }
     final visibleData = currentData ?? _lastData;
-    if (dashboard.hasError && _isUnauthorized(dashboard.error)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        ref.read(authProvider.notifier).logout();
-        context.go('/login');
-      });
-    }
+    final name = visibleData?.userName ?? 'Farmer';
 
     return Scaffold(
       backgroundColor: FarmioColors.background,
@@ -116,10 +104,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ? ThemeMode.light
                       : ThemeMode.dark;
                 },
-              ),
-              const Padding(
-                padding: EdgeInsets.only(right: 8),
-                child: Center(child: SyncStatusIndicator(compact: true)),
               ),
               GestureDetector(
                 onTap: () => context.push('/profile'),
@@ -227,13 +211,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return {
       ...data.recentActivities.map((item) => '${item.date.year}'),
     }.toList();
-  }
-
-  bool _isUnauthorized(Object? error) {
-    if (error is DioException && error.error is ApiError) {
-      return (error.error as ApiError).type == ApiErrorType.unauthorized;
-    }
-    return false;
   }
 
   void _showDashboardAlerts(BuildContext context) {
@@ -1398,8 +1375,6 @@ class _QuickActionsGrid extends StatelessWidget {
           const Color(0xFF2563EB), '/employees'),
       _Action('Templates',   Icons.fact_check_rounded,
           const Color(0xFF7C3AED), '/templates'),
-      _Action('Functions',   Icons.apps_rounded,
-          const Color(0xFF334155), '/functions'),
       _Action('Profile',     Icons.person_rounded,
           const Color(0xFF64748B), '/profile'),
     ];
@@ -1796,13 +1771,5 @@ class _ErrorView extends StatelessWidget {
     );
   }
 
-  String _messageFor(Object error) {
-    if (error is DioException && error.error is ApiError) {
-      final apiError = error.error as ApiError;
-      return apiError.statusCode == null
-          ? apiError.message
-          : '${apiError.message} (${apiError.statusCode})';
-    }
-    return error.toString();
-  }
+  String _messageFor(Object error) => error.toString();
 }

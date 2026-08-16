@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'compliance_repository.dart';
+import '../../core/db/database_provider.dart';
 import '../../models/compliance.dart';
 
 final complianceRepositoryProvider = Provider<ComplianceRepository>(
-  (_) => ComplianceRepository(),
+  (ref) => ComplianceRepository(ref.read(databaseProvider)),
 );
 
 final complianceProvider = FutureProvider.autoDispose<ComplianceData>((ref) {
