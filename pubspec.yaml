@@ -41,6 +41,9 @@ dependencies:
   # Document evidence upload
   image_picker: ^1.1.2
 
+  # File picking for data import/export
+  file_picker: ^8.1.2
+
   # PDF report export
   path_provider: ^2.1.4
   share_plus: ^10.0.2
