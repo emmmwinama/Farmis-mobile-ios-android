@@ -16,7 +16,7 @@ import 'reports_provider.dart';
 
 // Report tabs matching the web app
 enum ReportTab {
-  season, crop, field, cropField, labour, inputs, yields
+  season, crop, field, cropField, labour, inputs, yields, livestock
 }
 
 const _tabLabels = {
@@ -27,6 +27,7 @@ const _tabLabels = {
   ReportTab.labour:    'Labour',
   ReportTab.inputs:    'Inputs',
   ReportTab.yields:    'Yields',
+  ReportTab.livestock: 'Livestock',
 };
 
 List<String> _filterCrops(ReportData data) {
@@ -121,6 +122,7 @@ ReportData _applyLocalFilters(
     employeeReport: data.employeeReport,
     inputReport: data.inputReport,
     yieldsReport: YieldsReport(byType: yieldTypes, records: yieldRecords),
+    livestockReport: data.livestockReport,
   );
 }
 
@@ -305,7 +307,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                               decoration: BoxDecoration(
                                 color: selected
                                     ? FarmioColors.primary
-                                    : Colors.white,
+                                    : context.colors.surface,
                                 borderRadius: BorderRadius.circular(999),
                                 border: Border.all(
                                   color: selected
@@ -388,6 +390,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
                       if (_tab == ReportTab.yields)
                         _YieldsTab(data: filteredData.yieldsReport),
+
+                      if (_tab == ReportTab.livestock)
+                        _LivestockTab(data: filteredData.livestockReport),
                     ],
                   ),
                 ),
@@ -582,6 +587,10 @@ class _ChartsOverview extends StatelessWidget {
         children: [
           _FinanceMixChart(summary: data.financeSummary),
           const SizedBox(width: 12),
+          _SeasonProfitTrendChart(seasons: data.seasonReport),
+          const SizedBox(width: 12),
+          _CropProfitRankingChart(crops: data.cropReport),
+          const SizedBox(width: 12),
           _CropCostChart(crops: data.cropReport),
           const SizedBox(width: 12),
           _YieldEfficiencyChart(items: data.yieldsReport.byType),
@@ -589,6 +598,8 @@ class _ChartsOverview extends StatelessWidget {
           _SeasonCostChart(seasons: data.seasonReport),
           const SizedBox(width: 12),
           _SeasonExpenseMixChart(seasons: data.seasonReport),
+          const SizedBox(width: 12),
+          _LivestockProfitChart(items: data.livestockReport),
         ],
       ),
     );
@@ -613,9 +624,9 @@ class _ReportExportPanel extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: FarmioColors.softBorder),
+        border: Border.all(color: context.colors.softBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -675,7 +686,7 @@ class _ReportExportPanel extends ConsumerWidget {
                 ),
                 onSelected: (_) => onToggle(tab),
                 selectedColor: FarmioColors.primary,
-                backgroundColor: Colors.white,
+                backgroundColor: context.colors.surface,
                 checkmarkColor: Colors.white,
                 side: BorderSide(
                   color: selected
@@ -840,17 +851,17 @@ class _TableCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: FarmioColors.softBorder),
+        border: Border.all(color: context.colors.softBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: FarmioColors.textPrimary,
+            style: TextStyle(
+              color: context.colors.textPrimary,
               fontSize: 15,
               fontWeight: FontWeight.w900,
             ),
@@ -861,8 +872,8 @@ class _TableCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
                 emptyLabel,
-                style: const TextStyle(
-                  color: Colors.white54,
+                style: TextStyle(
+                  color: context.colors.textMuted,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -953,6 +964,181 @@ class _FinanceMixChart extends StatelessWidget {
         _LegendDot(label: 'Activity', color: FarmioColors.info),
         _LegendDot(label: 'Overhead', color: FarmioColors.purple),
       ],
+    );
+  }
+}
+
+class _SeasonProfitTrendChart extends StatelessWidget {
+  final List<SeasonReport> seasons;
+
+  const _SeasonProfitTrendChart({required this.seasons});
+
+  @override
+  Widget build(BuildContext context) {
+    final ordered = [...seasons]
+      ..sort((a, b) => a.season.compareTo(b.season));
+    final shown = ordered.take(6).toList();
+    final values = shown.map((s) => s.netProfit).toList();
+    final maxValue = values.isEmpty
+        ? 1.0
+        : values.reduce((a, b) => a > b ? a : b);
+    final minValue = values.isEmpty
+        ? 0.0
+        : values.reduce((a, b) => a < b ? a : b);
+
+    return _ChartCard(
+      title: 'Profit by season',
+      subtitle: 'Are you doing better season over season?',
+      child: shown.isEmpty
+          ? const _ChartEmpty(label: 'No season data yet')
+          : BarChart(
+              BarChartData(
+                minY: minValue >= 0 ? 0 : minValue * 1.18,
+                maxY: maxValue <= 0 ? 1 : maxValue * 1.18,
+                gridData: const FlGridData(show: false),
+                borderData: FlBorderData(show: false),
+                titlesData: const FlTitlesData(show: false),
+                barTouchData: BarTouchData(enabled: false),
+                barGroups: [
+                  for (var i = 0; i < shown.length; i++)
+                    BarChartGroupData(
+                      x: i,
+                      barRods: [
+                        BarChartRodData(
+                          toY: shown[i].netProfit,
+                          width: 18,
+                          borderRadius: BorderRadius.circular(6),
+                          color: shown[i].netProfit >= 0
+                              ? FarmioColors.success
+                              : FarmioColors.danger,
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+      footer: shown
+          .map((s) => _ListMetric(
+                label: s.season,
+                value: Fmt.mwk(s.netProfit),
+              ))
+          .toList(),
+    );
+  }
+}
+
+class _CropProfitRankingChart extends StatelessWidget {
+  final List<CropReport> crops;
+
+  const _CropProfitRankingChart({required this.crops});
+
+  @override
+  Widget build(BuildContext context) {
+    final ranked = [...crops]
+      ..sort((a, b) => b.netProfit.compareTo(a.netProfit));
+    final shown = ranked.take(5).toList();
+    final values = shown.map((c) => c.netProfit).toList();
+    final maxValue = values.isEmpty
+        ? 1.0
+        : values.reduce((a, b) => a > b ? a : b);
+    final minValue = values.isEmpty
+        ? 0.0
+        : values.reduce((a, b) => a < b ? a : b);
+
+    return _ChartCard(
+      title: 'Best and worst performers',
+      subtitle: 'Crops ranked by net profit',
+      child: shown.isEmpty
+          ? const _ChartEmpty(label: 'No crop profit data yet')
+          : BarChart(
+              BarChartData(
+                minY: minValue >= 0 ? 0 : minValue * 1.18,
+                maxY: maxValue <= 0 ? 1 : maxValue * 1.18,
+                gridData: const FlGridData(show: false),
+                borderData: FlBorderData(show: false),
+                titlesData: const FlTitlesData(show: false),
+                barTouchData: BarTouchData(enabled: false),
+                barGroups: [
+                  for (var i = 0; i < shown.length; i++)
+                    BarChartGroupData(
+                      x: i,
+                      barRods: [
+                        BarChartRodData(
+                          toY: shown[i].netProfit,
+                          width: 18,
+                          borderRadius: BorderRadius.circular(6),
+                          color: shown[i].netProfit >= 0
+                              ? FarmioColors.success
+                              : FarmioColors.danger,
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+      footer: shown
+          .map((c) => _ListMetric(
+                label: c.cropName,
+                value: Fmt.mwk(c.netProfit),
+              ))
+          .toList(),
+    );
+  }
+}
+
+class _LivestockProfitChart extends StatelessWidget {
+  final List<LivestockReport> items;
+
+  const _LivestockProfitChart({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    final shown = items.take(5).toList();
+    final values = shown.map((l) => l.netProfit).toList();
+    final maxValue = values.isEmpty
+        ? 1.0
+        : values.reduce((a, b) => a > b ? a : b);
+    final minValue = values.isEmpty
+        ? 0.0
+        : values.reduce((a, b) => a < b ? a : b);
+
+    return _ChartCard(
+      title: 'Livestock profit by type',
+      subtitle: 'Sales and production income minus costs',
+      child: shown.isEmpty
+          ? const _ChartEmpty(label: 'No livestock data yet')
+          : BarChart(
+              BarChartData(
+                minY: minValue >= 0 ? 0 : minValue * 1.18,
+                maxY: maxValue <= 0 ? 1 : maxValue * 1.18,
+                gridData: const FlGridData(show: false),
+                borderData: FlBorderData(show: false),
+                titlesData: const FlTitlesData(show: false),
+                barTouchData: BarTouchData(enabled: false),
+                barGroups: [
+                  for (var i = 0; i < shown.length; i++)
+                    BarChartGroupData(
+                      x: i,
+                      barRods: [
+                        BarChartRodData(
+                          toY: shown[i].netProfit,
+                          width: 18,
+                          borderRadius: BorderRadius.circular(6),
+                          color: shown[i].netProfit >= 0
+                              ? FarmioColors.success
+                              : FarmioColors.danger,
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+      footer: shown
+          .map((l) => _ListMetric(
+                label: l.livestockType,
+                value: Fmt.mwk(l.netProfit),
+              ))
+          .toList(),
     );
   }
 }
@@ -1230,17 +1416,17 @@ class _ChartCard extends StatelessWidget {
       width: 288,
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: FarmioColors.softBorder),
+        border: Border.all(color: context.colors.softBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: FarmioColors.textPrimary,
+            style: TextStyle(
+              color: context.colors.textPrimary,
               fontSize: 15,
               fontWeight: FontWeight.w900,
             ),
@@ -1248,8 +1434,8 @@ class _ChartCard extends StatelessWidget {
           const SizedBox(height: 3),
           Text(
             subtitle,
-            style: const TextStyle(
-              color: FarmioColors.textSecond,
+            style: TextStyle(
+              color: context.colors.textSecond,
               fontSize: 11,
             ),
           ),
@@ -1427,15 +1613,15 @@ class _SeasonCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(season.season,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize:   15,
                       fontWeight: FontWeight.w800,
-                      color:      Colors.white,
+                      color:      context.colors.textPrimary,
                     )),
                 Text(season.fields.join(', '),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color:    Colors.white60,
+                      color:    context.colors.textMuted,
                     )),
               ],
             )),
@@ -1561,19 +1747,19 @@ class _CropReportCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(crop.cropName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize:   14,
                       fontWeight: FontWeight.w800,
-                      color:      Colors.white,
+                      color:      context.colors.textPrimary,
                     )),
                 Text(
                   '${crop.count} record'
                       '${crop.count != 1 ? "s" : ""}'
                       ' · ${crop.seasons.length} season'
                       '${crop.seasons.length != 1 ? "s" : ""}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color:    Colors.white60,
+                    color:    context.colors.textMuted,
                   ),
                 ),
               ],
@@ -1679,15 +1865,15 @@ class _FieldReportCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(field.fieldName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize:   14,
                       fontWeight: FontWeight.w800,
-                      color:      Colors.white,
+                      color:      context.colors.textPrimary,
                     )),
                 Text(field.soilType,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color:    Colors.white60,
+                      color:    context.colors.textMuted,
                     )),
               ],
             )),
@@ -1863,15 +2049,15 @@ class _CropFieldCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('${item.cropName} · ${item.variety}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize:   13,
                       fontWeight: FontWeight.w800,
-                      color:      Colors.white,
+                      color:      context.colors.textPrimary,
                     )),
                 Text('${item.fieldName} · ${item.season}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color:    Colors.white60,
+                      color:    context.colors.textMuted,
                     )),
               ],
             )),
@@ -1994,15 +2180,15 @@ class _EmployeeCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(employee.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize:   13,
                   fontWeight: FontWeight.w800,
-                  color:      Colors.white,
+                  color:      context.colors.textPrimary,
                 )),
             Text(employee.role,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color:    Colors.white60,
+                  color:    context.colors.textMuted,
                 )),
             const SizedBox(height: 6),
             Row(children: [
@@ -2106,15 +2292,15 @@ class _InputCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(input.inputName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize:   13,
                       fontWeight: FontWeight.w800,
-                      color:      Colors.white,
+                      color:      context.colors.textPrimary,
                     )),
                 Text(input.category,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color:    Colors.white60,
+                      color:    context.colors.textMuted,
                     )),
               ],
             )),
@@ -2179,11 +2365,11 @@ class _YieldsTab extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Detail records
-          const Text('Yield detail records',
+          Text('Yield detail records',
               style: TextStyle(
                 fontSize:   15,
                 fontWeight: FontWeight.w800,
-                color:      Colors.white,
+                color:      context.colors.textPrimary,
               )),
           const SizedBox(height: 10),
           ...data.records.map((r) => Padding(
@@ -2211,10 +2397,10 @@ class _YieldTypeCard extends StatelessWidget {
                 size: 20, color: FarmioColors.primary),
             const SizedBox(width: 10),
             Expanded(child: Text(item.cropName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize:   14,
                   fontWeight: FontWeight.w800,
-                  color:      Colors.white,
+                  color:      context.colors.textPrimary,
                 ))),
             Text(item.displayKg,
                 style: const TextStyle(
@@ -2269,15 +2455,15 @@ class _YieldDetailCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('${record.cropName} · ${record.variety}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize:   13,
                       fontWeight: FontWeight.w800,
-                      color:      Colors.white,
+                      color:      context.colors.textPrimary,
                     )),
                 Text('${record.fieldName} · ${record.season}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color:    Colors.white60,
+                      color:    context.colors.textMuted,
                     )),
               ],
             )),
@@ -2319,6 +2505,121 @@ class _YieldDetailCard extends StatelessWidget {
   }
 }
 
+// ── Livestock tab ─────────────────────────────────────────────────────────────
+class _LivestockTab extends StatelessWidget {
+  final List<LivestockReport> data;
+  const _LivestockTab({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    if (data.isEmpty) return const _Empty(label: 'No livestock data yet');
+
+    final maxRevenue = data
+        .map((l) => l.revenue)
+        .fold<double>(0, (a, b) => a > b ? a : b);
+
+    return Column(
+      children: [
+        _ReportHeader(
+          title: 'Livestock profitability',
+          sub:   'Sales and production income vs health and other costs',
+        ),
+        ...data.map((l) => Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child:   _LivestockReportCard(item: l, maxRevenue: maxRevenue),
+        )),
+      ],
+    );
+  }
+}
+
+class _LivestockReportCard extends StatelessWidget {
+  final LivestockReport item;
+  final double           maxRevenue;
+  const _LivestockReportCard({required this.item, required this.maxRevenue});
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = maxRevenue > 0
+        ? (item.revenue / maxRevenue).clamp(0.0, 1.0)
+        : 0.0;
+
+    return _ReportCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.pets_outlined,
+                size: 20, color: FarmioColors.primary),
+            const SizedBox(width: 10),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.livestockType,
+                    style: TextStyle(
+                      fontSize:   14,
+                      fontWeight: FontWeight.w800,
+                      color:      context.colors.textPrimary,
+                    )),
+                Text(
+                  '${item.animalCount} animal'
+                      '${item.animalCount != 1 ? "s" : ""}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color:    context.colors.textMuted,
+                  ),
+                ),
+              ],
+            )),
+            Text(Fmt.mwk(item.netProfit),
+                style: TextStyle(
+                  fontSize:   13,
+                  fontWeight: FontWeight.w800,
+                  color: item.netProfit >= 0
+                      ? FarmioColors.success
+                      : FarmioColors.danger,
+                )),
+          ]),
+          const SizedBox(height: 10),
+          Row(children: [
+            _MetricCol(
+              label: 'Sales',
+              value: Fmt.mwk(item.saleIncome),
+              color: FarmioColors.success,
+            ),
+            _MetricCol(
+              label: 'Production',
+              value: Fmt.mwk(item.productionIncome),
+              color: FarmioColors.success,
+            ),
+            _MetricCol(
+              label: 'Health',
+              value: Fmt.mwk(item.healthCost),
+              color: FarmioColors.danger,
+            ),
+            _MetricCol(
+              label: 'Other',
+              value: Fmt.mwk(item.otherCost),
+              color: FarmioColors.danger,
+            ),
+          ]),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value:           pct,
+              minHeight:       4,
+              backgroundColor: context.colors.border,
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                  FarmioColors.success),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Shared widgets ────────────────────────────────────────────────────────────
 class _ReportCard extends StatelessWidget {
   final Widget child;
@@ -2330,9 +2631,9 @@ class _ReportCard extends StatelessWidget {
       width:   double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(22),
-        border:       Border.all(color: FarmioColors.softBorder),
+        border:       Border.all(color: context.colors.softBorder),
         boxShadow: [
           BoxShadow(
             color: FarmioColors.slate900.withValues(alpha: 0.04),
@@ -2488,21 +2789,21 @@ class _DropdownFilter extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color:        FarmioColors.slate50,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(10),
-        border:       Border.all(color: FarmioColors.softBorder),
+        border:       Border.all(color: context.colors.softBorder),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value:      value,
           isExpanded: true,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize:   12,
-            color:      FarmioColors.textPrimary,
+            color:      context.colors.textPrimary,
             fontWeight: FontWeight.w600,
           ),
-          dropdownColor: Colors.white,
-          iconEnabledColor: FarmioColors.textSecond,
+          dropdownColor: context.colors.surface,
+          iconEnabledColor: context.colors.textSecond,
           items: items.map((i) => DropdownMenuItem(
             value: i,
             child: Text(i, overflow: TextOverflow.ellipsis),

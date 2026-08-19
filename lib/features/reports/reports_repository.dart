@@ -224,6 +224,57 @@ class ReportsRepository {
           ..sort((a, b) => (b['totalYieldKg'] as double)
               .compareTo(a['totalYieldKg'] as double));
 
+    final livestockAgg = <String, _LivestockAgg>{};
+    final animals = await _db.select(_db.animals).get();
+    for (final animal in animals) {
+      final type = await (_db.select(_db.livestockTypes)
+            ..where((t) => t.id.equals(animal.livestockTypeId)))
+          .getSingleOrNull();
+      final typeName = type?.name ?? 'Other';
+      final agg = livestockAgg.putIfAbsent(typeName, () => _LivestockAgg());
+      agg.animalCount += 1;
+
+      final sales = await (_db.select(_db.animalSaleRecords)
+            ..where((t) => t.animalId.equals(animal.id)))
+          .get();
+      for (final sale in sales) {
+        if (from != null && sale.saleDate.isBefore(from)) continue;
+        if (to != null && sale.saleDate.isAfter(to)) continue;
+        agg.saleIncome += sale.totalAmount;
+      }
+
+      final production = await (_db.select(_db.animalProductionRecords)
+            ..where((t) => t.animalId.equals(animal.id)))
+          .get();
+      for (final record in production) {
+        if (from != null && record.date.isBefore(from)) continue;
+        if (to != null && record.date.isAfter(to)) continue;
+        agg.productionIncome += record.totalValue ?? 0;
+      }
+
+      final health = await (_db.select(_db.animalHealthRecords)
+            ..where((t) => t.animalId.equals(animal.id)))
+          .get();
+      for (final record in health) {
+        if (from != null && record.date.isBefore(from)) continue;
+        if (to != null && record.date.isAfter(to)) continue;
+        agg.healthCost += record.cost;
+      }
+
+      final expenses = await (_db.select(_db.animalExpenseRecords)
+            ..where((t) => t.animalId.equals(animal.id)))
+          .get();
+      for (final record in expenses) {
+        if (from != null && record.date.isBefore(from)) continue;
+        if (to != null && record.date.isAfter(to)) continue;
+        agg.otherCost += record.amount;
+      }
+    }
+    final livestockReport =
+        livestockAgg.entries.map((e) => e.value.toJson(e.key)).toList()
+          ..sort((a, b) => (b['netProfit'] as double)
+              .compareTo(a['netProfit'] as double));
+
     return ReportData.fromJson({
       'financeSummary': {
         'totalIncome': totalIncome,
@@ -238,6 +289,7 @@ class ReportsRepository {
       'employeeReport': employeeReport,
       'inputReport': inputReport,
       'yieldsReport': {'byType': yieldByType, 'records': yieldRecords},
+      'livestockReport': livestockReport,
     });
   }
 }
@@ -345,4 +397,28 @@ class _YieldTypeAgg {
         'yieldPerHa': totalAreaPlanted > 0 ? totalYieldKg / totalAreaPlanted : 0,
         'costPerKg': totalYieldKg > 0 ? totalCost / totalYieldKg : 0,
       };
+}
+
+class _LivestockAgg {
+  int animalCount = 0;
+  double saleIncome = 0;
+  double productionIncome = 0;
+  double healthCost = 0;
+  double otherCost = 0;
+
+  Map<String, dynamic> toJson(String livestockType) {
+    final revenue = saleIncome + productionIncome;
+    final totalCost = healthCost + otherCost;
+    return {
+      'livestockType': livestockType,
+      'animalCount': animalCount,
+      'saleIncome': saleIncome,
+      'productionIncome': productionIncome,
+      'healthCost': healthCost,
+      'otherCost': otherCost,
+      'totalCost': totalCost,
+      'revenue': revenue,
+      'netProfit': revenue - totalCost,
+    };
+  }
 }

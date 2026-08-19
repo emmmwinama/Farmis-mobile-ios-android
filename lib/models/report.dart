@@ -358,6 +358,43 @@ class YieldsReport {
       );
 }
 
+class LivestockReport {
+  final String livestockType;
+  final int    animalCount;
+  final double saleIncome;
+  final double productionIncome;
+  final double healthCost;
+  final double otherCost;
+  final double totalCost;
+  final double revenue;
+  final double netProfit;
+
+  const LivestockReport({
+    required this.livestockType,
+    required this.animalCount,
+    required this.saleIncome,
+    required this.productionIncome,
+    required this.healthCost,
+    required this.otherCost,
+    required this.totalCost,
+    required this.revenue,
+    required this.netProfit,
+  });
+
+  factory LivestockReport.fromJson(Map<String, dynamic> j) =>
+      LivestockReport(
+        livestockType:    j['livestockType']              as String,
+        animalCount:       j['animalCount']    as int,
+        saleIncome:        (j['saleIncome']        as num).toDouble(),
+        productionIncome:  (j['productionIncome']  as num).toDouble(),
+        healthCost:        (j['healthCost']        as num).toDouble(),
+        otherCost:         (j['otherCost']         as num).toDouble(),
+        totalCost:         (j['totalCost']         as num).toDouble(),
+        revenue:           (j['revenue']           as num).toDouble(),
+        netProfit:         (j['netProfit']         as num).toDouble(),
+      );
+}
+
 class ReportData {
   final FinanceSummary        financeSummary;
   final List<SeasonReport>    seasonReport;
@@ -367,6 +404,7 @@ class ReportData {
   final List<EmployeeReport>  employeeReport;
   final List<InputReport>     inputReport;
   final YieldsReport          yieldsReport;
+  final List<LivestockReport> livestockReport;
 
   const ReportData({
     required this.financeSummary,
@@ -377,6 +415,7 @@ class ReportData {
     required this.employeeReport,
     required this.inputReport,
     required this.yieldsReport,
+    required this.livestockReport,
   });
 
   factory ReportData.fromJson(Map<String, dynamic> j) =>
@@ -409,5 +448,9 @@ class ReportData {
             .toList(),
         yieldsReport: YieldsReport.fromJson(
             j['yieldsReport'] as Map<String, dynamic>),
+        livestockReport: (j['livestockReport'] as List? ?? const [])
+            .map((e) => LivestockReport.fromJson(
+            e as Map<String, dynamic>))
+            .toList(),
       );
 }

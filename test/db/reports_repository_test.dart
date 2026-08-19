@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:farmio_mobile/core/db/app_database.dart';
@@ -225,6 +226,84 @@ void main() {
     expect(data.cropReport, hasLength(1));
     expect(data.cropReport.first.revenue, 50000);
     expect(data.cropReport.first.netProfit, 40000);
+  });
+
+  test(
+      'getReport aggregates livestock sale/production income against health/other costs',
+      () async {
+    final typeId = newId();
+    await db.into(db.livestockTypes).insert(
+          LivestockTypesCompanion.insert(
+            id: typeId,
+            name: 'Dairy cattle',
+            category: 'Cattle',
+            icon: 'cow',
+          ),
+        );
+    final animalId = newId();
+    await db.into(db.animals).insert(
+          AnimalsCompanion.insert(
+            id: animalId,
+            livestockTypeId: typeId,
+            sex: 'Female',
+            acquisitionDate: DateTime(2025, 1, 1),
+            acquisitionType: 'Purchased',
+          ),
+        );
+
+    await db.into(db.animalSaleRecords).insert(
+          AnimalSaleRecordsCompanion.insert(
+            id: newId(),
+            animalId: animalId,
+            saleDate: DateTime(2026, 3, 1),
+            totalAmount: 150000,
+          ),
+        );
+    await db.into(db.animalProductionRecords).insert(
+          AnimalProductionRecordsCompanion.insert(
+            id: newId(),
+            animalId: animalId,
+            type: 'Milk',
+            quantity: 200,
+            unit: 'L',
+            date: DateTime(2026, 3, 2),
+            totalValue: const Value(30000),
+          ),
+        );
+    await db.into(db.animalHealthRecords).insert(
+          AnimalHealthRecordsCompanion.insert(
+            id: newId(),
+            animalId: animalId,
+            type: 'Vaccination',
+            description: 'Annual shots',
+            cost: 5000,
+            date: DateTime(2026, 2, 1),
+          ),
+        );
+    await db.into(db.animalExpenseRecords).insert(
+          AnimalExpenseRecordsCompanion.insert(
+            id: newId(),
+            animalId: Value(animalId),
+            category: 'Feed',
+            description: 'Silage',
+            amount: 12000,
+            date: DateTime(2026, 2, 15),
+          ),
+        );
+
+    final data = await repo.getReport(const ReportRecordFilters());
+
+    expect(data.livestockReport, hasLength(1));
+    final report = data.livestockReport.single;
+    expect(report.livestockType, 'Dairy cattle');
+    expect(report.animalCount, 1);
+    expect(report.saleIncome, 150000);
+    expect(report.productionIncome, 30000);
+    expect(report.healthCost, 5000);
+    expect(report.otherCost, 12000);
+    expect(report.revenue, 180000);
+    expect(report.totalCost, 17000);
+    expect(report.netProfit, 163000);
   });
 
   test('getReport filters by season', () async {
