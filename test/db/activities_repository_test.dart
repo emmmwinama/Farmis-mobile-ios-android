@@ -4,18 +4,21 @@ import 'package:farmio_mobile/core/db/app_database.dart';
 import 'package:farmio_mobile/features/activities/activities_repository.dart';
 import 'package:farmio_mobile/features/fields/fields_repository.dart';
 import 'package:farmio_mobile/features/crops/crops_repository.dart';
+import 'package:farmio_mobile/features/employees/employees_repository.dart';
 
 void main() {
   late AppDatabase db;
   late ActivitiesRepository repo;
   late FieldsRepository fields;
   late CropsRepository crops;
+  late EmployeesRepository employees;
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
     repo = ActivitiesRepository(db);
     fields = FieldsRepository(db);
     crops = CropsRepository(db);
+    employees = EmployeesRepository(db);
   });
 
   tearDown(() async => db.close());
@@ -106,6 +109,42 @@ void main() {
     expect(detail.costs.total, 100000);
     expect(detail.inputs, hasLength(1));
     expect(detail.inputs.first.inputName, 'NPK');
+  });
+
+  test('createActivity persists labour records and getActivity includes them in the cost breakdown',
+      () async {
+    final fieldId = await _seedField();
+    final worker = await employees.createEmployee({
+      'name': 'Grace Banda',
+      'role': 'Planting crew',
+      'payRate': '5000',
+      'payRateUnit': 'day',
+    });
+
+    final id = await repo.createActivity({
+      'fieldId': fieldId,
+      'activityType': 'Planting',
+      'date': DateTime(2026, 1, 10).toIso8601String(),
+      'inputs': const [],
+      'otherCosts': const [],
+      'labour': [
+        {
+          'employeeId': worker.id,
+          'hoursWorked': '8',
+          'daysWorked': '1',
+          'totalCost': '5000',
+        },
+      ],
+    });
+
+    final detail = await repo.getActivity(id);
+    expect(detail.costs.labour, 5000);
+    expect(detail.costs.total, 5000);
+    expect(detail.labourRecords, hasLength(1));
+
+    final data = await repo.getActivities();
+    expect(data.activities.first.totalLabourCost, 5000);
+    expect(data.activities.first.labourCount, 1);
   });
 
   test('deleteActivity removes the activity and its children', () async {

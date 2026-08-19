@@ -25,6 +25,7 @@ const _defaultLivestockTypes = [
 // ── Farm profile (single row) ───────────────────────────────────────────────
 class FarmProfile extends Table {
   TextColumn get id => text()();
+  TextColumn get ownerName => text().nullable()();
   TextColumn get name => text()();
   TextColumn get location => text()();
   RealColumn get locationLat => real().nullable()();
@@ -449,7 +450,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -469,6 +470,11 @@ class AppDatabase extends _$AppDatabase {
             );
           });
         },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.addColumn(farmProfile, farmProfile.ownerName);
+          }
+        },
       );
 }
 
@@ -478,7 +484,11 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dir = await getApplicationDocumentsDirectory();
     final file = File(p.join(dir.path, 'agrivault.sqlite'));
-    return NativeDatabase.createInBackground(file, setup: (rawDb) {
+    // Opened on the main isolate (not `createInBackground`): this app's
+    // write volume is low, and a background-isolate connection adds a
+    // failure mode (isolate spawn stalling with no error surfaced) that
+    // isn't worth the throughput win here.
+    return NativeDatabase(file, setup: (rawDb) {
       applyWorkaroundToOpenSqlite3OnOldAndroidVersions();
       rawDb.execute('PRAGMA foreign_keys = ON;');
     });

@@ -34,7 +34,7 @@ class EquipmentDetailScreen extends ConsumerWidget {
     final totalCost = linked.fold(0.0, (s, c) => s + c.amount);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: Text(item.name,
             style: const TextStyle(fontWeight: FontWeight.w800)),

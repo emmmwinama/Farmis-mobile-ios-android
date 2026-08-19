@@ -1,20 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/compliance.dart';
+import '../../shared/filters/entity_filter_bar.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
-import '../crops/crop_detail_screen.dart';
 import 'compliance_provider.dart';
 
-class ComplianceScreen extends ConsumerWidget {
+class ComplianceScreen extends ConsumerStatefulWidget {
   const ComplianceScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ComplianceScreen> createState() => _ComplianceScreenState();
+}
+
+class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
+  String _cropFilter = 'All';
+  String _fieldFilter = 'All';
+  String _seasonFilter = 'All';
+  String _statusFilter = 'All';
+
+  @override
+  Widget build(BuildContext context) {
     final compliance = ref.watch(complianceProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Compliance',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -31,47 +42,102 @@ class ComplianceScreen extends ConsumerWidget {
           message: error.toString(),
           onRetry: () => ref.invalidate(complianceProvider),
         ),
-        data: (data) => RefreshIndicator(
-          onRefresh: () async => ref.invalidate(complianceProvider),
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
-            children: [
-              _ReadinessGauge(pct: data.readinessPct),
-              const SizedBox(height: 12),
-              _ComplianceSummaryRow(data: data),
-              const SizedBox(height: 16),
-              const Text('Farm checklist',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: FarmioColors.textPrimary)),
-              const SizedBox(height: 8),
-              ...data.checklist.map((item) => _ChecklistTile(item: item)),
-              const SizedBox(height: 16),
-              const Text('Crop lots',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: FarmioColors.textPrimary)),
-              const SizedBox(height: 8),
-              if (data.lots.isEmpty)
-                const Text('No crop lots to review yet.',
-                    style: TextStyle(color: FarmioColors.textMuted))
-              else
-                ...data.lots.map((lot) => _LotTile(
-                      lot: lot,
-                      onReview: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                CropDetailScreen(cropId: lot.id),
-                          ),
-                        );
-                        ref.invalidate(complianceProvider);
-                      },
-                    )),
-            ],
-          ),
-        ),
+        data: (data) {
+          final crops = {...data.lots.map((l) => l.cropName)}.toList();
+          final fields = {...data.lots.map((l) => l.fieldName)}.toList();
+          final seasons = {...data.lots.map((l) => l.season)}.toList();
+
+          final filteredLots = data.lots.where((lot) {
+            if (_cropFilter != 'All' && lot.cropName != _cropFilter) {
+              return false;
+            }
+            if (_fieldFilter != 'All' && lot.fieldName != _fieldFilter) {
+              return false;
+            }
+            if (_seasonFilter != 'All' && lot.season != _seasonFilter) {
+              return false;
+            }
+            if (_statusFilter == 'Ready' && !lot.allDone) return false;
+            if (_statusFilter == 'Needs review' && lot.allDone) return false;
+            return true;
+          }).toList();
+
+          return RefreshIndicator(
+            onRefresh: () async => ref.invalidate(complianceProvider),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+              children: [
+                _ReadinessGauge(pct: data.readinessPct),
+                const SizedBox(height: 12),
+                _ComplianceSummaryRow(data: data),
+                const SizedBox(height: 16),
+                const Text('Farm checklist',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: FarmioColors.textPrimary)),
+                const SizedBox(height: 8),
+                ...data.checklist.map((item) => _ChecklistTile(item: item)),
+                const SizedBox(height: 16),
+                const Text('Crop lots',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: FarmioColors.textPrimary)),
+                const SizedBox(height: 8),
+                if (data.lots.isEmpty)
+                  const Text('No crop lots to review yet.',
+                      style: TextStyle(color: FarmioColors.textMuted))
+                else ...[
+                  EntityFilterBar(
+                    dimensions: [
+                      FilterDimension(
+                        label: 'Crop',
+                        icon: Icons.grass_outlined,
+                        value: _cropFilter,
+                        options: crops,
+                        onSelected: (v) => setState(() => _cropFilter = v),
+                      ),
+                      FilterDimension(
+                        label: 'Field',
+                        icon: Icons.map_outlined,
+                        value: _fieldFilter,
+                        options: fields,
+                        onSelected: (v) => setState(() => _fieldFilter = v),
+                      ),
+                      FilterDimension(
+                        label: 'Season',
+                        icon: Icons.event_note_outlined,
+                        value: _seasonFilter,
+                        options: seasons,
+                        onSelected: (v) => setState(() => _seasonFilter = v),
+                      ),
+                      FilterDimension(
+                        label: 'Status',
+                        icon: Icons.fact_check_outlined,
+                        value: _statusFilter,
+                        options: const ['Ready', 'Needs review'],
+                        onSelected: (v) => setState(() => _statusFilter = v),
+                      ),
+                    ],
+                  ),
+                  if (filteredLots.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Text('No crop lots match this filter.',
+                          style: TextStyle(color: FarmioColors.textMuted)),
+                    )
+                  else
+                    ...filteredLots.map((lot) => _LotTile(
+                          lot: lot,
+                          onReview: () async {
+                            await context.push('/crops/${lot.id}');
+                            ref.invalidate(complianceProvider);
+                          },
+                        )),
+                ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }

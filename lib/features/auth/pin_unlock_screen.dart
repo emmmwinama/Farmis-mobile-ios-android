@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/auth/pin_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../shared/widgets/app_brand_mark.dart';
 import 'pin_pad.dart';
 
 class PinUnlockScreen extends ConsumerStatefulWidget {
@@ -51,17 +52,17 @@ class _PinUnlockScreenState extends ConsumerState<PinUnlockScreen> {
   Future<void> _confirmReset() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Reset PIN?'),
         content: const Text(
             "You'll be asked to set a new PIN. Your farm data is not affected."),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Reset',
                 style: TextStyle(color: FarmioColors.danger)),
           ),
@@ -77,34 +78,14 @@ class _PinUnlockScreenState extends ConsumerState<PinUnlockScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
               const SizedBox(height: 32),
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [FarmioColors.primaryDark, FarmioColors.primary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: FarmioColors.primary.withValues(alpha: 0.35),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.shield_outlined,
-                    color: Colors.white, size: 36),
-              ),
+              const BrandMark(size: 72, radius: 20),
               const SizedBox(height: 24),
               const Text('Enter your PIN',
                   style: TextStyle(

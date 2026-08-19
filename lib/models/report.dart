@@ -31,6 +31,8 @@ class SeasonReport {
   final double       otherCost;
   final double       totalCost;
   final double       costPerHectare;
+  final double       revenue;
+  final double       netProfit;
 
   const SeasonReport({
     required this.season,
@@ -43,6 +45,8 @@ class SeasonReport {
     required this.otherCost,
     required this.totalCost,
     required this.costPerHectare,
+    required this.revenue,
+    required this.netProfit,
   });
 
   factory SeasonReport.fromJson(Map<String, dynamic> j) =>
@@ -57,6 +61,8 @@ class SeasonReport {
         otherCost:      (j['otherCost']      as num).toDouble(),
         totalCost:      (j['totalCost']      as num).toDouble(),
         costPerHectare: (j['costPerHectare'] as num).toDouble(),
+        revenue:        (j['revenue']        as num? ?? 0).toDouble(),
+        netProfit:      (j['netProfit']      as num? ?? 0).toDouble(),
       );
 }
 
@@ -69,6 +75,8 @@ class CropReport {
   final double       inputCost;
   final double       totalCost;
   final double       costPerHectare;
+  final double       revenue;
+  final double       netProfit;
 
   const CropReport({
     required this.cropName,
@@ -79,6 +87,8 @@ class CropReport {
     required this.inputCost,
     required this.totalCost,
     required this.costPerHectare,
+    required this.revenue,
+    required this.netProfit,
   });
 
   factory CropReport.fromJson(Map<String, dynamic> j) =>
@@ -91,6 +101,8 @@ class CropReport {
         inputCost:      (j['inputCost']      as num).toDouble(),
         totalCost:      (j['totalCost']      as num).toDouble(),
         costPerHectare: (j['costPerHectare'] as num).toDouble(),
+        revenue:        (j['revenue']        as num? ?? 0).toDouble(),
+        netProfit:      (j['netProfit']      as num? ?? 0).toDouble(),
       );
 }
 

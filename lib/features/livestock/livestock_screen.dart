@@ -1,33 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/livestock.dart';
-import '../../shared/widgets/farmio_error_banner.dart';
-import 'livestock_detail_screen.dart';
+import '../../shared/filters/entity_filter_bar.dart';
 import 'livestock_provider.dart';
 
-class LivestockScreen extends ConsumerWidget {
-  const LivestockScreen({super.key});
+class LivestockScreen extends ConsumerStatefulWidget {
+  final bool embedded;
+  const LivestockScreen({super.key, this.embedded = false});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LivestockScreen> createState() => _LivestockScreenState();
+}
+
+class _LivestockScreenState extends ConsumerState<LivestockScreen> {
+  String _typeFilter = 'All';
+  String _sexFilter = 'All';
+  String _statusFilter = 'All';
+
+  @override
+  Widget build(BuildContext context) {
     final livestock = ref.watch(livestockProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
-      appBar: AppBar(
-        title: const Text('Livestock',
-            style: TextStyle(fontWeight: FontWeight.w800)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(livestockProvider),
-          ),
-        ],
-      ),
+      backgroundColor: context.colors.background,
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              title: const Text('Livestock',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () => ref.invalidate(livestockProvider),
+                ),
+              ],
+            ),
       floatingActionButton: livestock.maybeWhen(
-        data: (data) => FloatingActionButton.extended(
-          onPressed: () => _showAddAnimal(context, ref, data.types),
+        data: (_) => FloatingActionButton.extended(
+          onPressed: () => context.push('/animals/new'),
           icon: const Icon(Icons.add),
           label: const Text('Add animal'),
         ),
@@ -51,41 +63,78 @@ class LivestockScreen extends ConsumerWidget {
               ),
             );
           }
+
+          final types = {
+            ...data.animals.map((a) => a.livestockTypeName).whereType<String>(),
+          }.toList();
+          final sexes = {...data.animals.map((a) => a.sex)}.toList();
+          final statuses = {...data.animals.map((a) => a.status)}.toList();
+
+          final filtered = data.animals.where((a) {
+            if (_typeFilter != 'All' && a.livestockTypeName != _typeFilter) {
+              return false;
+            }
+            if (_sexFilter != 'All' && a.sex != _sexFilter) return false;
+            if (_statusFilter != 'All' && a.status != _statusFilter) {
+              return false;
+            }
+            return true;
+          }).toList();
+
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(livestockProvider),
             child: ListView.builder(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
-              itemCount: data.animals.length,
+              itemCount: (filtered.isEmpty ? 1 : filtered.length) + 1,
               itemBuilder: (context, index) {
-                final animal = data.animals[index];
+                if (index == 0) {
+                  return EntityFilterBar(
+                    dimensions: [
+                      FilterDimension(
+                        label: 'Type',
+                        icon: Icons.pets_outlined,
+                        value: _typeFilter,
+                        options: types,
+                        onSelected: (v) => setState(() => _typeFilter = v),
+                      ),
+                      FilterDimension(
+                        label: 'Sex',
+                        icon: Icons.wc_outlined,
+                        value: _sexFilter,
+                        options: sexes,
+                        onSelected: (v) => setState(() => _sexFilter = v),
+                      ),
+                      FilterDimension(
+                        label: 'Status',
+                        icon: Icons.info_outline_rounded,
+                        value: _statusFilter,
+                        options: statuses,
+                        onSelected: (v) => setState(() => _statusFilter = v),
+                      ),
+                    ],
+                  );
+                }
+                if (filtered.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'No animals match this filter',
+                        style: TextStyle(color: FarmioColors.textMuted),
+                      ),
+                    ),
+                  );
+                }
+                final animal = filtered[index - 1];
                 return _AnimalCard(
                   animal: animal,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          AnimalDetailScreen(animalId: animal.id),
-                    ),
-                  ),
+                  onTap: () => context.push('/animals/${animal.id}'),
                 );
               },
             ),
           );
         },
       ),
-    );
-  }
-
-  Future<void> _showAddAnimal(
-    BuildContext context,
-    WidgetRef ref,
-    List<LivestockType> types,
-  ) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _AddAnimalForm(types: types),
     );
   }
 }
@@ -104,9 +153,9 @@ class _AnimalCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: FarmioColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: FarmioColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(
           children: [
@@ -145,168 +194,6 @@ class _AnimalCard extends StatelessWidget {
             const Icon(Icons.chevron_right_rounded,
                 color: FarmioColors.textMuted),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AddAnimalForm extends ConsumerStatefulWidget {
-  final List<LivestockType> types;
-  const _AddAnimalForm({required this.types});
-
-  @override
-  ConsumerState<_AddAnimalForm> createState() => _AddAnimalFormState();
-}
-
-class _AddAnimalFormState extends ConsumerState<_AddAnimalForm> {
-  final _tagCtrl = TextEditingController();
-  final _nameCtrl = TextEditingController();
-  final _breedCtrl = TextEditingController();
-  String? _typeId;
-  String _sex = 'Unknown';
-  bool _saving = false;
-  String? _error;
-
-  final _sexes = const ['Unknown', 'Male', 'Female'];
-
-  @override
-  void initState() {
-    super.initState();
-    _typeId = widget.types.isNotEmpty ? widget.types.first.id : null;
-  }
-
-  @override
-  void dispose() {
-    _tagCtrl.dispose();
-    _nameCtrl.dispose();
-    _breedCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    if (_typeId == null) {
-      setState(() => _error = 'Select a livestock type.');
-      return;
-    }
-    setState(() {
-      _saving = true;
-      _error = null;
-    });
-
-    try {
-      await ref.read(livestockRepositoryProvider).createAnimal({
-        'livestockTypeId': _typeId,
-        'tag': _tagCtrl.text.trim().isEmpty ? null : _tagCtrl.text.trim(),
-        'name': _nameCtrl.text.trim().isEmpty ? null : _nameCtrl.text.trim(),
-        'sex': _sex,
-        'breed':
-            _breedCtrl.text.trim().isEmpty ? null : _breedCtrl.text.trim(),
-      });
-      ref.invalidate(livestockProvider);
-      if (mounted) Navigator.pop(context);
-    } catch (e) {
-      setState(() => _error = 'Could not save animal.');
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottom),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text('Add animal',
-                  style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w900)),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _typeId,
-                decoration: const InputDecoration(labelText: 'Type'),
-                items: widget.types
-                    .map((t) =>
-                        DropdownMenuItem(value: t.id, child: Text(t.name)))
-                    .toList(),
-                onChanged: (v) => setState(() => _typeId = v),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _nameCtrl,
-                      decoration:
-                          const InputDecoration(labelText: 'Name (optional)'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _tagCtrl,
-                      decoration:
-                          const InputDecoration(labelText: 'Tag (optional)'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _sex,
-                      decoration: const InputDecoration(labelText: 'Sex'),
-                      items: _sexes
-                          .map((s) =>
-                              DropdownMenuItem(value: s, child: Text(s)))
-                          .toList(),
-                      onChanged: (v) => setState(() => _sex = v ?? _sex),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _breedCtrl,
-                      decoration: const InputDecoration(
-                          labelText: 'Breed (optional)'),
-                    ),
-                  ),
-                ],
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                FarmioErrorBanner(message: _error!),
-              ],
-              const SizedBox(height: 18),
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _saving ? null : _save,
-                  child: _saving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2),
-                        )
-                      : const Text('Save animal'),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

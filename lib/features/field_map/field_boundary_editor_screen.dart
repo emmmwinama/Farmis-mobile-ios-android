@@ -72,7 +72,7 @@ class _FieldBoundaryEditorScreenState
     final zones = ref.watch(fieldZonesProvider(widget.fieldId));
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Field boundary',
             style: TextStyle(fontWeight: FontWeight.w800)),

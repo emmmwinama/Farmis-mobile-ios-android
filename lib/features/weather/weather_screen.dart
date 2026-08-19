@@ -12,7 +12,7 @@ class WeatherScreen extends ConsumerWidget {
     final weather = ref.watch(weatherProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Weather',
             style: TextStyle(fontWeight: FontWeight.w800)),

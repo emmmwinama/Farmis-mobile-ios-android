@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/auth/pin_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../shared/widgets/app_brand_mark.dart';
 import 'pin_pad.dart';
 
 enum _Stage { choose, confirm }
@@ -70,34 +71,14 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
         : 'Enter the same PIN again to confirm.';
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
               const SizedBox(height: 32),
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [FarmioColors.primaryDark, FarmioColors.primary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: FarmioColors.primary.withValues(alpha: 0.35),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.lock_outline,
-                    color: Colors.white, size: 36),
-              ),
+              const BrandMark(size: 72, radius: 20),
               const SizedBox(height: 24),
               Text(title,
                   style: const TextStyle(

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/crop_detail.dart';
 import '../../models/crop_timeline.dart';
 import '../../shared/agronomy/crop_timeline_catalog.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/utils/yield_pricing.dart';
+import '../../shared/widgets/farmio_card.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
-import '../yields/yield_form_screen.dart';
 import '../yields/yields_provider.dart';
 import 'crops_provider.dart';
-import 'crops_repository.dart';
 
 class CropDetailScreen extends ConsumerWidget {
   final String cropId;
@@ -21,7 +21,7 @@ class CropDetailScreen extends ConsumerWidget {
     final detail = ref.watch(cropDetailProvider(cropId));
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Crop detail',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -33,13 +33,13 @@ class CropDetailScreen extends ConsumerWidget {
                   await ref
                       .read(cropsRepositoryProvider)
                       .archiveCrop(cropId);
-                  if (context.mounted) Navigator.pop(context);
+                  if (context.mounted) context.pop();
                 }
                 if (v == 'restore') {
                   await ref
                       .read(cropsRepositoryProvider)
                       .restoreCrop(cropId);
-                  if (context.mounted) Navigator.pop(context);
+                  if (context.mounted) context.pop();
                 }
               },
               itemBuilder: (_) => [
@@ -91,13 +91,8 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
   CropDetail get crop => widget.crop;
 
   Future<void> _addHarvest(BuildContext context) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => YieldFormScreen(preselectedCropFieldId: crop.id),
-      ),
-    );
-    ref.invalidate(cropDetailProvider(crop.id));
+    await context.push('/yields/new?cropFieldId=${crop.id}');
+    if (mounted) ref.invalidate(cropDetailProvider(crop.id));
   }
 
   @override
@@ -109,7 +104,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
     Color accentColor = FarmioColors.primary;
     if (crop.isArchived) accentColor = FarmioColors.textMuted;
     if (isOverdue)       accentColor = FarmioColors.danger;
-    if (isDueSoon)       accentColor = const Color(0xFFD97706);
+    if (isDueSoon)       accentColor = FarmioColors.warning;
 
     double progressValue = 0;
     if (!crop.isArchived) {
@@ -134,7 +129,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
         const SizedBox(height: 16),
 
         // Main info card
-        _Card(child: Column(
+        FarmioCard(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
@@ -224,7 +219,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
         const SizedBox(height: 16),
 
         // Cost breakdown
-        _Card(child: Column(
+        FarmioCard(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Cost breakdown',
@@ -307,7 +302,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
           ),
 
         if (crop.yields.isEmpty)
-          _Card(child: const Center(
+          FarmioCard(child: const Center(
             child: Padding(
               padding: EdgeInsets.all(12),
               child: Text('No harvests recorded yet',
@@ -319,7 +314,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
             padding: const EdgeInsets.only(bottom: 8),
             child:   _YieldTile(y: y, cropId: crop.id),
           )),
-          _Card(child: Row(
+          FarmioCard(child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Total yield',
@@ -348,7 +343,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
         const SizedBox(height: 10),
 
         if (crop.activities.isEmpty)
-          _Card(child: const Center(
+          FarmioCard(child: const Center(
             child: Padding(
               padding: EdgeInsets.all(12),
               child: Text('No activities recorded',
@@ -416,7 +411,7 @@ class _TimelineRecommendationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final next = plan.nextAction;
     if (next == null) {
-      return _Card(
+      return FarmioCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -452,7 +447,7 @@ class _TimelineRecommendationCard extends StatelessWidget {
     final color = isOverdue
         ? FarmioColors.danger
         : isDue
-            ? const Color(0xFFD97706)
+            ? FarmioColors.warning
             : FarmioColors.primary;
     final label = isOverdue
         ? 'Overdue'
@@ -460,7 +455,7 @@ class _TimelineRecommendationCard extends StatelessWidget {
             ? 'Due now'
             : 'Next activity';
 
-    return _Card(
+    return FarmioCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -529,7 +524,7 @@ class _CropTimelineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Card(
+    return FarmioCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -658,7 +653,7 @@ class _TimelineStepRow extends StatelessWidget {
       case CropTimelineStatus.overdue:
         return FarmioColors.danger;
       case CropTimelineStatus.due:
-        return const Color(0xFFD97706);
+        return FarmioColors.warning;
       case CropTimelineStatus.upcoming:
         return FarmioColors.textMuted;
     }
@@ -701,7 +696,7 @@ void _showTimelineEntryDetails(
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: context.colors.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
@@ -811,7 +806,7 @@ void _showRecommendedActivities(
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: context.colors.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
@@ -1009,18 +1004,18 @@ class _YieldTile extends ConsumerWidget {
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete harvest record'),
         content: Text(
             'Delete ${y.quantity} ${y.unit} harvested on '
             '${Fmt.dateShort(y.harvestDate)}?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Delete',
                 style: TextStyle(color: FarmioColors.danger)),
           ),
@@ -1038,9 +1033,9 @@ class _YieldTile extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Row(children: [
         const Icon(Icons.agriculture_outlined,
@@ -1086,9 +1081,9 @@ class _ActivityTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Row(children: [
         Icon(
@@ -1144,25 +1139,6 @@ class _InfoItem extends StatelessWidget {
               )),
         ],
       ),
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  final Widget child;
-  const _Card({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width:   double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color:        Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: FarmioColors.border),
-      ),
-      child: child,
     );
   }
 }

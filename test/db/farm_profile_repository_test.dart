@@ -19,10 +19,15 @@ void main() {
   });
 
   test('saveProfile creates a row when none exists', () async {
-    await repo.saveProfile(name: 'Chikwawa Farm', location: 'Chikwawa');
+    await repo.saveProfile(
+      ownerName: 'Grace Banda',
+      name: 'Chikwawa Farm',
+      location: 'Chikwawa',
+    );
 
     final profile = await repo.getProfile();
-    expect(profile!.name, 'Chikwawa Farm');
+    expect(profile!.ownerName, 'Grace Banda');
+    expect(profile.name, 'Chikwawa Farm');
     expect(profile.location, 'Chikwawa');
   });
 

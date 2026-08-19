@@ -226,6 +226,26 @@ void main() {
     expect(profile!.name, 'Chikwawa Farm');
   });
 
+  test('importFromJson updates an onboarding-created farm profile in place instead of duplicating it',
+      () async {
+    // Mirrors onboarding: a profile row already exists with a locally
+    // generated id, which won't match the imported row's id.
+    await db.into(db.farmProfile).insert(FarmProfileCompanion.insert(
+          id: 'locally-generated-id',
+          name: 'em',
+          location: 'LILONGWE',
+          createdAt: DateTime.now(),
+        ));
+
+    await service.importFromJson(_basePayload());
+
+    final profiles = await db.select(db.farmProfile).get();
+    expect(profiles, hasLength(1));
+    expect(profiles.single.id, 'locally-generated-id');
+    expect(profiles.single.name, 'Chikwawa Farm');
+    expect(profiles.single.location, 'Chikwawa');
+  });
+
   test('importFromJson decodes a base64 document into a real file', () async {
     await service.importFromJson(_basePayload());
 

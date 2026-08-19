@@ -8,6 +8,7 @@ class ReportsRepository {
   ReportsRepository(this._db);
 
   final AppDatabase _db;
+  late final ReportAggregator _agg = ReportAggregator(_db);
 
   /// Only `season` and an explicit custom date range affect the fetch here.
   /// Crop/field/archive filtering (and the period presets) are applied
@@ -112,6 +113,7 @@ class ReportsRepository {
         }
 
         final cropTotalCost = inputCost + labourCost + otherCost;
+        final cropRevenue = await _agg.cropRevenue(crop.id, from: from, to: to);
         totalActivityCost += cropTotalCost;
         fieldLabour += labourCost;
         fieldInput += inputCost;
@@ -128,6 +130,7 @@ class ReportsRepository {
         sAgg.labourCost += labourCost;
         sAgg.otherCost += otherCost;
         sAgg.totalCost += cropTotalCost;
+        sAgg.revenue += cropRevenue;
 
         final cAgg = cropAgg.putIfAbsent(cropName, () => _CropAgg());
         cAgg.seasons.add(crop.season);
@@ -136,6 +139,7 @@ class ReportsRepository {
         cAgg.inputCost += inputCost;
         cAgg.labourCost += labourCost;
         cAgg.totalCost += cropTotalCost;
+        cAgg.revenue += cropRevenue;
 
         cropFieldDetail.add({
           'id': crop.id,
@@ -247,6 +251,7 @@ class _SeasonAgg {
   double inputCost = 0;
   double otherCost = 0;
   double totalCost = 0;
+  double revenue = 0;
 
   Map<String, dynamic> toJson(String season) => {
         'season': season,
@@ -259,6 +264,8 @@ class _SeasonAgg {
         'otherCost': otherCost,
         'totalCost': totalCost,
         'costPerHectare': totalArea > 0 ? totalCost / totalArea : 0,
+        'revenue': revenue,
+        'netProfit': revenue - totalCost,
       };
 }
 
@@ -269,6 +276,7 @@ class _CropAgg {
   double labourCost = 0;
   double inputCost = 0;
   double totalCost = 0;
+  double revenue = 0;
 
   Map<String, dynamic> toJson(String cropName) => {
         'cropName': cropName,
@@ -279,6 +287,8 @@ class _CropAgg {
         'inputCost': inputCost,
         'totalCost': totalCost,
         'costPerHectare': totalArea > 0 ? totalCost / totalArea : 0,
+        'revenue': revenue,
+        'netProfit': revenue - totalCost,
       };
 }
 

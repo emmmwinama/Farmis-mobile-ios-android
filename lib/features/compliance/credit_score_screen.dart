@@ -6,24 +6,27 @@ import '../../shared/utils/formatters.dart';
 import 'compliance_provider.dart';
 
 class CreditScoreScreen extends ConsumerWidget {
-  const CreditScoreScreen({super.key});
+  final bool embedded;
+  const CreditScoreScreen({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final credit = ref.watch(creditReadinessProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
-      appBar: AppBar(
-        title: const Text('Credit readiness',
-            style: TextStyle(fontWeight: FontWeight.w800)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(creditReadinessProvider),
-          ),
-        ],
-      ),
+      backgroundColor: context.colors.background,
+      appBar: embedded
+          ? null
+          : AppBar(
+              title: const Text('Credit readiness',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () => ref.invalidate(creditReadinessProvider),
+                ),
+              ],
+            ),
       body: credit.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorState(

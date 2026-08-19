@@ -161,7 +161,7 @@ class DashboardRepository {
 
     return DashboardData.fromJson({
       'farmName': profile?.name ?? 'My Farm',
-      'userName': null,
+      'userName': profile?.ownerName,
       'totalFields': selectedFields.length,
       'totalArea': selectedFields.fold<double>(0, (s, f) => s + f.totalArea),
       'activeCrops':

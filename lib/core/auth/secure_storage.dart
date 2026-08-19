@@ -13,6 +13,7 @@ class SecureStorage {
   static const _keyProfile = 'profile_json';
   static const _keyPinHash = 'pin_hash';
   static const _keyPinSalt = 'pin_salt';
+  static const _keyThemeMode = 'theme_mode';
 
   // Local app-lock PIN — replaces server login. The salt is random per
   // device/install; OS keychain-backed storage (already used for the old
@@ -93,4 +94,11 @@ class SecureStorage {
     final token = await getToken();
     return token != null && token.trim().isNotEmpty;
   }
+
+  // Theme mode ('light' | 'dark') — stored alongside the PIN/profile since
+  // this is the same on-device keystore-backed store the app already uses
+  // for every other small piece of local preference state.
+  static Future<void> saveThemeMode(String mode) =>
+      _storage.write(key: _keyThemeMode, value: mode);
+  static Future<String?> getThemeMode() => _storage.read(key: _keyThemeMode);
 }

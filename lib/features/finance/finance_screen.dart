@@ -1,16 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/transaction.dart';
 import '../../models/overhead.dart';
+import '../../shared/filters/report_record_filters.dart';
 import '../../shared/utils/formatters.dart';
+import '../../shared/widgets/farmio_shimmer.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import 'finance_provider.dart';
-import 'transaction_form_screen.dart';
-import 'overhead_form_screen.dart';
+
+bool _inRange(DateTime date, DateTimeRange range) =>
+    !date.isBefore(range.start) && !date.isAfter(range.end);
+
+/// Whether [t] matches the shared crop/season/field/period filters plus the
+/// Finance-specific transaction type/category filters.
+bool _matchesTransaction(
+  TransactionModel t,
+  ReportRecordFilters filters,
+  String typeFilter,
+  String categoryFilter,
+) {
+  if (!_inRange(t.date, filters.resolveRange())) return false;
+  if (filters.season != 'All' && t.season != filters.season) return false;
+  if (filters.crop != 'All' && t.cropName != filters.crop) return false;
+  if (filters.field != 'All' && t.fieldName != filters.field) return false;
+  if (typeFilter != 'All' && t.type != typeFilter) return false;
+  if (categoryFilter != 'All' && t.category != categoryFilter) return false;
+  return true;
+}
+
+FinanceSummary _summarize(List<TransactionModel> transactions) {
+  double income = 0, expense = 0;
+  final incomeByCategory = <String, double>{};
+  final expenseByCategory = <String, double>{};
+
+  for (final t in transactions) {
+    if (t.isIncome) {
+      income += t.amount;
+      incomeByCategory.update(t.category, (v) => v + t.amount,
+          ifAbsent: () => t.amount);
+    } else {
+      expense += t.amount;
+      expenseByCategory.update(t.category, (v) => v + t.amount,
+          ifAbsent: () => t.amount);
+    }
+  }
+
+  final categories = {...incomeByCategory.keys, ...expenseByCategory.keys};
+  return FinanceSummary(
+    income: income,
+    expense: expense,
+    net: income - expense,
+    byCategory: categories
+        .map((c) => CategoryBreakdown(
+              category: c,
+              income: incomeByCategory[c] ?? 0,
+              expense: expenseByCategory[c] ?? 0,
+              net: (incomeByCategory[c] ?? 0) - (expenseByCategory[c] ?? 0),
+            ))
+        .toList(),
+  );
+}
 
 class FinanceScreen extends ConsumerStatefulWidget {
-  const FinanceScreen({super.key});
+  final bool embedded;
+  const FinanceScreen({super.key, this.embedded = false});
 
   @override
   ConsumerState<FinanceScreen> createState() => _FinanceScreenState();
@@ -19,6 +74,9 @@ class FinanceScreen extends ConsumerStatefulWidget {
 class _FinanceScreenState extends ConsumerState<FinanceScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabs;
+  ReportRecordFilters _filters = const ReportRecordFilters();
+  String _typeFilter = 'All';
+  String _categoryFilter = 'All';
 
   @override
   void initState() {
@@ -34,31 +92,95 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
 
   @override
   Widget build(BuildContext context) {
+    final subTabs = TabBar(
+      controller:          _tabs,
+      labelColor:          FarmioColors.primary,
+      unselectedLabelColor: FarmioColors.textMuted,
+      indicatorColor:      FarmioColors.primary,
+      labelStyle: const TextStyle(
+          fontWeight: FontWeight.w700, fontSize: 13),
+      tabs: const [
+        Tab(text: 'Transactions'),
+        Tab(text: 'Overhead'),
+        Tab(text: 'Summary'),
+      ],
+    );
+
+    final finance = ref.watch(financeProvider);
+    final allTransactions = finance.valueOrNull?.transactions ?? const [];
+    final crops = {
+      ...allTransactions.map((t) => t.cropName).whereType<String>(),
+    }.toList();
+    final seasons = {
+      ...allTransactions.map((t) => t.season).whereType<String>(),
+    }.toList();
+    final fields = {
+      ...allTransactions.map((t) => t.fieldName).whereType<String>(),
+    }.toList();
+    final categories = {...allTransactions.map((t) => t.category)}.toList();
+
     return Scaffold(
-      backgroundColor: FarmioColors.background,
-      appBar: AppBar(
-        title: const Text('Finance',
-            style: TextStyle(fontWeight: FontWeight.w800)),
-        bottom: TabBar(
-          controller:          _tabs,
-          labelColor:          FarmioColors.primary,
-          unselectedLabelColor: FarmioColors.textMuted,
-          indicatorColor:      FarmioColors.primary,
-          labelStyle: const TextStyle(
-              fontWeight: FontWeight.w700, fontSize: 13),
-          tabs: const [
-            Tab(text: 'Transactions'),
-            Tab(text: 'Overhead'),
-            Tab(text: 'Summary'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabs,
-        children: const [
-          _TransactionsTab(),
-          _OverheadTab(),
-          _SummaryTab(),
+      backgroundColor: context.colors.background,
+      appBar: widget.embedded
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(kTextTabBarHeight),
+              child: Material(
+                color: context.colors.background,
+                child: subTabs,
+              ),
+            )
+          : AppBar(
+              title: const Text('Finance',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              bottom: subTabs,
+            ),
+      body: Column(
+        children: [
+          ReportRecordFilterBar(
+            value: _filters,
+            crops: crops,
+            seasons: seasons,
+            fields: fields,
+            onChanged: (filters) => setState(() => _filters = filters),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: Row(
+              children: [
+                _SimpleFilterChip(
+                  icon: Icons.swap_vert_rounded,
+                  label: _typeFilter,
+                  items: const ['All', 'Income', 'Expense'],
+                  onSelected: (v) => setState(() => _typeFilter = v),
+                ),
+                const SizedBox(width: 8),
+                _SimpleFilterChip(
+                  icon: Icons.sell_outlined,
+                  label: _categoryFilter,
+                  items: ['All', ...categories],
+                  onSelected: (v) => setState(() => _categoryFilter = v),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabs,
+              children: [
+                _TransactionsTab(
+                  filters: _filters,
+                  typeFilter: _typeFilter,
+                  categoryFilter: _categoryFilter,
+                ),
+                _OverheadTab(filters: _filters),
+                _SummaryTab(
+                  filters: _filters,
+                  typeFilter: _typeFilter,
+                  categoryFilter: _categoryFilter,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
       floatingActionButton: AnimatedBuilder(
@@ -67,21 +189,11 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
           backgroundColor: FarmioColors.primary,
           onPressed: () async {
             if (_tabs.index == 0) {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) =>
-                    const TransactionFormScreen()),
-              );
-              ref.refresh(financeProvider);
+              await context.push('/finance/new-transaction');
+              ref.invalidate(financeProvider);
             } else if (_tabs.index == 1) {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) =>
-                    const OverheadFormScreen()),
-              );
-              ref.refresh(overheadProvider);
+              await context.push('/finance/new-overhead');
+              ref.invalidate(overheadProvider);
             }
           },
           child: const Icon(Icons.add, color: Colors.white),
@@ -93,7 +205,15 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
 
 // ── Transactions tab ──────────────────────────────────────────────────────────
 class _TransactionsTab extends ConsumerWidget {
-  const _TransactionsTab();
+  final ReportRecordFilters filters;
+  final String typeFilter;
+  final String categoryFilter;
+
+  const _TransactionsTab({
+    required this.filters,
+    required this.typeFilter,
+    required this.categoryFilter,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -103,28 +223,37 @@ class _TransactionsTab extends ConsumerWidget {
       loading: () => const _Skeleton(),
       error:   (e, _) => _ErrorView(
         message: e.toString(),
-        onRetry: () => ref.refresh(financeProvider),
+        onRetry: () => ref.invalidate(financeProvider),
       ),
       data: (data) {
-        if (data.transactions.isEmpty) {
-          return const _EmptyState(
-              label: 'No transactions yet',
-              hint:  'Tap + to record income or expenses');
+        final transactions = data.transactions
+            .where((t) =>
+                _matchesTransaction(t, filters, typeFilter, categoryFilter))
+            .toList();
+
+        if (transactions.isEmpty) {
+          return data.transactions.isEmpty
+              ? const _EmptyState(
+                  label: 'No transactions yet',
+                  hint:  'Tap + to record income or expenses')
+              : const _EmptyState(
+                  label: 'No transactions match these filters',
+                  hint:  'Try widening the filters above');
         }
 
         return RefreshIndicator(
           color:     FarmioColors.primary,
-          onRefresh: () async => ref.refresh(financeProvider),
+          onRefresh: () async => ref.invalidate(financeProvider),
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
             children: [
 
               // Balance card
-              _BalanceCard(summary: data.summary),
+              _BalanceCard(summary: _summarize(transactions)),
               const SizedBox(height: 20),
 
               // Transaction list
-              ...data.transactions.map((t) => Padding(
+              ...transactions.map((t) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child:   _TransactionTile(
                   transaction: t,
@@ -132,7 +261,7 @@ class _TransactionsTab extends ConsumerWidget {
                     await ref
                         .read(financeRepositoryProvider)
                         .deleteTransaction(t.id);
-                    ref.refresh(financeProvider);
+                    ref.invalidate(financeProvider);
                   },
                 ),
               )),
@@ -146,7 +275,8 @@ class _TransactionsTab extends ConsumerWidget {
 
 // ── Overhead tab ──────────────────────────────────────────────────────────────
 class _OverheadTab extends ConsumerWidget {
-  const _OverheadTab();
+  final ReportRecordFilters filters;
+  const _OverheadTab({required this.filters});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -156,27 +286,42 @@ class _OverheadTab extends ConsumerWidget {
       loading: () => const _Skeleton(),
       error:   (e, _) => _ErrorView(
         message: e.toString(),
-        onRetry: () => ref.refresh(overheadProvider),
+        onRetry: () => ref.invalidate(overheadProvider),
       ),
       data: (data) {
-        if (data.expenses.isEmpty) {
-          return const _EmptyState(
-              label: 'No overhead expenses',
-              hint:  'Tap + to add overhead costs');
+        final range = filters.resolveRange();
+        final expenses =
+            data.expenses.where((e) => _inRange(e.date, range)).toList();
+
+        if (expenses.isEmpty) {
+          return data.expenses.isEmpty
+              ? const _EmptyState(
+                  label: 'No overhead expenses',
+                  hint:  'Tap + to add overhead costs')
+              : const _EmptyState(
+                  label: 'No overhead expenses in this period',
+                  hint:  'Try widening the filters above');
         }
+
+        final total = expenses.fold<double>(0, (s, e) => s + e.amount);
+        final recurring = expenses
+            .where((e) => e.recurring)
+            .fold<double>(0, (s, e) => s + e.amount);
 
         return RefreshIndicator(
           color:     FarmioColors.primary,
-          onRefresh: () async => ref.refresh(overheadProvider),
+          onRefresh: () async => ref.invalidate(overheadProvider),
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
             children: [
 
               // Overhead summary
-              _OverheadSummaryCard(summary: data.summary),
+              _OverheadSummaryCard(
+                summary: OverheadSummary(total: total, recurring: recurring),
+              ),
               const SizedBox(height: 20),
 
-              ...data.expenses.map((e) => Padding(
+              ...expenses.map((e) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child:   _OverheadTile(
                   expense: e,
@@ -184,7 +329,7 @@ class _OverheadTab extends ConsumerWidget {
                     await ref
                         .read(financeRepositoryProvider)
                         .deleteOverhead(e.id);
-                    ref.refresh(overheadProvider);
+                    ref.invalidate(overheadProvider);
                   },
                 ),
               )),
@@ -198,30 +343,50 @@ class _OverheadTab extends ConsumerWidget {
 
 // ── Summary tab ───────────────────────────────────────────────────────────────
 class _SummaryTab extends ConsumerWidget {
-  const _SummaryTab();
+  final ReportRecordFilters filters;
+  final String typeFilter;
+  final String categoryFilter;
+
+  const _SummaryTab({
+    required this.filters,
+    required this.typeFilter,
+    required this.categoryFilter,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final finance  = ref.watch(financeProvider);
     final overhead = ref.watch(overheadProvider);
+    final activityCosts = ref.watch(activityCostProvider(filters));
 
     return finance.when(
       loading: () => const _Skeleton(),
       error:   (e, _) => _ErrorView(
         message: e.toString(),
-        onRetry: () => ref.refresh(financeProvider),
+        onRetry: () => ref.invalidate(financeProvider),
       ),
       data: (finData) => overhead.when(
         loading: () => const _Skeleton(),
         error:   (e, _) => _ErrorView(
           message: e.toString(),
-          onRetry: () => ref.refresh(overheadProvider),
+          onRetry: () => ref.invalidate(overheadProvider),
         ),
         data: (ohData) {
+          final range = filters.resolveRange();
+          final transactions = finData.transactions
+              .where((t) =>
+                  _matchesTransaction(t, filters, typeFilter, categoryFilter))
+              .toList();
+          final summary = _summarize(transactions);
+          final overheadTotal = ohData.expenses
+              .where((e) => _inRange(e.date, range))
+              .fold<double>(0, (s, e) => s + e.amount);
+          final activities = activityCosts.valueOrNull;
+          final activityTotal = activities?.total ?? 0;
+
           final totalExpense =
-              finData.summary.expense + ohData.summary.total;
-          final net =
-              finData.summary.income - totalExpense;
+              summary.expense + overheadTotal + activityTotal;
+          final net = summary.income - totalExpense;
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
@@ -234,12 +399,12 @@ class _SummaryTab extends ConsumerWidget {
                   gradient: LinearGradient(
                     colors: net >= 0
                         ? [
-                      const Color(0xFF1A3D1F),
-                      const Color(0xFF2D6A35),
+                      FarmioColors.success.darken(0.5),
+                      FarmioColors.success.darken(0.15),
                     ]
                         : [
-                      const Color(0xFF7F1D1D),
-                      const Color(0xFFB91C1C),
+                      FarmioColors.danger.darken(0.5),
+                      FarmioColors.danger.darken(0.15),
                     ],
                     begin: Alignment.topLeft,
                     end:   Alignment.bottomRight,
@@ -274,21 +439,74 @@ class _SummaryTab extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
 
-              // Income / Expense / Overhead row
+              // Income / Expense / Activity costs / Overhead row
               FarmioSummaryBar(stats: [
                 FarmioSummaryStat(
                     label: 'Income',
-                    value: Fmt.mwk(finData.summary.income),
+                    value: Fmt.mwk(summary.income),
                     color: Colors.greenAccent),
                 FarmioSummaryStat(
                     label: 'Expenses',
-                    value: Fmt.mwk(finData.summary.expense),
+                    value: Fmt.mwk(summary.expense),
                     color: Colors.redAccent),
                 FarmioSummaryStat(
+                    label: 'Activity costs',
+                    value: Fmt.mwk(activityTotal),
+                    color: Colors.orangeAccent),
+                FarmioSummaryStat(
                     label: 'Overhead',
-                    value: Fmt.mwk(ohData.summary.total),
+                    value: Fmt.mwk(overheadTotal),
                     color: Colors.orangeAccent),
               ]),
+              const SizedBox(height: 20),
+
+              // Activity cost breakdown
+              const Text('Activity costs',
+                  style: TextStyle(
+                    fontSize:   16,
+                    fontWeight: FontWeight.w800,
+                    color:      FarmioColors.textPrimary,
+                  )),
+              const SizedBox(height: 4),
+              const Text(
+                'Labour, inputs and other costs logged against field '
+                'activities — these never appear as transactions.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color:    FarmioColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: 10),
+              activityCosts.when(
+                loading: () => const FarmioShimmerCard(height: 70),
+                error: (e, _) => _EmptyState(
+                    label: 'Could not load activity costs',
+                    hint: e.toString()),
+                data: (a) => a.total == 0
+                    ? const _EmptyState(
+                        label: 'No activity costs in this period',
+                        hint: 'Log field activities to see them here')
+                    : Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: context.colors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: context.colors.border),
+                        ),
+                        child: Column(
+                          children: [
+                            _ActivityCostLine(
+                                label: 'Labour', value: a.labourCost),
+                            const SizedBox(height: 8),
+                            _ActivityCostLine(
+                                label: 'Inputs', value: a.inputCost),
+                            const SizedBox(height: 8),
+                            _ActivityCostLine(
+                                label: 'Other', value: a.otherCost),
+                          ],
+                        ),
+                      ),
+              ),
               const SizedBox(height: 20),
 
               // Category breakdown
@@ -300,12 +518,12 @@ class _SummaryTab extends ConsumerWidget {
                   )),
               const SizedBox(height: 10),
 
-              if (finData.summary.byCategory.isEmpty)
+              if (summary.byCategory.isEmpty)
                 const _EmptyState(
                     label: 'No data yet',
                     hint:  'Add transactions to see breakdown')
               else
-                ...finData.summary.byCategory.map(
+                ...summary.byCategory.map(
                       (c) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child:   _CategoryRow(breakdown: c),
@@ -314,6 +532,90 @@ class _SummaryTab extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _ActivityCostLine extends StatelessWidget {
+  final String label;
+  final double value;
+  const _ActivityCostLine({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: context.colors.textPrimary,
+            )),
+        Text(Fmt.mwk(value),
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: FarmioColors.warning,
+            )),
+      ],
+    );
+  }
+}
+
+class _SimpleFilterChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final List<String> items;
+  final ValueChanged<String> onSelected;
+
+  const _SimpleFilterChip({
+    required this.icon,
+    required this.label,
+    required this.items,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      tooltip: label,
+      onSelected: onSelected,
+      itemBuilder: (context) => items
+          .map((item) => PopupMenuItem<String>(value: item, child: Text(item)))
+          .toList(),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 40),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: context.colors.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: FarmioColors.primary),
+            const SizedBox(width: 6),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 100),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: context.colors.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.keyboard_arrow_down_rounded,
+                size: 16, color: context.colors.textMuted),
+          ],
+        ),
       ),
     );
   }
@@ -358,15 +660,15 @@ class _TransactionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isIncome = transaction.isIncome;
     final color    = isIncome
-        ? const Color(0xFF16A34A)
+        ? FarmioColors.success
         : FarmioColors.danger;
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
         Container(
@@ -477,19 +779,19 @@ class _OverheadTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
         Container(
           width: 42, height: 42,
           decoration: BoxDecoration(
-            color:        const Color(0xFFD97706).withValues(alpha:0.1),
+            color:        FarmioColors.warning.withValues(alpha:0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(Icons.receipt_outlined,
-              color: Color(0xFFD97706), size: 20),
+              color: FarmioColors.warning, size: 20),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -601,9 +903,9 @@ class _CategoryRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Row(children: [
         Expanded(
@@ -623,7 +925,7 @@ class _CategoryRow extends StatelessWidget {
                 fontSize:   13,
                 fontWeight: FontWeight.w800,
                 color: isPositive
-                    ? const Color(0xFF16A34A)
+                    ? FarmioColors.success
                     : FarmioColors.danger,
               ),
             ),
@@ -680,12 +982,10 @@ class _Skeleton extends StatelessWidget {
       padding:          const EdgeInsets.all(20),
       itemCount:        5,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, __) => Container(
-        height:     70,
-        decoration: BoxDecoration(
-          color:        const Color(0xFFE2E8F0),
-          borderRadius: BorderRadius.circular(14),
-        ),
+      itemBuilder: (_, __) => const FarmioShimmer(
+        width: double.infinity,
+        height: 70,
+        radius: 14,
       ),
     );
   }

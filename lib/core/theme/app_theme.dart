@@ -3,23 +3,24 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FarmioColors {
-  // Brand
-  static const primary      = Color(0xFF0284C7); // blue-600
-  static const primaryDark  = Color(0xFF0F172A); // navy
-  static const primaryLight = Color(0xFFBAE6FD); // sky-200
-  static const primaryBg    = Color(0xFFE0F2FE); // sky-100
+  // Brand — indigo, a bolder/more distinctive anchor than the old sky-blue.
+  static const primary      = Color(0xFF4F46E5); // indigo-600
+  static const primaryDark  = Color(0xFF1E1B4B); // indigo-950
+  static const primaryLight = Color(0xFFC7D2FE); // indigo-200
+  static const primaryBg    = Color(0xFFEEF2FF); // indigo-50
   static const cyan         = Color(0xFF06B6D4);
 
-  // Semantic
-  static const success     = Color(0xFF0D9488); // teal-600
-  static const successBg   = Color(0xFFF0FDFA);
+  // Semantic — emerald/amber/blue/violet each now hold a distinct hue instead
+  // of overlapping with primary or each other.
+  static const success     = Color(0xFF10B981); // emerald-500
+  static const successBg   = Color(0xFFECFDF5);
   static const danger      = Color(0xFFDC2626); // red-600
   static const dangerBg    = Color(0xFFFEF2F2);
-  static const warning     = Color(0xFF7C3AED); // violet, avoids warm farm UI
+  static const warning     = Color(0xFFF59E0B); // amber-500
   static const warningBg   = Color(0xFFFFFBEB);
-  static const info        = Color(0xFF0284C7); // blue-600
+  static const info        = Color(0xFF3B82F6); // blue-500
   static const infoBg      = Color(0xFFEFF6FF);
-  static const purple      = Color(0xFF6366F1);
+  static const purple      = Color(0xFF8B5CF6); // violet-500
   static const purpleBg    = Color(0xFFF5F3FF);
 
   // Neutrals
@@ -35,22 +36,134 @@ class FarmioColors {
   static const slate100 = Color(0xFFF1F5F9);
   static const slate50  = Color(0xFFF8FAFC);
 
-  // Surfaces
+  // Surfaces (light)
   static const background  = Color(0xFFF8FAFC);
   static const surface     = Colors.white;
   static const border      = slate200;
   static const softBorder  = Color(0xFFE6ECF2);
 
-  // Text
+  // Text (light)
   static const textPrimary = slate900;
   static const textSecond  = slate600;
   static const textMuted   = slate400;
 
-  // Dark mode
-  static const darkBg      = Color(0xFF0A0F1E);
-  static const darkSurface = Color(0xFF111827);
-  static const darkCard    = Color(0xFF1F2937);
-  static const darkBorder  = Color(0xFF374151);
+  // Dark mode — indigo-tinted near-black instead of neutral gray, so dark
+  // surfaces carry the brand hue (the Linear/Vercel-style dark-mode signature).
+  static const darkBg      = Color(0xFF0A0A17);
+  static const darkSurface = Color(0xFF13131F);
+  static const darkCard    = Color(0xFF1C1C2B);
+  static const darkBorder  = Color(0xFF2E2E42);
+  static const darkTextPrimary = Colors.white;
+  static const darkTextSecond  = Color(0xFFB4B4C9);
+  static const darkTextMuted   = Color(0xFF7C7C93);
+}
+
+/// Surface/text tokens that legitimately invert between light and dark mode.
+/// Brand/semantic colors (primary, success, danger, warning, info) deliberately
+/// stay as static [FarmioColors] constants — their hue doesn't flip with
+/// brightness in this design. Read via `context.colors` rather than the
+/// static [FarmioColors] surface/text fields wherever a widget needs to
+/// respond to dark mode.
+class FarmioColorsExt extends ThemeExtension<FarmioColorsExt> {
+  final Color background;
+  final Color surface;
+  final Color border;
+  final Color softBorder;
+  final Color textPrimary;
+  final Color textSecond;
+  final Color textMuted;
+
+  const FarmioColorsExt({
+    required this.background,
+    required this.surface,
+    required this.border,
+    required this.softBorder,
+    required this.textPrimary,
+    required this.textSecond,
+    required this.textMuted,
+  });
+
+  static const light = FarmioColorsExt(
+    background: FarmioColors.background,
+    surface:    FarmioColors.surface,
+    border:     FarmioColors.border,
+    softBorder: FarmioColors.softBorder,
+    textPrimary: FarmioColors.textPrimary,
+    textSecond:  FarmioColors.textSecond,
+    textMuted:   FarmioColors.textMuted,
+  );
+
+  static const dark = FarmioColorsExt(
+    background: FarmioColors.darkBg,
+    surface:    FarmioColors.darkCard,
+    border:     FarmioColors.darkBorder,
+    softBorder: FarmioColors.darkBorder,
+    textPrimary: FarmioColors.darkTextPrimary,
+    textSecond:  FarmioColors.darkTextSecond,
+    textMuted:   FarmioColors.darkTextMuted,
+  );
+
+  @override
+  FarmioColorsExt copyWith({
+    Color? background,
+    Color? surface,
+    Color? border,
+    Color? softBorder,
+    Color? textPrimary,
+    Color? textSecond,
+    Color? textMuted,
+  }) {
+    return FarmioColorsExt(
+      background:  background ?? this.background,
+      surface:     surface ?? this.surface,
+      border:      border ?? this.border,
+      softBorder:  softBorder ?? this.softBorder,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textSecond:  textSecond ?? this.textSecond,
+      textMuted:   textMuted ?? this.textMuted,
+    );
+  }
+
+  @override
+  FarmioColorsExt lerp(ThemeExtension<FarmioColorsExt>? other, double t) {
+    if (other is! FarmioColorsExt) return this;
+    return FarmioColorsExt(
+      background:  Color.lerp(background, other.background, t)!,
+      surface:     Color.lerp(surface, other.surface, t)!,
+      border:      Color.lerp(border, other.border, t)!,
+      softBorder:  Color.lerp(softBorder, other.softBorder, t)!,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
+      textSecond:  Color.lerp(textSecond, other.textSecond, t)!,
+      textMuted:   Color.lerp(textMuted, other.textMuted, t)!,
+    );
+  }
+}
+
+/// Derives a darker/lighter shade of a brand/semantic color for gradients
+/// without hardcoding a second hex value per stat/action tile — the pattern
+/// several screens (dashboard's stat cards, quick actions) used to repeat
+/// with one-off hex pairs that drifted from the formal palette.
+extension FarmioShade on Color {
+  Color darken([double amount = 0.18]) => Color.lerp(this, Colors.black, amount)!;
+  Color lighten([double amount = 0.18]) => Color.lerp(this, Colors.white, amount)!;
+}
+
+extension FarmioThemeContext on BuildContext {
+  /// Dark-aware surface/text tokens. Falls back to the light palette if no
+  /// extension is registered (e.g. in a widget test with a bare [ThemeData]).
+  FarmioColorsExt get colors =>
+      Theme.of(this).extension<FarmioColorsExt>() ?? FarmioColorsExt.light;
+}
+
+/// Colored "glow" shadows under primary CTAs/hero surfaces — a bold-SaaS
+/// signature detail that a plain neutral drop shadow doesn't give you.
+class AppShadows {
+  static List<BoxShadow> glow(Color color,
+      {double alpha = 0.32, double blur = 20, Offset offset = const Offset(0, 10)}) {
+    return [
+      BoxShadow(color: color.withValues(alpha: alpha), blurRadius: blur, offset: offset),
+    ];
+  }
 }
 
 class AppTheme {
@@ -64,21 +177,22 @@ class AppTheme {
         primary:    FarmioColors.primary,
         surface:    FarmioColors.surface,
       ),
-      scaffoldBackgroundColor: const Color(0xFFF5FAFD),
+      scaffoldBackgroundColor: const Color(0xFFF6F6FB),
+      extensions: const [FarmioColorsExt.light],
     );
 
     return base.copyWith(
       textTheme: GoogleFonts.interTextTheme(base.textTheme).copyWith(
         displayLarge: GoogleFonts.inter(
-          fontSize: 32, fontWeight: FontWeight.w800,
-          color: FarmioColors.textPrimary, letterSpacing: -1,
+          fontSize: 34, fontWeight: FontWeight.w900,
+          color: FarmioColors.textPrimary, letterSpacing: -1.2,
         ),
         displayMedium: GoogleFonts.inter(
           fontSize: 24, fontWeight: FontWeight.w800,
           color: FarmioColors.textPrimary, letterSpacing: -0.5,
         ),
         headlineLarge: GoogleFonts.inter(
-          fontSize: 20, fontWeight: FontWeight.w700,
+          fontSize: 20, fontWeight: FontWeight.w800,
           color: FarmioColors.textPrimary,
         ),
         headlineMedium: GoogleFonts.inter(
@@ -125,8 +239,9 @@ class AppTheme {
         centerTitle:      false,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         titleTextStyle: GoogleFonts.inter(
-          fontSize:   18,
+          fontSize:   20,
           fontWeight: FontWeight.w800,
+          letterSpacing: -0.3,
           color:      FarmioColors.textPrimary,
         ),
         iconTheme: const IconThemeData(
@@ -142,13 +257,13 @@ class AppTheme {
       ),
 
       cardTheme: CardThemeData(
-        color:       Colors.white.withValues(alpha: 0.82),
+        color:       Colors.white.withValues(alpha: 0.9),
         elevation:   0,
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(
-              color: Color(0xDDE6ECF2), width: 1),
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+              color: FarmioColors.softBorder.withValues(alpha: 0.7), width: 1),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -160,10 +275,10 @@ class AppTheme {
           elevation:       0,
           shadowColor:     Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
           padding: const EdgeInsets.symmetric(
-              horizontal: 24, vertical: 14),
+              horizontal: 24, vertical: 15),
           textStyle: GoogleFonts.inter(
             fontSize:   14,
             fontWeight: FontWeight.w700,
@@ -177,10 +292,10 @@ class AppTheme {
           side: const BorderSide(
               color: FarmioColors.border, width: 1.5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
           padding: const EdgeInsets.symmetric(
-              horizontal: 24, vertical: 14),
+              horizontal: 24, vertical: 15),
           textStyle: GoogleFonts.inter(
             fontSize:   14,
             fontWeight: FontWeight.w700,
@@ -192,7 +307,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: FarmioColors.primary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(10),
           ),
           textStyle: GoogleFonts.inter(
             fontSize:   13,
@@ -203,34 +318,40 @@ class AppTheme {
 
       inputDecorationTheme: InputDecorationTheme(
         filled:    true,
-        fillColor: Colors.white.withValues(alpha: 0.86),
+        fillColor: FarmioColors.slate50,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-              color: FarmioColors.softBorder, width: 1),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-              color: FarmioColors.softBorder, width: 1),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(
               color: FarmioColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(
-              color: FarmioColors.danger, width: 1),
+              color: FarmioColors.danger, width: 1.4),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(
+              color: FarmioColors.danger, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16, vertical: 14),
+            horizontal: 18, vertical: 15),
         hintStyle: GoogleFonts.inter(
           color: FarmioColors.textMuted, fontSize: 14,
         ),
         labelStyle: GoogleFonts.inter(
           color: FarmioColors.textMuted, fontSize: 14,
+        ),
+        floatingLabelStyle: GoogleFonts.inter(
+          color: FarmioColors.primary, fontSize: 13, fontWeight: FontWeight.w600,
         ),
       ),
 
@@ -241,26 +362,25 @@ class AppTheme {
       ),
 
       chipTheme: ChipThemeData(
-        backgroundColor: Colors.white.withValues(alpha: 0.76),
+        backgroundColor: FarmioColors.slate50,
         labelStyle:      GoogleFonts.inter(
           fontSize:   12,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           color:      FarmioColors.textSecond,
         ),
         padding: const EdgeInsets.symmetric(
-            horizontal: 10, vertical: 4),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+            horizontal: 12, vertical: 6),
+        shape: const StadiumBorder(),
         side: BorderSide.none,
       ),
 
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: FarmioColors.primary,
         foregroundColor: Colors.white,
-        elevation:       2,
+        elevation:       4,
+        highlightElevation: 6,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(18)),
+          borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
       ),
 
@@ -336,76 +456,224 @@ class AppTheme {
       colorScheme:  ColorScheme.fromSeed(
         seedColor:  FarmioColors.primary,
         brightness: Brightness.dark,
-        primary:    FarmioColors.primary,
+        primary:    FarmioColors.primaryLight,
         surface:    FarmioColors.darkSurface,
       ),
       scaffoldBackgroundColor: FarmioColors.darkBg,
+      extensions: const [FarmioColorsExt.dark],
     );
 
     return base.copyWith(
-      textTheme: GoogleFonts.interTextTheme(
-          ThemeData.dark().textTheme),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
+        displayLarge: GoogleFonts.inter(
+          fontSize: 34, fontWeight: FontWeight.w900,
+          color: FarmioColors.darkTextPrimary, letterSpacing: -1.2,
+        ),
+        displayMedium: GoogleFonts.inter(
+          fontSize: 24, fontWeight: FontWeight.w800,
+          color: FarmioColors.darkTextPrimary, letterSpacing: -0.5,
+        ),
+        headlineLarge: GoogleFonts.inter(
+          fontSize: 20, fontWeight: FontWeight.w800,
+          color: FarmioColors.darkTextPrimary,
+        ),
+        headlineMedium: GoogleFonts.inter(
+          fontSize: 17, fontWeight: FontWeight.w700,
+          color: FarmioColors.darkTextPrimary,
+        ),
+        titleLarge: GoogleFonts.inter(
+          fontSize: 15, fontWeight: FontWeight.w700,
+          color: FarmioColors.darkTextPrimary,
+        ),
+        titleMedium: GoogleFonts.inter(
+          fontSize: 14, fontWeight: FontWeight.w600,
+          color: FarmioColors.darkTextPrimary,
+        ),
+        bodyLarge: GoogleFonts.inter(
+          fontSize: 15, fontWeight: FontWeight.w400,
+          color: FarmioColors.darkTextPrimary,
+        ),
+        bodyMedium: GoogleFonts.inter(
+          fontSize: 13, fontWeight: FontWeight.w400,
+          color: FarmioColors.darkTextSecond,
+        ),
+        bodySmall: GoogleFonts.inter(
+          fontSize: 12, fontWeight: FontWeight.w400,
+          color: FarmioColors.darkTextMuted,
+        ),
+        labelLarge: GoogleFonts.inter(
+          fontSize: 14, fontWeight: FontWeight.w700,
+          color: FarmioColors.darkTextPrimary,
+        ),
+        labelSmall: GoogleFonts.inter(
+          fontSize: 10, fontWeight: FontWeight.w600,
+          color: FarmioColors.darkTextMuted,
+          letterSpacing: 0.6,
+        ),
+      ),
+
       appBarTheme: AppBarTheme(
-        backgroundColor:  FarmioColors.darkSurface,
-        foregroundColor:  Colors.white,
+        backgroundColor:  FarmioColors.darkSurface.withValues(alpha: 0.9),
+        foregroundColor:  FarmioColors.darkTextPrimary,
         elevation:        0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
+        centerTitle:      false,
         systemOverlayStyle: SystemUiOverlayStyle.light,
         titleTextStyle: GoogleFonts.inter(
-          fontSize:   17,
-          fontWeight: FontWeight.w700,
-          color:      Colors.white,
+          fontSize:   20,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.3,
+          color:      FarmioColors.darkTextPrimary,
+        ),
+        iconTheme: const IconThemeData(
+          color: FarmioColors.darkTextPrimary,
+          size:  22,
         ),
         shape: Border(
-          bottom: BorderSide(
-            color: FarmioColors.darkBorder,
-            width: 0.5,
-          ),
+          bottom: BorderSide(color: FarmioColors.darkBorder, width: 0.5),
         ),
       ),
+
       cardTheme: CardThemeData(
         color:     FarmioColors.darkCard,
         elevation: 0,
+        shadowColor: Colors.transparent,
         shape:     RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-              color: FarmioColors.darkBorder, width: 1),
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: FarmioColors.darkBorder, width: 1),
         ),
         margin: EdgeInsets.zero,
       ),
+
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: FarmioColors.primary,
-          foregroundColor: Colors.white,
+          backgroundColor: FarmioColors.primaryLight,
+          foregroundColor: FarmioColors.primaryDark,
           elevation:       0,
+          shadowColor:     Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
-          padding: const EdgeInsets.symmetric(
-              horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
+          textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ),
+
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: FarmioColors.primaryLight,
+          side: const BorderSide(color: FarmioColors.darkBorder, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
+          textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
+        ),
+      ),
+
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: FarmioColors.primaryLight,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          textStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
+      ),
+
       inputDecorationTheme: InputDecorationTheme(
         filled:    true,
         fillColor: FarmioColors.darkCard,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide:   BorderSide(
-              color: FarmioColors.darkBorder, width: 1),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: FarmioColors.darkBorder, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide:   BorderSide(
-              color: FarmioColors.darkBorder, width: 1),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: FarmioColors.darkBorder, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-              color: FarmioColors.primary, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: FarmioColors.primaryLight, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16, vertical: 14),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: FarmioColors.danger, width: 1.4),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: FarmioColors.danger, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+        hintStyle: GoogleFonts.inter(color: FarmioColors.darkTextMuted, fontSize: 14),
+        labelStyle: GoogleFonts.inter(color: FarmioColors.darkTextMuted, fontSize: 14),
+        floatingLabelStyle: GoogleFonts.inter(
+          color: FarmioColors.primaryLight, fontSize: 13, fontWeight: FontWeight.w600,
+        ),
+      ),
+
+      dividerTheme: const DividerThemeData(
+        color: FarmioColors.darkBorder,
+        thickness: 1,
+        space: 1,
+      ),
+
+      chipTheme: ChipThemeData(
+        backgroundColor: FarmioColors.darkCard,
+        labelStyle: GoogleFonts.inter(
+          fontSize: 12, fontWeight: FontWeight.w700, color: FarmioColors.darkTextSecond,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        shape: const StadiumBorder(),
+        side: BorderSide.none,
+      ),
+
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: FarmioColors.primaryLight,
+        foregroundColor: FarmioColors.primaryDark,
+        elevation: 4,
+        highlightElevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
+      ),
+
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: Colors.transparent,
+        indicatorColor:  Colors.white.withValues(alpha: 0.14),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return GoogleFonts.inter(
+                fontSize: 11, fontWeight: FontWeight.w700, color: FarmioColors.primaryLight);
+          }
+          return GoogleFonts.inter(
+              fontSize: 11, fontWeight: FontWeight.w500, color: FarmioColors.darkTextMuted);
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: FarmioColors.primaryLight, size: 22);
+          }
+          return const IconThemeData(color: FarmioColors.darkTextMuted, size: 22);
+        }),
+      ),
+
+      listTileTheme: ListTileThemeData(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: FarmioColors.darkCard,
+        contentTextStyle: GoogleFonts.inter(color: Colors.white, fontSize: 13),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        behavior: SnackBarBehavior.floating,
+      ),
+
+      dialogTheme: DialogThemeData(
+        backgroundColor: FarmioColors.darkCard,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titleTextStyle: GoogleFonts.inter(
+          fontSize: 17, fontWeight: FontWeight.w700, color: FarmioColors.darkTextPrimary,
+        ),
+        contentTextStyle: GoogleFonts.inter(fontSize: 14, color: FarmioColors.darkTextSecond),
       ),
     );
   }

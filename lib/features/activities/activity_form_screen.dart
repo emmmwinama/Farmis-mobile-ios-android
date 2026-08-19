@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/crop_field.dart';
+import '../../models/employee.dart';
 import '../../shared/agronomy/crop_timeline_catalog.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import '../employees/employees_provider.dart';
@@ -34,6 +36,9 @@ class _ActivityFormScreenState
   // Inputs list
   final List<Map<String, TextEditingController>> _inputs = [];
 
+  // Labour list
+  final List<_LabourEntry> _labour = [];
+
   // Other costs list
   final List<Map<String, TextEditingController>> _otherCosts = [];
 
@@ -65,6 +70,17 @@ class _ActivityFormScreenState
     setState(() {
       for (final c in _inputs[i].values) c.dispose();
       _inputs.removeAt(i);
+    });
+  }
+
+  void _addLabour() {
+    setState(() => _labour.add(_LabourEntry()));
+  }
+
+  void _removeLabour(int i) {
+    setState(() {
+      _labour[i].dispose();
+      _labour.removeAt(i);
     });
   }
 
@@ -137,14 +153,20 @@ class _ActivityFormScreenState
           'unit':      i['unit']!.text.trim(),
           'unitCost':  i['unitCost']!.text.trim(),
         }).where((i) => i['inputName']!.isNotEmpty).toList(),
+        'labour': _labour.map((l) => {
+          'employeeId':  l.employeeId,
+          'hoursWorked': l.hoursCtrl.text.trim(),
+          'daysWorked':  l.daysCtrl.text.trim(),
+          'totalCost':   l.costCtrl.text.trim(),
+        }).where((l) => l['employeeId'] != null).toList(),
         'otherCosts': _otherCosts.map((o) => {
           'description': o['description']!.text.trim(),
           'amount':      o['amount']!.text.trim(),
         }).where((o) => o['description']!.isNotEmpty).toList(),
       });
-      if (mounted) Navigator.pop(context);
+      if (mounted) context.pop();
     } catch (e) {
-      setState(() => _error = 'Failed to save activity.');
+      setState(() => _error = 'Failed to save activity: $e');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -157,6 +179,9 @@ class _ActivityFormScreenState
     _responsiblePersonCtrl.dispose();
     for (final i in _inputs) {
       for (final c in i.values) c.dispose();
+    }
+    for (final l in _labour) {
+      l.dispose();
     }
     for (final o in _otherCosts) {
       for (final c in o.values) c.dispose();
@@ -173,7 +198,7 @@ class _ActivityFormScreenState
     final activityTypes = _activityTypesForSelectedCrop(cropList);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Add activity',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -443,6 +468,36 @@ class _ActivityFormScreenState
 
             const SizedBox(height: 8),
 
+            // Labour section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Labour',
+                    style: TextStyle(
+                      fontSize:   16,
+                      fontWeight: FontWeight.w800,
+                      color:      FarmioColors.textPrimary,
+                    )),
+                TextButton.icon(
+                  onPressed: _addLabour,
+                  icon:  const Icon(Icons.add, size: 16),
+                  label: const Text('Add labour'),
+                ),
+              ],
+            ),
+            ..._labour.asMap().entries.map((e) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _LabourForm(
+                entry: e.value,
+                employees: employees.valueOrNull ?? const [],
+                onEmployeeChanged: (id) =>
+                    setState(() => e.value.employeeId = id),
+                onRemove: () => _removeLabour(e.key),
+              ),
+            )),
+
+            const SizedBox(height: 8),
+
             // Other costs section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -576,7 +631,7 @@ class _InputForm extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(14),
         border:       Border.all(color: FarmioColors.border),
       ),
@@ -627,6 +682,113 @@ class _InputForm extends StatelessWidget {
   }
 }
 
+// ── Labour entry state + form row ───────────────────────────────────────────────
+class _LabourEntry {
+  String? employeeId;
+  final hoursCtrl = TextEditingController();
+  final daysCtrl = TextEditingController();
+  final costCtrl = TextEditingController();
+
+  void dispose() {
+    hoursCtrl.dispose();
+    daysCtrl.dispose();
+    costCtrl.dispose();
+  }
+}
+
+class _LabourForm extends StatelessWidget {
+  final _LabourEntry entry;
+  final List<EmployeeModel> employees;
+  final ValueChanged<String?> onEmployeeChanged;
+  final VoidCallback onRemove;
+
+  const _LabourForm({
+    required this.entry,
+    required this.employees,
+    required this.onEmployeeChanged,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: FarmioColors.border),
+      ),
+      child: Column(
+        children: [
+          Row(children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: FarmioColors.background,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: FarmioColors.border),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: entry.employeeId,
+                    hint: const Text('Select worker',
+                        style: TextStyle(fontSize: 13)),
+                    isExpanded: true,
+                    isDense: true,
+                    style: const TextStyle(
+                        fontSize: 13, color: FarmioColors.textPrimary),
+                    items: employees
+                        .where((e) => e.isActive)
+                        .map((e) => DropdownMenuItem(
+                              value: e.id,
+                              child: Text(e.name),
+                            ))
+                        .toList(),
+                    onChanged: onEmployeeChanged,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.close,
+                  size: 18, color: FarmioColors.danger),
+              onPressed: onRemove,
+            ),
+          ]),
+          const SizedBox(height: 8),
+          Row(children: [
+            Expanded(
+              child: _SmallField(
+                controller: entry.hoursCtrl,
+                hint: 'Hours worked',
+                inputType: TextInputType.number,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _SmallField(
+                controller: entry.daysCtrl,
+                hint: 'Days worked',
+                inputType: TextInputType.number,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _SmallField(
+                controller: entry.costCtrl,
+                hint: 'Total cost',
+                inputType: TextInputType.number,
+              ),
+            ),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Other cost form row ───────────────────────────────────────────────────────
 class _OtherCostForm extends StatelessWidget {
   final Map<String, TextEditingController> controllers;
@@ -642,7 +804,7 @@ class _OtherCostForm extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(14),
         border:       Border.all(color: FarmioColors.border),
       ),

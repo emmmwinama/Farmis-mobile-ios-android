@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/activity_detail.dart';
 import '../../shared/utils/formatters.dart';
+import '../../shared/widgets/farmio_card.dart';
 import 'activities_provider.dart';
 
 class ActivityDetailScreen extends ConsumerWidget {
@@ -14,7 +16,7 @@ class ActivityDetailScreen extends ConsumerWidget {
     final detail = ref.watch(activityDetailProvider(activityId));
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Activity detail',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -26,17 +28,17 @@ class ActivityDetailScreen extends ConsumerWidget {
               onPressed: () async {
                 final ok = await showDialog<bool>(
                   context: context,
-                  builder: (_) => AlertDialog(
+                  builder: (dialogContext) => AlertDialog(
                     title:   const Text('Delete activity'),
                     content: const Text(
                         'This will delete all associated inputs, labour and costs.'),
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.pop(context, false),
+                        onPressed: () => Navigator.pop(dialogContext, false),
                         child: const Text('Cancel'),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.pop(context, true),
+                        onPressed: () => Navigator.pop(dialogContext, true),
                         child: const Text('Delete',
                             style: TextStyle(
                                 color: FarmioColors.danger)),
@@ -48,7 +50,7 @@ class ActivityDetailScreen extends ConsumerWidget {
                   await ref
                       .read(activitiesRepositoryProvider)
                       .deleteActivity(activityId);
-                  if (context.mounted) Navigator.pop(context);
+                  if (context.mounted) context.pop();
                 }
               },
             ),
@@ -77,7 +79,7 @@ class _DetailContent extends StatelessWidget {
       children: [
 
         // Header card
-        _Card(child: Row(children: [
+        FarmioCard(child: Row(children: [
           Container(
             width: 52, height: 52,
             decoration: BoxDecoration(
@@ -122,7 +124,7 @@ class _DetailContent extends StatelessWidget {
         if (activity.notes != null &&
             activity.notes!.isNotEmpty) ...[
           const SizedBox(height: 12),
-          _Card(child: Column(
+          FarmioCard(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Notes',
@@ -144,7 +146,7 @@ class _DetailContent extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Cost summary
-        _Card(child: Column(
+        FarmioCard(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Cost summary',
@@ -242,9 +244,9 @@ class _InputTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,9 +297,9 @@ class _LabourTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Row(children: [
         const Icon(Icons.person_outline,
@@ -341,9 +343,9 @@ class _OtherCostTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Row(children: [
         const Icon(Icons.receipt_outlined,
@@ -397,9 +399,9 @@ class _EmptySection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Center(
         child: Text(label,
@@ -453,25 +455,6 @@ class _CostRow extends StatelessWidget {
                   : FarmioColors.textPrimary,
             )),
       ]),
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  final Widget child;
-  const _Card({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width:   double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color:        Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: FarmioColors.border),
-      ),
-      child: child,
     );
   }
 }

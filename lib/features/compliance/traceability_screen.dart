@@ -13,7 +13,7 @@ class TraceabilityScreen extends ConsumerWidget {
     final lots = ref.watch(traceabilityProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Traceability',
             style: TextStyle(fontWeight: FontWeight.w800)),

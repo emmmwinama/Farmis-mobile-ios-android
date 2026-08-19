@@ -3,6 +3,7 @@ import 'finance_repository.dart';
 import '../../core/db/database_provider.dart';
 import '../../models/transaction.dart';
 import '../../models/overhead.dart';
+import '../../shared/filters/report_record_filters.dart';
 
 final financeRepositoryProvider = Provider<FinanceRepository>(
       (ref) => FinanceRepository(ref.read(databaseProvider)),
@@ -16,4 +17,9 @@ FutureProvider.autoDispose<FinanceData>((ref) {
 final overheadProvider =
 FutureProvider.autoDispose<OverheadData>((ref) {
   return ref.read(financeRepositoryProvider).getOverhead();
+});
+
+final activityCostProvider = FutureProvider.autoDispose
+    .family<ActivityCostSummary, ReportRecordFilters>((ref, filters) {
+  return ref.read(financeRepositoryProvider).getActivityCosts(filters);
 });

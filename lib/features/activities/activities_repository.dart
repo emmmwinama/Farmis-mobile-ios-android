@@ -85,7 +85,7 @@ class ActivitiesRepository {
         'inputCount': inputs.length,
         'labourCount': labour.length,
         'inputs': inputs.map((r) => r.toJson()).toList(),
-        'labourRecords': labour.map((r) => r.toJson()).toList(),
+        'labourRecords': await _labourJson(labour),
         'otherCosts': other.map((r) => r.toJson()).toList(),
       });
 
@@ -169,9 +169,28 @@ class ActivitiesRepository {
         'total': inputCost + labourCost + otherCost,
       },
       'inputs': inputs.map((r) => r.toJson()).toList(),
-      'labourRecords': labour.map((r) => r.toJson()).toList(),
+      'labourRecords': await _labourJson(labour),
       'otherCosts': other.map((r) => r.toJson()).toList(),
     });
+  }
+
+  Future<List<Map<String, dynamic>>> _labourJson(
+      List<ActivityLabourRecord> labour) async {
+    final result = <Map<String, dynamic>>[];
+    for (final record in labour) {
+      result.add({
+        ...record.toJson(),
+        'employeeName': await _employeeName(record.employeeId),
+      });
+    }
+    return result;
+  }
+
+  Future<String> _employeeName(String employeeId) async {
+    final employee = await (_db.select(_db.employees)
+          ..where((t) => t.id.equals(employeeId)))
+        .getSingleOrNull();
+    return employee?.name ?? 'Worker';
   }
 
   Future<String> createActivity(Map<String, dynamic> data) async {
@@ -214,12 +233,21 @@ class ActivitiesRepository {
           ));
     }
 
-    // Note: `responsibleEmployeeId`/`responsiblePersonName` are accepted by
-    // the create form but the backend never surfaced them back on
-    // ActivityModel/ActivityDetail either — no labour record is created
-    // from them (labour hours/days aren't collected by this form), so
-    // there's nothing to persist for them here. Preserved as a no-op for
-    // parity with the prior HTTP behaviour rather than silently erroring.
+    for (final raw in (data['labour'] as List? ?? const [])) {
+      final labour = raw as Map;
+      final hours = asDouble(labour['hoursWorked']);
+      final days = asDouble(labour['daysWorked']);
+      await _db.into(_db.activityLabourRecords).insert(
+            ActivityLabourRecordsCompanion.insert(
+              id: newId(),
+              activityId: id,
+              employeeId: labour['employeeId'] as String,
+              hoursWorked: hours,
+              daysWorked: days,
+              totalCost: asDouble(labour['totalCost']),
+            ),
+          );
+    }
 
     return id;
   }

@@ -11,6 +11,7 @@ class FarmProfileRepository {
       _db.select(_db.farmProfile).getSingleOrNull();
 
   Future<void> saveProfile({
+    String? ownerName,
     required String name,
     required String location,
     double? locationLat,
@@ -21,6 +22,7 @@ class FarmProfileRepository {
       await (_db.update(_db.farmProfile)
             ..where((t) => t.id.equals(existing.id)))
           .write(FarmProfileCompanion(
+        ownerName: Value(ownerName),
         name: Value(name),
         location: Value(location),
         locationLat: Value(locationLat),
@@ -29,6 +31,7 @@ class FarmProfileRepository {
     } else {
       await _db.into(_db.farmProfile).insert(FarmProfileCompanion.insert(
             id: newId(),
+            ownerName: Value(ownerName),
             name: name,
             location: location,
             locationLat: Value(locationLat),

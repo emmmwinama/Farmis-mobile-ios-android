@@ -14,7 +14,7 @@ class ProfileScreen extends ConsumerWidget {
     final profile = ref.watch(farmProfileProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Profile',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -30,9 +30,9 @@ class ProfileScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: FarmioColors.border),
+                border: Border.all(color: context.colors.border),
               ),
               child: Row(
                 children: [
@@ -40,8 +40,7 @@ class ProfileScreen extends ConsumerWidget {
                     radius: 28,
                     backgroundColor: FarmioColors.primary,
                     child: Text(
-                      (data?.name.isNotEmpty == true ? data!.name[0] : 'F')
-                          .toUpperCase(),
+                      (_avatarSource(data)).toUpperCase(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
@@ -54,6 +53,15 @@ class ProfileScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (data?.ownerName?.isNotEmpty == true)
+                          Text(
+                            data!.ownerName!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: FarmioColors.textMuted,
+                            ),
+                          ),
                         Text(
                           data?.name ?? 'My Farm',
                           style: const TextStyle(
@@ -126,6 +134,12 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
+  String _avatarSource(FarmProfileData? data) {
+    if (data?.ownerName?.isNotEmpty == true) return data!.ownerName![0];
+    if (data?.name.isNotEmpty == true) return data!.name[0];
+    return 'F';
+  }
+
   Future<void> _showEditForm(
     BuildContext context,
     WidgetRef ref,
@@ -161,9 +175,9 @@ class _ProfileAction extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: FarmioColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(
           children: [
@@ -216,6 +230,8 @@ class _FarmProfileForm extends ConsumerStatefulWidget {
 }
 
 class _FarmProfileFormState extends ConsumerState<_FarmProfileForm> {
+  late final _ownerNameCtrl =
+      TextEditingController(text: widget.current?.ownerName ?? '');
   late final _nameCtrl =
       TextEditingController(text: widget.current?.name ?? '');
   late final _locationCtrl =
@@ -229,6 +245,7 @@ class _FarmProfileFormState extends ConsumerState<_FarmProfileForm> {
 
   @override
   void dispose() {
+    _ownerNameCtrl.dispose();
     _nameCtrl.dispose();
     _locationCtrl.dispose();
     _latCtrl.dispose();
@@ -247,15 +264,18 @@ class _FarmProfileFormState extends ConsumerState<_FarmProfileForm> {
     });
     try {
       await ref.read(farmProfileRepositoryProvider).saveProfile(
+            ownerName: _ownerNameCtrl.text.trim().isEmpty
+                ? null
+                : _ownerNameCtrl.text.trim(),
             name: _nameCtrl.text.trim(),
             location: _locationCtrl.text.trim(),
             locationLat: double.tryParse(_latCtrl.text.trim()),
             locationLng: double.tryParse(_lngCtrl.text.trim()),
           );
       ref.invalidate(farmProfileProvider);
-      if (mounted) Navigator.pop(context);
-    } catch (_) {
-      setState(() => _error = 'Could not save farm details.');
+      if (mounted) context.pop();
+    } catch (e) {
+      setState(() => _error = 'Could not save farm details: $e');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -268,9 +288,9 @@ class _FarmProfileFormState extends ConsumerState<_FarmProfileForm> {
       padding: EdgeInsets.only(bottom: bottom),
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SafeArea(
           top: false,
@@ -286,6 +306,12 @@ class _FarmProfileFormState extends ConsumerState<_FarmProfileForm> {
                       fontWeight: FontWeight.w900,
                     )),
                 const SizedBox(height: 16),
+                TextField(
+                  controller: _ownerNameCtrl,
+                  decoration:
+                      const InputDecoration(labelText: 'Your name (optional)'),
+                ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: _nameCtrl,
                   decoration: const InputDecoration(labelText: 'Farm name'),

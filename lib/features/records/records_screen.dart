@@ -25,10 +25,10 @@ class _RecordsScreenState extends State<RecordsScreen> {
     final selected = _packs.firstWhere((pack) => pack.key == _selectedPack);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: FarmioColors.background,
-        foregroundColor: FarmioColors.textPrimary,
+        backgroundColor: context.colors.background,
+        foregroundColor: context.colors.textPrimary,
         shape: const Border(),
         title: const Text('Records'),
         actions: [

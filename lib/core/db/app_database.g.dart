@@ -14,6 +14,12 @@ class $FarmProfileTable extends FarmProfile
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _ownerNameMeta =
+      const VerificationMeta('ownerName');
+  @override
+  late final GeneratedColumn<String> ownerName = GeneratedColumn<String>(
+      'owner_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -45,7 +51,7 @@ class $FarmProfileTable extends FarmProfile
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, name, location, locationLat, locationLng, createdAt];
+      [id, ownerName, name, location, locationLat, locationLng, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -60,6 +66,10 @@ class $FarmProfileTable extends FarmProfile
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('owner_name')) {
+      context.handle(_ownerNameMeta,
+          ownerName.isAcceptableOrUnknown(data['owner_name']!, _ownerNameMeta));
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -102,6 +112,8 @@ class $FarmProfileTable extends FarmProfile
     return FarmProfileData(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      ownerName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}owner_name']),
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
       location: attachedDatabase.typeMapping
@@ -123,6 +135,7 @@ class $FarmProfileTable extends FarmProfile
 
 class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
   final String id;
+  final String? ownerName;
   final String name;
   final String location;
   final double? locationLat;
@@ -130,6 +143,7 @@ class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
   final DateTime createdAt;
   const FarmProfileData(
       {required this.id,
+      this.ownerName,
       required this.name,
       required this.location,
       this.locationLat,
@@ -139,6 +153,9 @@ class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || ownerName != null) {
+      map['owner_name'] = Variable<String>(ownerName);
+    }
     map['name'] = Variable<String>(name);
     map['location'] = Variable<String>(location);
     if (!nullToAbsent || locationLat != null) {
@@ -154,6 +171,9 @@ class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
   FarmProfileCompanion toCompanion(bool nullToAbsent) {
     return FarmProfileCompanion(
       id: Value(id),
+      ownerName: ownerName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerName),
       name: Value(name),
       location: Value(location),
       locationLat: locationLat == null && nullToAbsent
@@ -171,6 +191,7 @@ class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return FarmProfileData(
       id: serializer.fromJson<String>(json['id']),
+      ownerName: serializer.fromJson<String?>(json['ownerName']),
       name: serializer.fromJson<String>(json['name']),
       location: serializer.fromJson<String>(json['location']),
       locationLat: serializer.fromJson<double?>(json['locationLat']),
@@ -183,6 +204,7 @@ class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'ownerName': serializer.toJson<String?>(ownerName),
       'name': serializer.toJson<String>(name),
       'location': serializer.toJson<String>(location),
       'locationLat': serializer.toJson<double?>(locationLat),
@@ -193,6 +215,7 @@ class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
 
   FarmProfileData copyWith(
           {String? id,
+          Value<String?> ownerName = const Value.absent(),
           String? name,
           String? location,
           Value<double?> locationLat = const Value.absent(),
@@ -200,6 +223,7 @@ class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
           DateTime? createdAt}) =>
       FarmProfileData(
         id: id ?? this.id,
+        ownerName: ownerName.present ? ownerName.value : this.ownerName,
         name: name ?? this.name,
         location: location ?? this.location,
         locationLat: locationLat.present ? locationLat.value : this.locationLat,
@@ -209,6 +233,7 @@ class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
   FarmProfileData copyWithCompanion(FarmProfileCompanion data) {
     return FarmProfileData(
       id: data.id.present ? data.id.value : this.id,
+      ownerName: data.ownerName.present ? data.ownerName.value : this.ownerName,
       name: data.name.present ? data.name.value : this.name,
       location: data.location.present ? data.location.value : this.location,
       locationLat:
@@ -223,6 +248,7 @@ class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
   String toString() {
     return (StringBuffer('FarmProfileData(')
           ..write('id: $id, ')
+          ..write('ownerName: $ownerName, ')
           ..write('name: $name, ')
           ..write('location: $location, ')
           ..write('locationLat: $locationLat, ')
@@ -233,13 +259,14 @@ class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, location, locationLat, locationLng, createdAt);
+  int get hashCode => Object.hash(
+      id, ownerName, name, location, locationLat, locationLng, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is FarmProfileData &&
           other.id == this.id &&
+          other.ownerName == this.ownerName &&
           other.name == this.name &&
           other.location == this.location &&
           other.locationLat == this.locationLat &&
@@ -249,6 +276,7 @@ class FarmProfileData extends DataClass implements Insertable<FarmProfileData> {
 
 class FarmProfileCompanion extends UpdateCompanion<FarmProfileData> {
   final Value<String> id;
+  final Value<String?> ownerName;
   final Value<String> name;
   final Value<String> location;
   final Value<double?> locationLat;
@@ -257,6 +285,7 @@ class FarmProfileCompanion extends UpdateCompanion<FarmProfileData> {
   final Value<int> rowid;
   const FarmProfileCompanion({
     this.id = const Value.absent(),
+    this.ownerName = const Value.absent(),
     this.name = const Value.absent(),
     this.location = const Value.absent(),
     this.locationLat = const Value.absent(),
@@ -266,6 +295,7 @@ class FarmProfileCompanion extends UpdateCompanion<FarmProfileData> {
   });
   FarmProfileCompanion.insert({
     required String id,
+    this.ownerName = const Value.absent(),
     required String name,
     required String location,
     this.locationLat = const Value.absent(),
@@ -278,6 +308,7 @@ class FarmProfileCompanion extends UpdateCompanion<FarmProfileData> {
         createdAt = Value(createdAt);
   static Insertable<FarmProfileData> custom({
     Expression<String>? id,
+    Expression<String>? ownerName,
     Expression<String>? name,
     Expression<String>? location,
     Expression<double>? locationLat,
@@ -287,6 +318,7 @@ class FarmProfileCompanion extends UpdateCompanion<FarmProfileData> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (ownerName != null) 'owner_name': ownerName,
       if (name != null) 'name': name,
       if (location != null) 'location': location,
       if (locationLat != null) 'location_lat': locationLat,
@@ -298,6 +330,7 @@ class FarmProfileCompanion extends UpdateCompanion<FarmProfileData> {
 
   FarmProfileCompanion copyWith(
       {Value<String>? id,
+      Value<String?>? ownerName,
       Value<String>? name,
       Value<String>? location,
       Value<double?>? locationLat,
@@ -306,6 +339,7 @@ class FarmProfileCompanion extends UpdateCompanion<FarmProfileData> {
       Value<int>? rowid}) {
     return FarmProfileCompanion(
       id: id ?? this.id,
+      ownerName: ownerName ?? this.ownerName,
       name: name ?? this.name,
       location: location ?? this.location,
       locationLat: locationLat ?? this.locationLat,
@@ -320,6 +354,9 @@ class FarmProfileCompanion extends UpdateCompanion<FarmProfileData> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (ownerName.present) {
+      map['owner_name'] = Variable<String>(ownerName.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -346,6 +383,7 @@ class FarmProfileCompanion extends UpdateCompanion<FarmProfileData> {
   String toString() {
     return (StringBuffer('FarmProfileCompanion(')
           ..write('id: $id, ')
+          ..write('ownerName: $ownerName, ')
           ..write('name: $name, ')
           ..write('location: $location, ')
           ..write('locationLat: $locationLat, ')
@@ -11255,6 +11293,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$FarmProfileTableCreateCompanionBuilder = FarmProfileCompanion
     Function({
   required String id,
+  Value<String?> ownerName,
   required String name,
   required String location,
   Value<double?> locationLat,
@@ -11265,6 +11304,7 @@ typedef $$FarmProfileTableCreateCompanionBuilder = FarmProfileCompanion
 typedef $$FarmProfileTableUpdateCompanionBuilder = FarmProfileCompanion
     Function({
   Value<String> id,
+  Value<String?> ownerName,
   Value<String> name,
   Value<String> location,
   Value<double?> locationLat,
@@ -11284,6 +11324,9 @@ class $$FarmProfileTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get ownerName => $composableBuilder(
+      column: $table.ownerName, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
@@ -11313,6 +11356,9 @@ class $$FarmProfileTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get ownerName => $composableBuilder(
+      column: $table.ownerName, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
 
@@ -11340,6 +11386,9 @@ class $$FarmProfileTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get ownerName =>
+      $composableBuilder(column: $table.ownerName, builder: (column) => column);
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
@@ -11384,6 +11433,7 @@ class $$FarmProfileTableTableManager extends RootTableManager<
               $$FarmProfileTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
+            Value<String?> ownerName = const Value.absent(),
             Value<String> name = const Value.absent(),
             Value<String> location = const Value.absent(),
             Value<double?> locationLat = const Value.absent(),
@@ -11393,6 +11443,7 @@ class $$FarmProfileTableTableManager extends RootTableManager<
           }) =>
               FarmProfileCompanion(
             id: id,
+            ownerName: ownerName,
             name: name,
             location: location,
             locationLat: locationLat,
@@ -11402,6 +11453,7 @@ class $$FarmProfileTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             required String id,
+            Value<String?> ownerName = const Value.absent(),
             required String name,
             required String location,
             Value<double?> locationLat = const Value.absent(),
@@ -11411,6 +11463,7 @@ class $$FarmProfileTableTableManager extends RootTableManager<
           }) =>
               FarmProfileCompanion.insert(
             id: id,
+            ownerName: ownerName,
             name: name,
             location: location,
             locationLat: locationLat,

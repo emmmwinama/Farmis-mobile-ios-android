@@ -62,8 +62,9 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
       final summary = await service.importFromJson(json);
       ref.invalidate(farmProfileProvider);
       setState(() => _summary = summary);
-    } catch (_) {
-      setState(() => _error = 'Could not import that file. Check its format and try again.');
+    } catch (e) {
+      setState(() => _error =
+          'Could not import that file. Check its format and try again.\n$e');
     } finally {
       if (mounted) setState(() => _importing = false);
     }
@@ -72,7 +73,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Import existing data',
             style: TextStyle(fontWeight: FontWeight.w800)),

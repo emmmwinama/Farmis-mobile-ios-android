@@ -1,37 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/inventory_item.dart';
+import '../../shared/filters/entity_filter_bar.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'inventory_provider.dart';
 
-class InventoryScreen extends ConsumerWidget {
-  const InventoryScreen({super.key});
+class InventoryScreen extends ConsumerStatefulWidget {
+  final bool embedded;
+  const InventoryScreen({super.key, this.embedded = false});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InventoryScreen> createState() => _InventoryScreenState();
+}
+
+class _InventoryScreenState extends ConsumerState<InventoryScreen> {
+  String _categoryFilter = 'All';
+  bool _lowStockOnly = false;
+
+  @override
+  Widget build(BuildContext context) {
     final items = ref.watch(inventoryItemsProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
-      appBar: AppBar(
-        title: const Text('Inventory',
-            style: TextStyle(fontWeight: FontWeight.w800)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(inventoryItemsProvider),
-          ),
-        ],
-      ),
+      backgroundColor: context.colors.background,
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              title: const Text('Inventory',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () => ref.invalidate(inventoryItemsProvider),
+                ),
+              ],
+            ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showModalBottomSheet<void>(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => const _AddItemForm(),
-        ),
+        onPressed: () => context.push('/inventory/new'),
         icon: const Icon(Icons.add),
         label: const Text('Add stock'),
       ),
@@ -53,12 +61,78 @@ class InventoryScreen extends ConsumerWidget {
               ),
             );
           }
+
+          final categories = {...list.map((i) => i.category)}.toList();
+          final filtered = list.where((i) {
+            if (_categoryFilter != 'All' && i.category != _categoryFilter) {
+              return false;
+            }
+            if (_lowStockOnly && !i.lowStock) return false;
+            return true;
+          }).toList();
+
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(inventoryItemsProvider),
             child: ListView.builder(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
-              itemCount: list.length,
-              itemBuilder: (context, index) => _ItemCard(item: list[index]),
+              itemCount: (filtered.isEmpty ? 1 : filtered.length) + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      EntityFilterBar(
+                        dimensions: [
+                          FilterDimension(
+                            label: 'Category',
+                            icon: Icons.category_outlined,
+                            value: _categoryFilter,
+                            options: categories,
+                            onSelected: (v) =>
+                                setState(() => _categoryFilter = v),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: FilterChip(
+                          label: const Text('Low stock only'),
+                          selected: _lowStockOnly,
+                          avatar: Icon(
+                            Icons.warning_amber_rounded,
+                            size: 17,
+                            color: _lowStockOnly
+                                ? Colors.white
+                                : FarmioColors.warning,
+                          ),
+                          onSelected: (v) =>
+                              setState(() => _lowStockOnly = v),
+                          selectedColor: FarmioColors.warning,
+                          labelStyle: TextStyle(
+                            color: _lowStockOnly
+                                ? Colors.white
+                                : context.colors.textPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                  );
+                }
+                if (filtered.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'No items match this filter',
+                        style: TextStyle(color: FarmioColors.textMuted),
+                      ),
+                    ),
+                  );
+                }
+                return _ItemCard(item: filtered[index - 1]);
+              },
             ),
           );
         },
@@ -77,10 +151,10 @@ class _ItemCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: FarmioColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: item.lowStock ? FarmioColors.warning : FarmioColors.border,
+          color: item.lowStock ? FarmioColors.warning : context.colors.border,
         ),
       ),
       child: Column(
@@ -151,149 +225,6 @@ class _ItemCard extends StatelessWidget {
   }
 }
 
-class _AddItemForm extends ConsumerStatefulWidget {
-  const _AddItemForm();
-
-  @override
-  ConsumerState<_AddItemForm> createState() => _AddItemFormState();
-}
-
-class _AddItemFormState extends ConsumerState<_AddItemForm> {
-  final _nameCtrl = TextEditingController();
-  final _categoryCtrl = TextEditingController();
-  final _unitCtrl = TextEditingController(text: 'kg');
-  final _quantityCtrl = TextEditingController();
-  final _costCtrl = TextEditingController();
-  bool _saving = false;
-  String? _error;
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _categoryCtrl.dispose();
-    _unitCtrl.dispose();
-    _quantityCtrl.dispose();
-    _costCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    if (_nameCtrl.text.trim().isEmpty ||
-        _categoryCtrl.text.trim().isEmpty ||
-        _quantityCtrl.text.trim().isEmpty) {
-      setState(() => _error = 'Name, category and quantity are required.');
-      return;
-    }
-    setState(() {
-      _saving = true;
-      _error = null;
-    });
-
-    try {
-      await ref.read(inventoryRepositoryProvider).createItem({
-        'name': _nameCtrl.text.trim(),
-        'category': _categoryCtrl.text.trim(),
-        'unit': _unitCtrl.text.trim().isEmpty ? 'kg' : _unitCtrl.text.trim(),
-        'quantity': num.tryParse(_quantityCtrl.text.trim()) ?? 0,
-        'acquisitionUnitCost': _costCtrl.text.trim().isEmpty
-            ? null
-            : num.tryParse(_costCtrl.text.trim()),
-      });
-      ref.invalidate(inventoryItemsProvider);
-      if (mounted) Navigator.pop(context);
-    } catch (e) {
-      setState(() => _error = 'Could not save item.');
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottom),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text('Add stock',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _categoryCtrl,
-                  decoration: const InputDecoration(labelText: 'Category'),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _quantityCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration:
-                            const InputDecoration(labelText: 'Quantity'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: _unitCtrl,
-                        decoration: const InputDecoration(labelText: 'Unit'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _costCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      labelText: 'Cost per unit (optional)'),
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 12),
-                  FarmioErrorBanner(message: _error!),
-                ],
-                const SizedBox(height: 18),
-                SizedBox(
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _saving ? null : _save,
-                    child: _saving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2),
-                          )
-                        : const Text('Save item'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _SellForm extends ConsumerStatefulWidget {
   final InventoryItem item;
   const _SellForm({required this.item});
@@ -352,7 +283,7 @@ class _SellFormState extends ConsumerState<_SellForm> {
       ref.invalidate(inventoryItemsProvider);
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      setState(() => _error = 'Could not save sale.');
+      setState(() => _error = 'Could not save sale: $e');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -365,9 +296,9 @@ class _SellFormState extends ConsumerState<_SellForm> {
       padding: EdgeInsets.only(bottom: bottom),
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SafeArea(
           top: false,

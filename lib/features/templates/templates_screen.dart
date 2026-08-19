@@ -21,7 +21,7 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
     final crops = ref.watch(allCropsProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Seasonal Templates',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -119,9 +119,9 @@ class _EmptyFilteredState extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         children: [
@@ -199,9 +199,9 @@ class _TemplateCardState extends State<_TemplateCard> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),

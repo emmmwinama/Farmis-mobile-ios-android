@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/field_boundary.dart';
-import 'field_boundary_editor_screen.dart';
 import 'field_map_provider.dart';
 
 const _defaultCenter = LatLng(-13.9626, 33.7741); // Lilongwe, Malawi
@@ -17,7 +17,7 @@ class FieldMapScreen extends ConsumerWidget {
     final fieldMap = ref.watch(fieldMapProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Farm map',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -143,7 +143,7 @@ class _ReadinessBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: FarmioColors.surface,
+      color: context.colors.surface,
       child: Row(
         children: [
           _Stat(label: 'Mapped', value: '${readiness.mappedPct.round()}%'),
@@ -204,20 +204,14 @@ class _FieldReadinessList extends StatelessWidget {
           final hasBoundary = field.boundary != null;
           return InkWell(
             borderRadius: BorderRadius.circular(14),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    FieldBoundaryEditorScreen(fieldId: field.id),
-              ),
-            ),
+            onTap: () => context.push('/fields/${field.id}/boundary'),
             child: Container(
               width: 168,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: FarmioColors.surface,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: FarmioColors.border),
+                border: Border.all(color: context.colors.border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

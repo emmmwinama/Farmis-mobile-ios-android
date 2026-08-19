@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import '../fields/fields_provider.dart';
@@ -50,9 +51,9 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
         'plantingDate':        _plantingDate.toIso8601String(),
         'expectedHarvestDate': _expectedHarvestDate.toIso8601String(),
       });
-      if (mounted) Navigator.pop(context);
+      if (mounted) context.pop();
     } catch (e) {
-      setState(() => _error = 'Failed to save crop.');
+      setState(() => _error = 'Failed to save crop: $e');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -91,7 +92,7 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
     final cropTypes  = ref.watch(cropTypesProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Add crop',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -107,26 +108,16 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
             fields.when(
               loading: () => const LinearProgressIndicator(),
               error:   (_, __) => const Text('Failed to load fields'),
-              data:    (list) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  color:        FarmioColors.background,
-                  borderRadius: BorderRadius.circular(12),
-                  border:       Border.all(color: FarmioColors.border),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value:       _fieldId,
-                    hint:        const Text('Select field'),
-                    isExpanded:  true,
-                    items: list.map((f) => DropdownMenuItem(
-                      value: f.id,
-                      child: Text(
-                          '${f.name} (${f.availableArea.toStringAsFixed(2)} ha free)'),
-                    )).toList(),
-                    onChanged: (v) => setState(() => _fieldId = v),
-                  ),
-                ),
+              data:    (list) => DropdownButtonFormField<String>(
+                initialValue: _fieldId,
+                hint:        const Text('Select field'),
+                isExpanded:  true,
+                items: list.map((f) => DropdownMenuItem(
+                  value: f.id,
+                  child: Text(
+                      '${f.name} (${f.availableArea.toStringAsFixed(2)} ha free)'),
+                )).toList(),
+                onChanged: (v) => setState(() => _fieldId = v),
               ),
             ),
             const SizedBox(height: 16),
@@ -138,26 +129,16 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
               error:   (_, __) => const Text('Failed to load crop types'),
               data:    (types) => Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(
-                      color:        FarmioColors.background,
-                      borderRadius: BorderRadius.circular(12),
-                      border:       Border.all(color: FarmioColors.border),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value:      _cropTypeId,
-                        hint:       const Text('Select crop type'),
-                        isExpanded: true,
-                        items: types.map((t) => DropdownMenuItem(
-                          value: t.id,
-                          child: Text(t.name),
-                        )).toList(),
-                        onChanged: (v) =>
-                            setState(() => _cropTypeId = v),
-                      ),
-                    ),
+                  DropdownButtonFormField<String>(
+                    initialValue: _cropTypeId,
+                    hint:       const Text('Select crop type'),
+                    isExpanded: true,
+                    items: types.map((t) => DropdownMenuItem(
+                      value: t.id,
+                      child: Text(t.name),
+                    )).toList(),
+                    onChanged: (v) =>
+                        setState(() => _cropTypeId = v),
                   ),
                   const SizedBox(height: 8),
 
@@ -168,20 +149,8 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
                         child: TextField(
                           controller:  _newTypeCtrl,
                           autofocus:   true,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             hintText:  'New crop type name',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                  color: FarmioColors.border),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                  color: FarmioColors.border),
-                            ),
-                            filled:    true,
-                            fillColor: FarmioColors.background,
                           ),
                         ),
                       ),
@@ -193,7 +162,7 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
                           final type = await ref
                               .read(cropsRepositoryProvider)
                               .createCropType(name);
-                          ref.refresh(cropTypesProvider);
+                          ref.invalidate(cropTypesProvider);
                           setState(() {
                             _cropTypeId = type.id;
                             _addingType = false;
@@ -313,19 +282,7 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
       TextField(
         controller:   controller,
         keyboardType: inputType,
-        decoration:   InputDecoration(
-          hintText: hint,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: FarmioColors.border),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: FarmioColors.border),
-          ),
-          filled:    true,
-          fillColor: FarmioColors.background,
-        ),
+        decoration:   InputDecoration(hintText: hint),
       );
 }
 

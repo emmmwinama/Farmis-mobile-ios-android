@@ -12,12 +12,12 @@ class FarmioErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: FarmioColors.dangerBg,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: FarmioColors.danger.withValues(alpha: 0.3),
+          color: FarmioColors.danger.withValues(alpha: 0.22),
         ),
       ),
       child: Row(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/season.dart';
 import '../../shared/utils/formatters.dart';
@@ -33,7 +34,7 @@ class _SeasonsScreenState extends ConsumerState<SeasonsScreen> {
     final canCompare = _selected.length == 2;
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Seasons',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -48,13 +49,10 @@ class _SeasonsScreenState extends ConsumerState<SeasonsScreen> {
           ? FloatingActionButton.extended(
               onPressed: () {
                 final list = _selected.toList();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => SeasonCompareScreen(
-                      pair: SeasonComparePair(list[0], list[1]),
-                    ),
-                  ),
+                context.push(
+                  '/seasons/compare'
+                  '?a=${Uri.encodeQueryComponent(list[0])}'
+                  '&b=${Uri.encodeQueryComponent(list[1])}',
                 );
               },
               icon: const Icon(Icons.compare_arrows_outlined),
@@ -153,7 +151,7 @@ class _SeasonCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: FarmioColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected ? FarmioColors.primary : FarmioColors.border,
@@ -245,7 +243,7 @@ class SeasonCompareScreen extends ConsumerWidget {
     final compare = ref.watch(seasonCompareProvider(pair));
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Season comparison',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -327,9 +325,9 @@ class _OverallVerdict extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: FarmioColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: FarmioColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(
           children: [
@@ -445,9 +443,9 @@ class _DeltaRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: FarmioColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'fields_provider.dart';
@@ -44,9 +45,9 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
         'soilType':         _soilType,
         'notes':            _notesCtrl.text.trim(),
       });
-      if (mounted) Navigator.pop(context);
+      if (mounted) context.pop();
     } catch (e) {
-      setState(() => _error = 'Failed to save field.');
+      setState(() => _error = 'Failed to save field: $e');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -64,7 +65,7 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Add field',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -106,42 +107,22 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
             const SizedBox(height: 16),
 
             _label('Soil type *'),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color:        FarmioColors.background,
-                borderRadius: BorderRadius.circular(12),
-                border:       Border.all(color: FarmioColors.border),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value:       _soilType,
-                  isExpanded:  true,
-                  items:       _soilTypes
-                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                      .toList(),
-                  onChanged:   (v) => setState(() => _soilType = v!),
-                ),
-              ),
+            DropdownButtonFormField<String>(
+              initialValue: _soilType,
+              isExpanded: true,
+              items:      _soilTypes
+                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                  .toList(),
+              onChanged:  (v) => setState(() => _soilType = v!),
             ),
             const SizedBox(height: 16),
 
             _label('Notes (optional)'),
             TextField(
-              controller:   _notesCtrl,
-              maxLines:     3,
-              decoration:   InputDecoration(
+              controller: _notesCtrl,
+              maxLines:   3,
+              decoration: const InputDecoration(
                 hintText: 'Any notes about this field...',
-                border:   OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide:   const BorderSide(color: FarmioColors.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide:   const BorderSide(color: FarmioColors.border),
-                ),
-                filled:    true,
-                fillColor: FarmioColors.background,
               ),
             ),
 
@@ -173,9 +154,9 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12, fontWeight: FontWeight.w700,
-          color: FarmioColors.textMuted,
+          color: context.colors.textMuted,
         )),
   );
 
@@ -185,20 +166,8 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
     TextInputType inputType = TextInputType.text,
   }) =>
       TextField(
-        controller:  controller,
+        controller:   controller,
         keyboardType: inputType,
-        decoration:  InputDecoration(
-          hintText:  hint,
-          border:    OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide:   const BorderSide(color: FarmioColors.border),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide:   const BorderSide(color: FarmioColors.border),
-          ),
-          filled:    true,
-          fillColor: FarmioColors.background,
-        ),
+        decoration:   InputDecoration(hintText: hint),
       );
 }

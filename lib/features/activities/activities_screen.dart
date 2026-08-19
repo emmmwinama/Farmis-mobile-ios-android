@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/activity.dart';
 import '../../models/field.dart';
 import '../../shared/utils/formatters.dart';
+import '../../shared/widgets/farmio_shimmer.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import '../fields/fields_provider.dart';
 import 'activities_provider.dart';
-import 'activity_detail_screen.dart';
-import 'activity_form_screen.dart';
 
 class ActivitiesScreen extends ConsumerStatefulWidget {
   const ActivitiesScreen({super.key});
@@ -42,7 +42,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
     final fieldsAsync = ref.watch(fieldsProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Activities',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -51,7 +51,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
         loading: () => const _Skeleton(),
         error:   (e, _) => _ErrorView(
           message: e.toString(),
-          onRetry: () => ref.refresh(activitiesDataProvider),
+          onRetry: () => ref.invalidate(activitiesDataProvider),
         ),
         data: (data) {
           // Client-side filtering
@@ -72,7 +72,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
 
           return RefreshIndicator(
             color:     FarmioColors.primary,
-            onRefresh: () async => ref.refresh(activitiesDataProvider),
+            onRefresh: () async => ref.invalidate(activitiesDataProvider),
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
@@ -179,15 +179,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                       _expandedId =
                       _expandedId == a.id ? null : a.id),
                       onOpenDetail: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                ActivityDetailScreen(
-                                    activityId: a.id),
-                          ),
-                        );
-                        ref.refresh(activitiesDataProvider);
+                        await context.push('/activities/${a.id}');
+                        ref.invalidate(activitiesDataProvider);
                       },
                       onDelete: () =>
                           _confirmDelete(context, ref, a),
@@ -201,12 +194,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: FarmioColors.primary,
         onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) => const ActivityFormScreen()),
-          );
-          ref.refresh(activitiesDataProvider);
+          await context.push('/activities/new');
+          ref.invalidate(activitiesDataProvider);
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -217,18 +206,18 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
       BuildContext context, WidgetRef ref, ActivityModel a) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title:   const Text('Delete activity'),
         content: Text(
             'Delete "${a.activityType}" on ${a.fieldName}? '
                 'All inputs, labour and costs will be removed.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Delete',
                 style: TextStyle(color: FarmioColors.danger)),
           ),
@@ -239,7 +228,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
       await ref
           .read(activitiesRepositoryProvider)
           .deleteActivity(a.id);
-      ref.refresh(activitiesDataProvider);
+      ref.invalidate(activitiesDataProvider);
     }
   }
 }
@@ -349,12 +338,12 @@ class _ActivityCard extends StatelessWidget {
                                 (activity.cropVariety != null
                                     ? ' (${activity.cropVariety})'
                                     : ''),
-                            color: const Color(0xFF16A34A),
+                            color: FarmioColors.success,
                           ),
                         if (activity.season != null)
                           _MetaChip(
                             label: activity.season!,
-                            color: const Color(0xFFD97706),
+                            color: FarmioColors.warning,
                           ),
                         if (activity.labourCount > 0)
                           _MetaChip(
@@ -417,7 +406,7 @@ class _ActivityCard extends StatelessWidget {
           if (expanded) ...[
             Container(
               decoration: const BoxDecoration(
-                color: Color(0xFFF8FAFC),
+                color: FarmioColors.background,
                 borderRadius: BorderRadius.vertical(
                     bottom: Radius.circular(16)),
               ),
@@ -434,19 +423,19 @@ class _ActivityCard extends StatelessWidget {
                           _CostChip(
                             label: 'Labour',
                             value: activity.totalLabourCost,
-                            color: const Color(0xFF2563EB),
+                            color: FarmioColors.info,
                           ),
                           const SizedBox(width: 8),
                           _CostChip(
                             label: 'Inputs',
                             value: activity.totalInputCost,
-                            color: const Color(0xFF16A34A),
+                            color: FarmioColors.success,
                           ),
                           const SizedBox(width: 8),
                           _CostChip(
                             label: 'Other',
                             value: activity.totalOtherCost,
-                            color: const Color(0xFFD97706),
+                            color: FarmioColors.warning,
                           ),
                         ]),
                         const SizedBox(height: 12),
@@ -857,7 +846,7 @@ class _AnalyticsPanel extends StatelessWidget {
               count:    f.count,
               maxCount: data.byField.first.count,
               cost:     f.totalCost,
-              color:    const Color(0xFF16A34A),
+              color:    FarmioColors.success,
             )),
 
           const SizedBox(height: 14),
@@ -879,7 +868,7 @@ class _AnalyticsPanel extends StatelessWidget {
                   count:    s.count,
                   maxCount: data.bySeason.first.count,
                   cost:     s.totalCost,
-                  color:    const Color(0xFFD97706),
+                  color:    FarmioColors.warning,
                 ),
                 if (s.types.isNotEmpty)
                   Padding(
@@ -1229,12 +1218,10 @@ class _Skeleton extends StatelessWidget {
       padding:          const EdgeInsets.all(20),
       itemCount:        5,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, __) => Container(
-        height:     90,
-        decoration: BoxDecoration(
-          color:        const Color(0xFFE2E8F0),
-          borderRadius: BorderRadius.circular(16),
-        ),
+      itemBuilder: (_, __) => const FarmioShimmer(
+        width: double.infinity,
+        height: 90,
+        radius: 16,
       ),
     );
   }

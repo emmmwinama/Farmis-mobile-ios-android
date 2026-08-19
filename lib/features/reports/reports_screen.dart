@@ -2,12 +2,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/report.dart';
 import '../../shared/filters/report_record_filters.dart';
 import '../../shared/utils/formatters.dart';
+import '../../shared/widgets/farmio_shimmer.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import '../report_builder/report_builder_provider.dart';
 import 'reports_provider.dart';
@@ -235,7 +237,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final report = ref.watch(reportsProvider(_filters));
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Reports',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -264,6 +266,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
                 // Finance summary banner
                 _FinanceBanner(summary: data.financeSummary),
+                const _QuickLinksRow(),
                 ReportRecordFilterBar(
                   value: _filters,
                   crops: _filterCrops(data),
@@ -426,6 +429,85 @@ class _FinanceBanner extends StatelessWidget {
         ),
       ]),
     );
+  }
+}
+
+class _QuickLink {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final String route;
+  const _QuickLink(this.label, this.icon, this.color, this.route);
+}
+
+const _quickLinks = [
+  _QuickLink('Records', Icons.file_present_outlined, FarmioColors.info, '/records'),
+  _QuickLink('Compliance', Icons.verified_user_outlined, FarmioColors.primary, '/compliance'),
+  _QuickLink('Traceability', Icons.qr_code_2_outlined, FarmioColors.success, '/traceability'),
+  _QuickLink('Report builder', Icons.post_add_outlined, FarmioColors.purple, '/report-builder'),
+  _QuickLink('Weather', Icons.wb_cloudy_outlined, FarmioColors.info, '/weather'),
+  _QuickLink('Seasons', Icons.event_repeat_outlined, FarmioColors.warning, '/seasons'),
+  _QuickLink('Templates', Icons.fact_check_outlined, FarmioColors.purple, '/templates'),
+];
+
+class _QuickLinksRow extends StatelessWidget {
+  const _QuickLinksRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      child: SingleChildScrollView(
+        key: const Key('reports_quick_links_scroll'),
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        child: Row(
+          children: [
+            for (final link in _quickLinks)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: _QuickLinkChip(link: link),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickLinkChip extends StatelessWidget {
+  final _QuickLink link;
+  const _QuickLinkChip({required this.link});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+            onTap: () => context.push(link.route),
+            borderRadius: BorderRadius.circular(999),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: link.color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: link.color.withValues(alpha: 0.28)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(link.icon, size: 15, color: link.color),
+                  const SizedBox(width: 6),
+                  Text(
+                    link.label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: link.color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
   }
 }
 
@@ -1402,7 +1484,24 @@ class _SeasonCard extends StatelessWidget {
             _MetricCol(
               label: 'Cost/ha',
               value: Fmt.mwk(season.costPerHectare),
-              color: const Color(0xFF2563EB),
+              color: FarmioColors.info,
+            ),
+          ]),
+          const SizedBox(height: 12),
+          const Divider(color: FarmioColors.border, height: 1),
+          const SizedBox(height: 12),
+          Row(children: [
+            _MetricCol(
+              label: 'Revenue',
+              value: Fmt.mwk(season.revenue),
+              color: FarmioColors.success,
+            ),
+            _MetricCol(
+              label: 'Net profit',
+              value: Fmt.mwk(season.netProfit),
+              color: season.netProfit >= 0
+                  ? FarmioColors.success
+                  : FarmioColors.danger,
             ),
           ]),
         ],
@@ -1503,7 +1602,7 @@ class _CropReportCard extends StatelessWidget {
             _MetricCol(
               label: 'Cost/ha',
               value: Fmt.mwk(crop.costPerHectare),
-              color: const Color(0xFF2563EB),
+              color: FarmioColors.info,
             ),
           ]),
           const SizedBox(height: 8),
@@ -1517,6 +1616,21 @@ class _CropReportCard extends StatelessWidget {
                   FarmioColors.danger),
             ),
           ),
+          const SizedBox(height: 10),
+          Row(children: [
+            _MetricCol(
+              label: 'Revenue',
+              value: Fmt.mwk(crop.revenue),
+              color: FarmioColors.success,
+            ),
+            _MetricCol(
+              label: 'Net profit',
+              value: Fmt.mwk(crop.netProfit),
+              color: crop.netProfit >= 0
+                  ? FarmioColors.success
+                  : FarmioColors.danger,
+            ),
+          ]),
         ],
       ),
     );
@@ -1610,7 +1724,7 @@ class _FieldReportCard extends StatelessWidget {
             _MetricCol(
               label: 'Cost/ha',
               value: Fmt.mwk(field.costPerHectare),
-              color: const Color(0xFF2563EB),
+              color: FarmioColors.info,
             ),
           ]),
         ],
@@ -1685,7 +1799,7 @@ class _CropFieldTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color:        const Color(0xFF1E293B),
+              color:        FarmioColors.slate800,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(children: [
@@ -1732,7 +1846,7 @@ class _CropFieldCard extends StatelessWidget {
   Color get _statusColor {
     switch (item.status) {
       case 'Active':    return FarmioColors.primary;
-      case 'Harvested': return const Color(0xFF2563EB);
+      case 'Harvested': return FarmioColors.info;
       case 'Failed':    return FarmioColors.danger;
       default:          return FarmioColors.textMuted;
     }
@@ -1783,7 +1897,7 @@ class _CropFieldCard extends StatelessWidget {
             _MetricCol(
               label: 'Cost/ha',
               value: Fmt.mwk(item.costPerHectare),
-              color: const Color(0xFF2563EB),
+              color: FarmioColors.info,
             ),
           ]),
         ],
@@ -1819,7 +1933,7 @@ class _LabourTab extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color:        const Color(0xFF1E293B),
+            color:        FarmioColors.slate800,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(children: [
@@ -1942,7 +2056,7 @@ class _InputsTab extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color:        const Color(0xFF1E293B),
+            color:        FarmioColors.slate800,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(children: [
@@ -2124,7 +2238,7 @@ class _YieldTypeCard extends StatelessWidget {
               value: item.totalAreaPlanted > 0
                   ? '${item.yieldPerHa.round()} kg'
                   : '—',
-              color: const Color(0xFF2563EB),
+              color: FarmioColors.info,
             ),
             _MetricCol(
               label: 'Cost/kg',
@@ -2196,7 +2310,7 @@ class _YieldDetailCard extends StatelessWidget {
               value: record.areaPlanted > 0
                   ? '${record.yieldPerHa.round()} kg'
                   : '—',
-              color: const Color(0xFF2563EB),
+              color: FarmioColors.info,
             ),
           ]),
         ],
@@ -2437,13 +2551,10 @@ class _Skeleton extends StatelessWidget {
       padding:          const EdgeInsets.all(16),
       itemCount:        5,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, i) => Container(
-        height:     i == 0 ? 60 : 100,
-        decoration: BoxDecoration(
-          color:        Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: FarmioColors.softBorder),
-        ),
+      itemBuilder: (_, i) => FarmioShimmer(
+        width: double.infinity,
+        height: i == 0 ? 60 : 100,
+        radius: 14,
       ),
     );
   }

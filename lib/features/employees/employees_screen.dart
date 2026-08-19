@@ -1,31 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/employee.dart';
+import '../../shared/filters/entity_filter_bar.dart';
 import '../../shared/utils/formatters.dart';
 import 'employees_provider.dart';
 
-class EmployeesScreen extends ConsumerWidget {
-  const EmployeesScreen({super.key});
+class EmployeesScreen extends ConsumerStatefulWidget {
+  final bool embedded;
+  const EmployeesScreen({super.key, this.embedded = false});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EmployeesScreen> createState() => _EmployeesScreenState();
+}
+
+class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
+  String _roleFilter = 'All';
+  String _statusFilter = 'All';
+
+  @override
+  Widget build(BuildContext context) {
     final employees = ref.watch(employeesProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
-      appBar: AppBar(
-        title: const Text('Employees',
-            style: TextStyle(fontWeight: FontWeight.w800)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(employeesProvider),
-          ),
-        ],
-      ),
+      backgroundColor: context.colors.background,
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              title: const Text('Employees',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () => ref.invalidate(employeesProvider),
+                ),
+              ],
+            ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showEmployeeForm(context, ref),
+        onPressed: () => context.push('/employees/new'),
         icon: const Icon(Icons.person_add_alt_1_rounded),
         label: const Text('Add worker'),
       ),
@@ -49,6 +62,14 @@ class EmployeesScreen extends ConsumerWidget {
           for (final employee in data) {
             roleCounts[employee.role] = (roleCounts[employee.role] ?? 0) + 1;
           }
+          final roles = roleCounts.keys.toList();
+
+          final filtered = data.where((e) {
+            if (_roleFilter != 'All' && e.role != _roleFilter) return false;
+            if (_statusFilter == 'Active' && !e.isActive) return false;
+            if (_statusFilter == 'Inactive' && e.isActive) return false;
+            return true;
+          }).toList();
 
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(employeesProvider),
@@ -68,7 +89,25 @@ class EmployeesScreen extends ConsumerWidget {
                       .map((e) => _RoleBadge(role: e.key, count: e.value))
                       .toList(),
                 ),
-                const SizedBox(height: 18),
+                EntityFilterBar(
+                  dimensions: [
+                    FilterDimension(
+                      label: 'Role',
+                      icon: Icons.work_outline_rounded,
+                      value: _roleFilter,
+                      options: roles,
+                      onSelected: (v) => setState(() => _roleFilter = v),
+                    ),
+                    FilterDimension(
+                      label: 'Status',
+                      icon: Icons.toggle_on_outlined,
+                      value: _statusFilter,
+                      options: const ['Active', 'Inactive'],
+                      onSelected: (v) => setState(() => _statusFilter = v),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
                 const Text(
                   'Team capacity',
                   style: TextStyle(
@@ -78,7 +117,18 @@ class EmployeesScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                ...data.map(_EmployeeCard.new),
+                if (filtered.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'No employees match this filter',
+                        style: TextStyle(color: FarmioColors.textMuted),
+                      ),
+                    ),
+                  )
+                else
+                  ...filtered.map(_EmployeeCard.new),
               ],
             ),
           );
@@ -87,170 +137,6 @@ class EmployeesScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showEmployeeForm(BuildContext context, WidgetRef ref) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _EmployeeForm(ref: ref),
-    );
-  }
-}
-
-class _EmployeeForm extends StatefulWidget {
-  final WidgetRef ref;
-  const _EmployeeForm({required this.ref});
-
-  @override
-  State<_EmployeeForm> createState() => _EmployeeFormState();
-}
-
-class _EmployeeFormState extends State<_EmployeeForm> {
-  final _nameCtrl = TextEditingController();
-  final _roleCtrl = TextEditingController();
-  final _payRateCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-  String _payRateUnit = 'day';
-  bool _saving = false;
-  String? _error;
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _roleCtrl.dispose();
-    _payRateCtrl.dispose();
-    _phoneCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    if (_nameCtrl.text.trim().isEmpty ||
-        _roleCtrl.text.trim().isEmpty ||
-        _payRateCtrl.text.trim().isEmpty) {
-      setState(() => _error = 'Name, role and pay rate are required.');
-      return;
-    }
-
-    setState(() {
-      _saving = true;
-      _error = null;
-    });
-
-    try {
-      await widget.ref.read(employeesRepositoryProvider).createEmployee({
-        'name': _nameCtrl.text.trim(),
-        'role': _roleCtrl.text.trim(),
-        'payRate': _payRateCtrl.text.trim(),
-        'payRateUnit': _payRateUnit,
-        'phone': _phoneCtrl.text.trim(),
-      });
-      widget.ref.invalidate(employeesProvider);
-      if (mounted) Navigator.of(context).pop();
-    } catch (_) {
-      setState(() => _error = 'Could not add worker. Check your connection.');
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottom),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Add employee',
-                style: TextStyle(
-                  color: FarmioColors.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _nameCtrl,
-                textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(labelText: 'Name'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _roleCtrl,
-                textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(labelText: 'Role'),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _payRateCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Pay rate'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    width: 120,
-                    child: DropdownButtonFormField<String>(
-                      value: _payRateUnit,
-                      decoration: const InputDecoration(labelText: 'Unit'),
-                      items: const [
-                        DropdownMenuItem(value: 'day', child: Text('day')),
-                        DropdownMenuItem(value: 'hour', child: Text('hour')),
-                        DropdownMenuItem(value: 'bag', child: Text('bag')),
-                        DropdownMenuItem(value: 'month', child: Text('month')),
-                      ],
-                      onChanged: (value) =>
-                          setState(() => _payRateUnit = value ?? 'day'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _phoneCtrl,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Phone optional'),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(_error!,
-                    style: const TextStyle(color: FarmioColors.danger)),
-              ],
-              const SizedBox(height: 18),
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _saving ? null : _save,
-                  child: _saving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2),
-                        )
-                      : const Text('Save employee'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _SummaryCard extends StatelessWidget {
@@ -323,9 +209,9 @@ class _EmployeeCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         children: [

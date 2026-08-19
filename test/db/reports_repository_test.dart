@@ -156,6 +156,77 @@ void main() {
     expect(data.fieldReport.first.crops, isEmpty);
   });
 
+  test('getReport computes revenue and net profit per season and crop',
+      () async {
+    final field = await fields.createField({
+      'name': 'South Field',
+      'totalArea': '8',
+      'cultivatableArea': '7',
+      'soilType': 'Sandy loam',
+    });
+    final cropType = await crops.createCropType('Groundnuts');
+    final crop = await crops.createCrop({
+      'cropTypeId': cropType.id,
+      'fieldId': field.id,
+      'variety': 'CG7',
+      'areaPlanted': '2',
+      'season': '2026 Rain',
+      'plantingDate': DateTime(2026, 1, 1).toIso8601String(),
+      'expectedHarvestDate': DateTime(2026, 5, 1).toIso8601String(),
+    });
+
+    await activities.createActivity({
+      'activityType': 'Planting',
+      'fieldId': field.id,
+      'cropFieldId': crop.id,
+      'date': DateTime(2026, 1, 15).toIso8601String(),
+      'inputs': [
+        {
+          'inputName': 'Seed',
+          'category': 'Seed',
+          'quantity': '10',
+          'unit': 'kg',
+          'unitCost': '1000',
+        },
+      ],
+      'otherCosts': [],
+    });
+
+    // Only transactions tagged with this crop's cropFieldId count as its
+    // revenue — matches ReportAggregator.cropRevenue.
+    await finance.createTransaction({
+      'type': 'Income',
+      'category': 'Crop sales',
+      'amount': '50000',
+      'date': DateTime(2026, 5, 5).toIso8601String(),
+      'description': 'Groundnut sale',
+      'season': '2026 Rain',
+      'fieldId': field.id,
+      'cropFieldId': crop.id,
+    });
+    // An untagged transaction in the same season must NOT be attributed to
+    // this crop's revenue.
+    await finance.createTransaction({
+      'type': 'Income',
+      'category': 'Other income',
+      'amount': '9999',
+      'date': DateTime(2026, 5, 6).toIso8601String(),
+      'description': 'Unrelated income',
+      'season': '2026 Rain',
+    });
+
+    final data = await repo.getReport(const ReportRecordFilters());
+
+    expect(data.seasonReport, hasLength(1));
+    expect(data.seasonReport.first.revenue, 50000);
+    expect(data.seasonReport.first.totalCost, 10000);
+    expect(data.seasonReport.first.netProfit, 40000);
+
+    expect(data.cropReport, hasLength(1));
+    expect(data.cropReport.first.revenue, 50000);
+    expect(data.cropReport.first.netProfit, 40000);
+  });
+
   test('getReport filters by season', () async {
     final field = await fields.createField({
       'name': 'Field A',

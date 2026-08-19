@@ -84,6 +84,33 @@ class FinanceSummary {
       );
 }
 
+/// Labour/input/other costs logged against field activities — kept separate
+/// from [FinanceSummary] (which only ever reflects the `transactions` table)
+/// so the Finance screen can show where the two combine into a true P&L.
+class ActivityCostSummary {
+  final double labourCost;
+  final double inputCost;
+  final double otherCost;
+
+  const ActivityCostSummary({
+    required this.labourCost,
+    required this.inputCost,
+    required this.otherCost,
+  });
+
+  static const zero =
+      ActivityCostSummary(labourCost: 0, inputCost: 0, otherCost: 0);
+
+  double get total => labourCost + inputCost + otherCost;
+
+  factory ActivityCostSummary.fromJson(Map<String, dynamic> json) =>
+      ActivityCostSummary(
+        labourCost: (json['labourCost'] as num? ?? 0).toDouble(),
+        inputCost:  (json['inputCost']  as num? ?? 0).toDouble(),
+        otherCost:  (json['otherCost']  as num? ?? 0).toDouble(),
+      );
+}
+
 class FinanceData {
   final List<TransactionModel> transactions;
   final FinanceSummary         summary;

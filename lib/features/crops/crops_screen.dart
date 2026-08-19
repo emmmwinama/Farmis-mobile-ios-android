@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/crop_field.dart';
 import '../../shared/utils/formatters.dart';
+import '../../shared/widgets/farmio_shimmer.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import '../fields/fields_provider.dart';
 import 'crops_provider.dart';
-import 'crop_detail_screen.dart';
-import 'crop_form_screen.dart';
 
 class CropsScreen extends ConsumerStatefulWidget {
-  const CropsScreen({super.key});
+  final bool embedded;
+  const CropsScreen({super.key, this.embedded = false});
 
   @override
   ConsumerState<CropsScreen> createState() => _CropsScreenState();
@@ -32,16 +33,18 @@ class _CropsScreenState extends ConsumerState<CropsScreen> {
     final fieldsAsync = ref.watch(fieldsProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
-      appBar: AppBar(
-        title: const Text('Crops',
-            style: TextStyle(fontWeight: FontWeight.w800)),
-      ),
+      backgroundColor: context.colors.background,
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              title: const Text('Crops',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+            ),
       body: cropsAsync.when(
         loading: () => const _Skeleton(),
         error:   (e, _) => _ErrorView(
           message: e.toString(),
-          onRetry: () => ref.refresh(allCropsProvider),
+          onRetry: () => ref.invalidate(allCropsProvider),
         ),
         data: (allCrops) {
           // Derive filter options from data
@@ -74,7 +77,7 @@ class _CropsScreenState extends ConsumerState<CropsScreen> {
 
           return RefreshIndicator(
             color:     FarmioColors.primary,
-            onRefresh: () async => ref.refresh(allCropsProvider),
+            onRefresh: () async => ref.invalidate(allCropsProvider),
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
@@ -224,47 +227,39 @@ class _CropsScreenState extends ConsumerState<CropsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: FarmioColors.primary,
-        onPressed: () async {
-          await Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const CropFormScreen()));
-          ref.refresh(allCropsProvider);
-        },
+        onPressed: () => context.push('/crops/new'),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  Future<void> _openDetail(
-      BuildContext context, WidgetRef ref, CropFieldModel c) async {
-    await Navigator.push(context,
-        MaterialPageRoute(
-            builder: (_) => CropDetailScreen(cropId: c.id)));
-    ref.refresh(allCropsProvider);
+  void _openDetail(BuildContext context, WidgetRef ref, CropFieldModel c) {
+    context.push('/crops/${c.id}');
   }
 
   Future<void> _archive(WidgetRef ref, CropFieldModel c) async {
     await ref.read(cropsRepositoryProvider).archiveCrop(c.id);
-    ref.refresh(allCropsProvider);
+    ref.invalidate(allCropsProvider);
   }
 
   Future<void> _restore(WidgetRef ref, CropFieldModel c) async {
     await ref.read(cropsRepositoryProvider).restoreCrop(c.id);
-    ref.refresh(allCropsProvider);
+    ref.invalidate(allCropsProvider);
   }
 
   Future<void> _confirmDelete(
       BuildContext context, WidgetRef ref, CropFieldModel c) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title:   const Text('Delete crop'),
         content: Text('Delete "${c.cropTypeName} (${c.variety})"?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(dialogContext, false),
               child: const Text('Cancel')),
           TextButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () => Navigator.pop(dialogContext, true),
               child: const Text('Delete',
                   style: TextStyle(color: FarmioColors.danger))),
         ],
@@ -272,7 +267,7 @@ class _CropsScreenState extends ConsumerState<CropsScreen> {
     );
     if (ok == true) {
       await ref.read(cropsRepositoryProvider).deleteCrop(c.id);
-      ref.refresh(allCropsProvider);
+      ref.invalidate(allCropsProvider);
     }
   }
 }
@@ -332,7 +327,7 @@ class _GroupedList extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color:        const Color(0xFFFEF3C7),
+                    color:        FarmioColors.warningBg,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -340,7 +335,7 @@ class _GroupedList extends StatelessWidget {
                     style: const TextStyle(
                       fontSize:   10,
                       fontWeight: FontWeight.w700,
-                      color:      Color(0xFFD97706),
+                      color:      FarmioColors.warning,
                     ),
                   ),
                 ),
@@ -420,13 +415,13 @@ class _CropCard extends StatelessWidget {
 
   Color get _statusColor {
     switch (crop.status) {
-      case 'Active':    return const Color(0xFF16A34A);
-      case 'Harvested': return const Color(0xFF2563EB);
+      case 'Active':    return FarmioColors.success;
+      case 'Harvested': return FarmioColors.info;
       case 'Failed':    return FarmioColors.danger;
       case 'Archived':  return FarmioColors.textMuted;
       default:
         if (crop.isOverdue)  return FarmioColors.danger;
-        if (crop.isDueSoon)  return const Color(0xFFD97706);
+        if (crop.isDueSoon)  return FarmioColors.warning;
         return FarmioColors.primary;
     }
   }
@@ -791,12 +786,10 @@ class _Skeleton extends StatelessWidget {
       padding:          const EdgeInsets.all(20),
       itemCount:        4,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, __) => Container(
-        height:     130,
-        decoration: BoxDecoration(
-          color:        const Color(0xFFE2E8F0),
-          borderRadius: BorderRadius.circular(16),
-        ),
+      itemBuilder: (_, __) => const FarmioShimmer(
+        width: double.infinity,
+        height: 130,
+        radius: 16,
       ),
     );
   }

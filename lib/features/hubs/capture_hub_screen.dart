@@ -17,275 +17,43 @@ class CaptureHubScreen extends StatelessWidget {
           icon: Icons.assignment_outlined,
           title: 'Log activity',
           body: 'Field work, labour, inputs and notes.',
-          route: '/activities',
+          route: '/activities/new',
           color: FarmioColors.primary,
         ),
         _ActionCard(
           icon: Icons.agriculture_outlined,
           title: 'Record harvest',
-          body: 'Log a harvest from a crop\'s detail page.',
-          route: '/crops',
+          body: 'Log a harvest against any crop-field.',
+          route: '/yields/new',
           color: FarmioColors.success,
         ),
         _ActionCard(
           icon: Icons.account_balance_wallet_outlined,
           title: 'Add transaction',
           body: 'Income, expense and sales records.',
-          route: '/finance',
+          route: '/finance/new-transaction',
           color: FarmioColors.info,
         ),
         _ActionCard(
           icon: Icons.attach_file_outlined,
           title: 'Add evidence',
           body: 'Photos, receipts, contracts and certificates.',
-          route: '/documents',
+          route: '/documents/new',
           color: FarmioColors.info,
         ),
         _ActionCard(
           icon: Icons.pets_outlined,
-          title: 'Livestock record',
-          body: 'Animal register and livestock records.',
-          route: '/livestock-detail',
+          title: 'Add animal',
+          body: 'Register a new animal to the herd.',
+          route: '/animals/new',
           color: FarmioColors.success,
         ),
         _ActionCard(
           icon: Icons.inventory_2_outlined,
           title: 'Inventory sale',
-          body: 'Stock purchases and inventory sales.',
+          body: 'Pick a stock item to sell from inventory.',
           route: '/inventory',
           color: FarmioColors.warning,
-        ),
-      ],
-    );
-  }
-}
-
-class FarmHubScreen extends StatelessWidget {
-  const FarmHubScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return _HubScaffold(
-      title: 'Farm',
-      subtitle: 'Fields, crops, activities, harvests and seasonal planning.',
-      children: [
-        _ActionCard(
-          icon: Icons.map_outlined,
-          title: 'Fields',
-          body: 'Field area, soil and allocation.',
-          route: '/fields',
-          color: FarmioColors.primary,
-        ),
-        _ActionCard(
-          icon: Icons.gps_fixed_outlined,
-          title: 'GPS map',
-          body: 'Boundaries, zones and markers.',
-          route: '/field-map',
-          color: FarmioColors.info,
-        ),
-        _ActionCard(
-          icon: Icons.grass_outlined,
-          title: 'Crops',
-          body: 'Crop cycles, status, timeline and harvest records — open a '
-              'crop to see its details.',
-          route: '/crops',
-          color: FarmioColors.success,
-        ),
-        _ActionCard(
-          icon: Icons.assignment_outlined,
-          title: 'Activities',
-          body: 'Work by crop or field.',
-          route: '/activities',
-          color: FarmioColors.purple,
-        ),
-        _ActionCard(
-          icon: Icons.fact_check_outlined,
-          title: 'Templates',
-          body: 'Guided seasonal workflows.',
-          route: '/templates',
-          color: FarmioColors.info,
-        ),
-        _ActionCard(
-          icon: Icons.archive_outlined,
-          title: 'Seasons',
-          body: 'Active and archived season comparison.',
-          route: '/seasons',
-          color: FarmioColors.warning,
-        ),
-      ],
-    );
-  }
-}
-
-class BusinessHubScreen extends StatelessWidget {
-  const BusinessHubScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return _HubScaffold(
-      title: 'Business',
-      subtitle: 'Finance, payroll, inventory, sales and operational cost control.',
-      children: [
-        _ActionCard(
-          icon: Icons.account_balance_wallet_outlined,
-          title: 'Finance',
-          body: 'Transactions, overhead and cash position.',
-          route: '/finance',
-          color: FarmioColors.info,
-        ),
-        _ActionCard(
-          icon: Icons.people_alt_outlined,
-          title: 'Employees',
-          body: 'Payroll roles and labour capacity.',
-          route: '/employees',
-          color: FarmioColors.primary,
-        ),
-        _ActionCard(
-          icon: Icons.inventory_2_outlined,
-          title: 'Inventory stock',
-          body: 'Harvest inventory, stock value and inventory sales.',
-          route: '/inventory',
-          color: FarmioColors.info,
-        ),
-        _ActionCard(
-          icon: Icons.precision_manufacturing_outlined,
-          title: 'Equipment',
-          body: 'Equipment, fuel and service logs.',
-          route: '/equipment',
-          color: FarmioColors.warning,
-        ),
-        _ActionCard(
-          icon: Icons.show_chart_outlined,
-          title: 'Cashflow chart',
-          body: 'Cashflow and profitability are available in reports.',
-          route: '/reports',
-          color: FarmioColors.primary,
-        ),
-      ],
-    );
-  }
-}
-
-class LivestockHubScreen extends StatelessWidget {
-  const LivestockHubScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return _HubScaffold(
-      title: 'Livestock',
-      subtitle: 'Animal records, health, production, weight, expenses and sales.',
-      children: const [
-        _ActionCard(
-          icon: Icons.pets_outlined,
-          title: 'Animal list',
-          body: 'View animal register and recent records.',
-          route: '/livestock-detail',
-          color: FarmioColors.success,
-        ),
-        _ActionCard(
-          icon: Icons.medical_services_outlined,
-          title: 'Health records',
-          body: 'Review recent livestock health records.',
-          route: '/livestock-detail',
-          color: FarmioColors.warning,
-        ),
-        _ActionCard(
-          icon: Icons.monitor_weight_outlined,
-          title: 'Weight records',
-          body: 'Review animal weight and production records.',
-          route: '/livestock-detail',
-          color: FarmioColors.info,
-        ),
-        _ActionCard(
-          icon: Icons.query_stats_outlined,
-          title: 'Profitability',
-          body: 'See livestock costs and sales evidence.',
-          route: '/livestock-detail',
-          color: FarmioColors.primary,
-        ),
-      ],
-    );
-  }
-}
-
-class InsightsHubScreen extends StatelessWidget {
-  const InsightsHubScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return _HubScaffold(
-      title: 'Insights',
-      subtitle: 'Reports, traceability, compliance, alerts and export readiness.',
-      children: [
-        _ActionCard(
-          icon: Icons.bar_chart_outlined,
-          title: 'Reports',
-          body: 'Profitability, costs, labour, inputs and yields.',
-          route: '/reports',
-          color: FarmioColors.primary,
-        ),
-        _ActionCard(
-          icon: Icons.file_present_outlined,
-          title: 'Records',
-          body: 'Loan, buyer, audit and insurance evidence packs.',
-          route: '/records',
-          color: FarmioColors.info,
-        ),
-        _ActionCard(
-          icon: Icons.qr_code_2_outlined,
-          title: 'Traceability',
-          body: 'Buyer-ready lots and evidence checklist.',
-          route: '/traceability',
-          color: FarmioColors.success,
-        ),
-        _ActionCard(
-          icon: Icons.verified_user_outlined,
-          title: 'Compliance',
-          body: 'Audit, buyer and insurance readiness.',
-          route: '/compliance',
-          color: FarmioColors.primary,
-        ),
-        _ActionCard(
-          icon: Icons.notifications_outlined,
-          title: 'Notifications',
-          body: 'Alerts, due work and read status.',
-          route: '/notifications',
-          color: FarmioColors.warning,
-        ),
-        _ActionCard(
-          icon: Icons.wb_cloudy_outlined,
-          title: 'Weather',
-          body: 'Current conditions, 7-day forecast and field guidance.',
-          route: '/weather',
-          color: FarmioColors.info,
-        ),
-        _ActionCard(
-          icon: Icons.post_add_outlined,
-          title: 'Report builder',
-          body: 'Select report sections and export filters.',
-          route: '/report-builder',
-          color: FarmioColors.purple,
-        ),
-      ],
-    );
-  }
-}
-
-class MoreHubScreen extends StatelessWidget {
-  const MoreHubScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return _HubScaffold(
-      title: 'More',
-      subtitle: 'Farm profile and app settings.',
-      children: [
-        _ActionCard(
-          icon: Icons.person_outline,
-          title: 'Profile',
-          body: 'Farm name, location and app lock.',
-          route: '/profile',
-          color: FarmioColors.primary,
         ),
       ],
     );
@@ -308,10 +76,16 @@ class _HubScaffold extends StatelessWidget {
     final tablet = MediaQuery.of(context).size.width >= 760;
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: Text(title),
-        actions: const [SizedBox(width: 12)],
+        actions: [
+          IconButton(
+            tooltip: 'Profile',
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: () => context.push('/profile'),
+          ),
+        ],
       ),
       body: FrostedScaffoldBackground(
         child: ListView(

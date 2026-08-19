@@ -107,18 +107,43 @@ class ImportService {
   double _num(Object? value, {double fallback = 0}) =>
       (value as num?)?.toDouble() ?? fallback;
 
+  /// `farmProfile` is a singleton table with no uniqueness constraint
+  /// beyond `id` — if onboarding already created a row (with a locally
+  /// generated id) before this import runs, the imported row's id won't
+  /// match it, so a plain conflict-or-update insert would silently create
+  /// a *second* row instead of replacing the first. This updates whatever
+  /// row already exists in place, and only inserts fresh if the table is
+  /// genuinely empty.
   Future<int> _importFarmProfile(Object? row) async {
     if (row is! Map<String, dynamic>) return 0;
-    await _db.into(_db.farmProfile).insertOnConflictUpdate(
-          FarmProfileCompanion.insert(
+    final ownerName = Value(row['ownerName'] as String?);
+    final name = row['name'] as String? ?? 'My Farm';
+    final location = row['location'] as String? ?? '';
+    final locationLat = Value(_numOrNull(row['locationLat']));
+    final locationLng = Value(_numOrNull(row['locationLng']));
+
+    final existing = await _db.select(_db.farmProfile).getSingleOrNull();
+    if (existing != null) {
+      await (_db.update(_db.farmProfile)
+            ..where((t) => t.id.equals(existing.id)))
+          .write(FarmProfileCompanion(
+        ownerName: ownerName,
+        name: Value(name),
+        location: Value(location),
+        locationLat: locationLat,
+        locationLng: locationLng,
+      ));
+    } else {
+      await _db.into(_db.farmProfile).insert(FarmProfileCompanion.insert(
             id: row['id'] as String,
-            name: row['name'] as String? ?? 'My Farm',
-            location: row['location'] as String? ?? '',
-            locationLat: Value(_numOrNull(row['locationLat'])),
-            locationLng: Value(_numOrNull(row['locationLng'])),
+            ownerName: ownerName,
+            name: name,
+            location: location,
+            locationLat: locationLat,
+            locationLng: locationLng,
             createdAt: _date(row['createdAt']),
-          ),
-        );
+          ));
+    }
     return 1;
   }
 
@@ -388,16 +413,32 @@ class ImportService {
       final header = rawUrl.substring(5, comma == -1 ? rawUrl.length : comma);
       final mimeType = header.split(';').first;
       final extension = _extensionForMimeType(mimeType);
-      final base64Part = comma == -1 ? '' : rawUrl.substring(comma + 1);
+      // Some export tools wrap long base64 payloads with line breaks
+      // (e.g. PHP's chunk_split, or how phpMyAdmin renders a LongText
+      // column) — Dart's base64Decode rejects embedded whitespace outright,
+      // so it's stripped before decoding.
+      final base64Part = comma == -1
+          ? ''
+          : rawUrl.substring(comma + 1).replaceAll(RegExp(r'\s'), '');
 
       if (base64Part.isNotEmpty) {
-        final bytes = base64Decode(base64Part);
-        final dir = await getApplicationDocumentsDirectory();
-        final docsDir = Directory(p.join(dir.path, 'documents'));
-        await docsDir.create(recursive: true);
-        final file = File(p.join(docsDir.path, '$id.$extension'));
-        await file.writeAsBytes(bytes);
-        finalUrl = file.path;
+        try {
+          final bytes = base64Decode(base64Part);
+          final dir = await getApplicationDocumentsDirectory();
+          final docsDir = Directory(p.join(dir.path, 'documents'));
+          await docsDir.create(recursive: true);
+          final file = File(p.join(docsDir.path, '$id.$extension'));
+          await file.writeAsBytes(bytes);
+          finalUrl = file.path;
+        } on FormatException {
+          // Some database exports truncate long TEXT/LongText columns
+          // (e.g. phpMyAdmin's max_allowed_packet limit), leaving a
+          // malformed base64 payload for this one attachment. The file
+          // content is unrecoverable, but the rest of the import — and
+          // this document's own name/type/notes metadata — shouldn't be
+          // lost over it.
+          finalUrl = '';
+        }
       }
     }
 

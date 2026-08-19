@@ -97,6 +97,45 @@ class ReportRecordFilters {
       );
 }
 
+extension ReportPeriodRange on ReportRecordFilters {
+  /// Resolves [period]/[dateRange] into a concrete window: an explicit
+  /// custom range wins, otherwise the period preset maps to a fixed
+  /// lookback/calendar window. Mirrors the mapping originally implemented
+  /// ad hoc inside `DashboardRepository._periodRange` so every screen that
+  /// filters by period behaves consistently.
+  DateTimeRange resolveRange([DateTime? now]) {
+    final n = now ?? DateTime.now();
+    final range = dateRange;
+    if (range != null) {
+      final end = DateTime(
+          range.end.year, range.end.month, range.end.day, 23, 59, 59, 999);
+      return DateTimeRange(start: range.start, end: end);
+    }
+
+    DateTime from;
+    switch (period) {
+      case 'Today':
+        from = DateTime(n.year, n.month, n.day);
+        break;
+      case 'This week':
+        final weekday = n.weekday; // Monday = 1 .. Sunday = 7
+        from = DateTime(n.year, n.month, n.day)
+            .subtract(Duration(days: weekday - 1));
+        break;
+      case 'This year':
+        from = DateTime(n.year, n.month, n.day)
+            .subtract(const Duration(days: 365));
+        break;
+      case 'This season':
+        from = DateTime(n.year, 1, 1);
+        break;
+      default:
+        from = DateTime(n.year, n.month, 1);
+    }
+    return DateTimeRange(start: from, end: n);
+  }
+}
+
 extension ArchiveFilterLabel on ArchiveFilter {
   String get label {
     switch (this) {

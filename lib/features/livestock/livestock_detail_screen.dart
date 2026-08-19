@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/livestock.dart';
 import '../../shared/utils/formatters.dart';
@@ -15,7 +16,7 @@ class AnimalDetailScreen extends ConsumerWidget {
     final animal = ref.watch(animalDetailProvider(animalId));
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Animal detail',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -213,9 +214,9 @@ class _RecordSection extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: FarmioColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -430,9 +431,9 @@ class _RecordFormSheetState extends ConsumerState<_RecordFormSheet> {
           .read(livestockRepositoryProvider)
           .addRecord(_buildPayload());
       ref.invalidate(animalDetailProvider(widget.animalId));
-      if (mounted) Navigator.pop(context);
+      if (mounted) context.pop();
     } catch (e) {
-      setState(() => _error = 'Could not save record.');
+      setState(() => _error = 'Could not save record: $e');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -564,9 +565,9 @@ class _RecordFormSheetState extends ConsumerState<_RecordFormSheet> {
       padding: EdgeInsets.only(bottom: bottom),
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SafeArea(
           top: false,

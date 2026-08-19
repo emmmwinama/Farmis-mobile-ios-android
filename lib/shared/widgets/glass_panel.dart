@@ -55,9 +55,9 @@ class GlassPanel extends StatelessWidget {
           boxShadow: shadows ??
               [
                 BoxShadow(
-                  color: FarmioColors.slate900.withValues(alpha: 0.07),
-                  blurRadius: 24,
-                  offset: const Offset(0, 14),
+                  color: FarmioColors.primary.withValues(alpha: 0.1),
+                  blurRadius: 28,
+                  offset: const Offset(0, 16),
                 ),
                 BoxShadow(
                   color: Colors.white.withValues(alpha: 0.62),
@@ -90,15 +90,16 @@ class FrostedScaffoldBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final background = context.colors.background;
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFFF8FAFC),
-            Color(0xFFEFF7FC),
-            Color(0xFFF8FAFC),
+            background,
+            Color.lerp(background, FarmioColors.primaryBg, 0.4)!,
+            background,
           ],
         ),
       ),

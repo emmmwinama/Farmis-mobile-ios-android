@@ -15,27 +15,28 @@ class FarmioCard extends StatelessWidget {
     this.padding,
     this.color,
     this.onTap,
-    this.radius     = 14,
+    this.radius     = 16,
     this.borderColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final card = Container(
       width:   double.infinity,
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color:        color ?? Colors.white,
+        color:        color ?? colors.surface,
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
-          color: borderColor ?? FarmioColors.softBorder,
+          color: borderColor ?? colors.softBorder.withValues(alpha: 0.9),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color:      Colors.black.withValues(alpha: 0.035),
-            blurRadius: 14,
-            offset:     const Offset(0, 6),
+            color:      FarmioColors.slate900.withValues(alpha: 0.05),
+            blurRadius: 22,
+            offset:     const Offset(0, 8),
           ),
         ],
       ),

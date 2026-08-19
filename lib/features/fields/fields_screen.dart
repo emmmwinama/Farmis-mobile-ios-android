@@ -1,77 +1,109 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/field.dart';
+import '../../shared/filters/entity_filter_bar.dart';
 import '../../shared/utils/formatters.dart';
+import '../../shared/widgets/farmio_card.dart';
+import '../../shared/widgets/farmio_shimmer.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import 'fields_provider.dart';
-import 'field_detail_screen.dart';
-import 'field_form_screen.dart';
 
-class FieldsScreen extends ConsumerWidget {
-  const FieldsScreen({super.key});
+class FieldsScreen extends ConsumerStatefulWidget {
+  final bool embedded;
+  const FieldsScreen({super.key, this.embedded = false});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FieldsScreen> createState() => _FieldsScreenState();
+}
+
+class _FieldsScreenState extends ConsumerState<FieldsScreen> {
+  String _soilTypeFilter = 'All';
+
+  @override
+  Widget build(BuildContext context) {
     final fields = ref.watch(fieldsProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
-      appBar: AppBar(
-        title: const Text('Fields',
-            style: TextStyle(fontWeight: FontWeight.w800)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () async {
-              await Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const FieldFormScreen(),
-              ));
-              ref.refresh(fieldsProvider);
-            },
-          ),
-        ],
-      ),
+      backgroundColor: context.colors.background,
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              title: const Text('Fields',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () => context.push('/fields/new'),
+                ),
+              ],
+            ),
       body: fields.when(
         loading: () => const _FieldsSkeleton(),
         error:   (e, _) => _ErrorView(
           message: e.toString(),
-          onRetry: () => ref.refresh(fieldsProvider),
+          onRetry: () => ref.invalidate(fieldsProvider),
         ),
-        data: (list) => list.isEmpty
-            ? const _EmptyState()
-            : RefreshIndicator(
-          color:     FarmioColors.primary,
-          onRefresh: () async => ref.refresh(fieldsProvider),
-          child: ListView.separated(
-            padding:   const EdgeInsets.all(20),
-            itemCount: list.length + 1,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (_, i) {
-              if (i == 0) return _FieldsSummary(fields: list);
-              final field = list[i - 1];
-              return _FieldCard(
-                field:   field,
-                onTap:   () async {
-                  await Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => FieldDetailScreen(fieldId: field.id),
-                  ));
-                  ref.refresh(fieldsProvider);
-                },
-                onDelete: () => _confirmDelete(context, ref, field),
-              );
-            },
-          ),
-        ),
+        data: (list) {
+          if (list.isEmpty) return const _EmptyState();
+
+          final soilTypes = {...list.map((f) => f.soilType)}.toList();
+          final filtered = _soilTypeFilter == 'All'
+              ? list
+              : list.where((f) => f.soilType == _soilTypeFilter).toList();
+
+          return RefreshIndicator(
+            color:     FarmioColors.primary,
+            onRefresh: () async => ref.invalidate(fieldsProvider),
+            child: ListView.separated(
+              padding:   const EdgeInsets.all(20),
+              itemCount: (filtered.isEmpty ? 1 : filtered.length) + 2,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (_, i) {
+                if (i == 0) return _FieldsSummary(fields: list);
+                if (i == 1) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: EntityFilterBar(
+                      dimensions: [
+                        FilterDimension(
+                          label: 'Soil type',
+                          icon: Icons.grain_outlined,
+                          value: _soilTypeFilter,
+                          options: soilTypes,
+                          onSelected: (v) =>
+                              setState(() => _soilTypeFilter = v),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                if (filtered.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'No fields match this filter',
+                        style: TextStyle(color: FarmioColors.textMuted),
+                      ),
+                    ),
+                  );
+                }
+                final field = filtered[i - 2];
+                return _FieldCard(
+                  field:   field,
+                  onTap:   () => context.push('/fields/${field.id}'),
+                  onDelete: () => _confirmDelete(context, ref, field),
+                );
+              },
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: FarmioColors.primary,
-        onPressed: () async {
-          await Navigator.push(context, MaterialPageRoute(
-            builder: (_) => const FieldFormScreen(),
-          ));
-          ref.refresh(fieldsProvider);
-        },
+        onPressed: () => context.push('/fields/new'),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -81,16 +113,16 @@ class FieldsScreen extends ConsumerWidget {
       BuildContext context, WidgetRef ref, FieldModel field) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete field'),
         content: Text('Delete "${field.name}"? This cannot be undone.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Delete',
                 style: TextStyle(color: FarmioColors.danger)),
           ),
@@ -100,7 +132,7 @@ class FieldsScreen extends ConsumerWidget {
 
     if (ok == true) {
       await ref.read(fieldsRepositoryProvider).deleteField(field.id);
-      ref.refresh(fieldsProvider);
+      ref.invalidate(fieldsProvider);
     }
   }
 }
@@ -162,28 +194,16 @@ class _FieldCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final usedPct = field.cultivatableArea > 0
         ? (field.allocatedArea / field.cultivatableArea).clamp(0.0, 1.0)
         : 0.0;
 
-    return InkWell(
-      onTap:        onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color:        Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border:       Border.all(color: FarmioColors.border),
-          boxShadow: [
-            BoxShadow(
-              color:      Colors.black.withValues(alpha:0.04),
-              blurRadius: 8,
-              offset:     const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
+    return FarmioCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(18),
+      radius: 18,
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
@@ -204,13 +224,13 @@ class _FieldCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(field.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w800,
-                            color: FarmioColors.textPrimary,
+                            color: colors.textPrimary,
                           )),
                       Text(field.soilType,
-                          style: const TextStyle(
-                            fontSize: 12, color: FarmioColors.textMuted,
+                          style: TextStyle(
+                            fontSize: 12, color: colors.textMuted,
                           )),
                     ],
                   ),
@@ -249,7 +269,7 @@ class _FieldCard extends StatelessWidget {
                     label: 'Available',
                     value: Fmt.haShort(field.availableArea),
                     color: field.availableArea > 0
-                        ? const Color(0xFF16A34A)
+                        ? FarmioColors.success
                         : FarmioColors.danger),
               ],
             ),
@@ -263,13 +283,13 @@ class _FieldCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Land use',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11, fontWeight: FontWeight.w600,
-                          color: FarmioColors.textMuted,
+                          color: colors.textMuted,
                         )),
                     Text('${(usedPct * 100).toStringAsFixed(0)}% allocated',
-                        style: const TextStyle(
-                          fontSize: 11, color: FarmioColors.textMuted,
+                        style: TextStyle(
+                          fontSize: 11, color: colors.textMuted,
                         )),
                   ],
                 ),
@@ -279,7 +299,7 @@ class _FieldCard extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value:           usedPct,
                     minHeight:       6,
-                    backgroundColor: FarmioColors.border,
+                    backgroundColor: colors.border,
                     valueColor:      AlwaysStoppedAnimation<Color>(
                       usedPct >= 1.0
                           ? FarmioColors.danger
@@ -312,46 +332,46 @@ class _FieldCard extends StatelessWidget {
               )
             else
               Text('No active crops',
-                  style: const TextStyle(
-                    fontSize: 12, color: FarmioColors.textMuted,
+                  style: TextStyle(
+                    fontSize: 12, color: colors.textMuted,
                   )),
           ],
         ),
-      ),
     );
   }
 }
 
 class _AreaChip extends StatelessWidget {
   final String label, value;
-  final Color color;
+  final Color? color;
   const _AreaChip({
     required this.label,
     required this.value,
-    this.color = FarmioColors.textPrimary,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
         decoration: BoxDecoration(
-          color:        FarmioColors.background,
+          color:        colors.background,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(label,
-                style: const TextStyle(
-                  fontSize: 10, color: FarmioColors.textMuted,
+                style: TextStyle(
+                  fontSize: 10, color: colors.textMuted,
                 )),
             const SizedBox(height: 2),
             Text(value,
                 style: TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w700,
-                  color: color,
+                  color: color ?? colors.textPrimary,
                 )),
           ],
         ),
@@ -370,12 +390,10 @@ class _FieldsSkeleton extends StatelessWidget {
       padding:          const EdgeInsets.all(20),
       itemCount:        3,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder:      (_, __) => Container(
-        height:      160,
-        decoration:  BoxDecoration(
-          color:        const Color(0xFFE2E8F0),
-          borderRadius: BorderRadius.circular(16),
-        ),
+      itemBuilder:      (_, __) => const FarmioShimmer(
+        width: double.infinity,
+        height: 160,
+        radius: 18,
       ),
     );
   }
@@ -387,6 +405,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -394,14 +413,14 @@ class _EmptyState extends StatelessWidget {
           const Icon(Icons.map_outlined,
               size: 56, color: FarmioColors.primary),
           const SizedBox(height: 16),
-          const Text('No fields yet',
+          Text('No fields yet',
               style: TextStyle(
                 fontSize: 18, fontWeight: FontWeight.w800,
-                color: FarmioColors.textPrimary,
+                color: colors.textPrimary,
               )),
           const SizedBox(height: 6),
-          const Text('Tap + to add your first field',
-              style: TextStyle(color: FarmioColors.textMuted)),
+          Text('Tap + to add your first field',
+              style: TextStyle(color: colors.textMuted)),
         ],
       ),
     );
@@ -416,6 +435,7 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -425,10 +445,10 @@ class _ErrorView extends StatelessWidget {
             const Icon(Icons.error_outline_rounded,
                 size: 48, color: FarmioColors.danger),
             const SizedBox(height: 12),
-            const Text('Could not load fields',
+            Text('Could not load fields',
                 style: TextStyle(
                   fontSize: 16, fontWeight: FontWeight.w700,
-                  color: FarmioColors.textPrimary,
+                  color: colors.textPrimary,
                 )),
             const SizedBox(height: 20),
             ElevatedButton.icon(

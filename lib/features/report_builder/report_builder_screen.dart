@@ -68,7 +68,7 @@ class _ReportBuilderScreenState extends ConsumerState<ReportBuilderScreen> {
     final data = ref.watch(reportBuilderProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Report builder',
             style: TextStyle(fontWeight: FontWeight.w800)),

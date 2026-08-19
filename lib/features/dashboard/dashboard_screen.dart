@@ -3,16 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_mode_provider.dart';
-import '../../models/crop_detail.dart';
-import '../../models/crop_field.dart';
-import '../../models/crop_timeline.dart';
+import '../../models/app_notification.dart';
 import '../../models/dashboard_data.dart';
-import '../../shared/agronomy/crop_timeline_catalog.dart';
+import '../../models/weather.dart';
 import '../../shared/filters/report_record_filters.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_card.dart';
+import '../../shared/widgets/farmio_shimmer.dart';
 import '../../shared/widgets/glass_panel.dart';
-import '../crops/crops_provider.dart';
+import '../notifications/notifications_provider.dart';
+import '../weather/weather_provider.dart';
 import 'dashboard_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -38,7 +38,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final name = visibleData?.userName ?? 'Farmer';
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       body: FrostedScaffoldBackground(
         child: visibleData != null
           ? Stack(
@@ -85,7 +85,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 name: name,
                 farmName: data.farmName,
                 net: data.net,
-                onNotifications: () => _showDashboardAlerts(context),
+                onNotifications: () => context.push('/notifications'),
               ),
             ),
             title: const SizedBox.shrink(),
@@ -98,12 +98,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       : Icons.dark_mode_outlined,
                   color: Colors.white,
                 ),
-                onPressed: () {
-                  final notifier = ref.read(themeModeProvider.notifier);
-                  notifier.state = notifier.state == ThemeMode.dark
-                      ? ThemeMode.light
-                      : ThemeMode.dark;
-                },
+                onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
               ),
               GestureDetector(
                 onTap: () => context.push('/profile'),
@@ -151,16 +146,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ],
                 const SizedBox(height: 12),
-                _StatGrid(data: data),
+                _StatStrip(data: data),
                 const SizedBox(height: 12),
-                _ExpenseBreakdownCard(data: data),
+                const _WeatherLine(),
                 const SizedBox(height: 16),
                 _SectionTitle(
-                  title: 'Quick actions',
-                  onMore: null,
+                  title: 'Needs attention',
+                  onMore: () => context.push('/notifications'),
                 ),
                 const SizedBox(height: 8),
-                _QuickActionsGrid(),
+                const _NeedsAttentionSection(),
+                const SizedBox(height: 16),
+                _ExpenseBreakdownCard(data: data),
                 const SizedBox(height: 16),
                 if (data.fieldLandUse.isNotEmpty) ...[
                   _SectionTitle(title: 'Land use'),
@@ -213,17 +210,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }.toList();
   }
 
-  void _showDashboardAlerts(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => const _DashboardAlertsSheet(),
-    );
-  }
 }
 
 // ── Hero banner ───────────────────────────────────────────────────────────────
@@ -252,7 +238,7 @@ class _HeroBanner extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             FarmioColors.primaryDark,
-            Color(0xFF075985),
+            FarmioColors.primary,
             FarmioColors.success,
           ],
           begin:  Alignment.topLeft,
@@ -370,226 +356,38 @@ class _NetBadge extends StatelessWidget {
   }
 }
 
-// ── Stat grid ─────────────────────────────────────────────────────────────────
-class _DashboardAlertsSheet extends ConsumerWidget {
-  const _DashboardAlertsSheet();
+// ── Needs attention (on-device notifications feed) ─────────────────────────────
+class _NeedsAttentionSection extends ConsumerWidget {
+  const _NeedsAttentionSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final crops = ref.watch(allCropsProvider);
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-        child: crops.when(
-          loading: () => const _AlertsMessage(
-            icon: Icons.notifications_active_outlined,
-            title: 'Checking crop timelines',
-            message: 'Preparing recommended activity alerts.',
-          ),
-          error: (error, _) => _AlertsMessage(
-            icon: Icons.error_outline_rounded,
-            title: 'Could not load alerts',
-            message: _cleanError(error),
-          ),
-          data: (items) {
-            final alerts = _buildCropAlerts(items);
-            if (alerts.isEmpty) {
-              return const _AlertsMessage(
-                icon: Icons.task_alt_rounded,
-                title: 'No activity alerts',
-                message:
-                    'There are no due crop timeline activities for active crops right now.',
-              );
-            }
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _SheetHandle(),
-                const SizedBox(height: 12),
-                const Text(
-                  'Activity alerts',
-                  style: TextStyle(
-                    color: FarmioColors.textPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Recommended next work from crop timelines.',
-                  style: TextStyle(
-                    color: FarmioColors.textMuted,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: alerts.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) => _DashboardAlertRow(
-                      alert: alerts[index],
-                      onTap: () => _showAlertDetail(context, alerts[index]),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+    final notifications = ref.watch(notificationsProvider);
+    return notifications.when(
+      loading: () => const FarmioShimmerCard(),
+      error: (error, _) => _EmptyCard(
+        icon: '!',
+        label: 'Could not load alerts',
+        sub: _cleanError(error),
       ),
-    );
-  }
-
-  static List<_CropActivityAlert> _buildCropAlerts(
-      List<CropFieldModel> crops) {
-    final today = DateTime.now();
-    final alerts = <_CropActivityAlert>[];
-    for (final crop in crops.where((crop) => crop.status == 'Active')) {
-      final detail = CropDetail(
-        id: crop.id,
-        cropTypeName: crop.cropTypeName,
-        variety: crop.variety,
-        areaPlanted: crop.areaPlanted,
-        season: crop.season,
-        plantingDate: crop.plantingDate,
-        expectedHarvestDate: crop.expectedHarvestDate,
-        status: crop.status,
-        fieldId: crop.fieldId,
-        fieldName: crop.fieldName,
-        costs: const CropCosts(inputs: 0, labour: 0, other: 0, total: 0),
-        yields: const [],
-        activities: const [],
-      );
-      final plan = CropTimelineCatalog.buildPlan(crop: detail, today: today);
-      final due = plan.entries.where((entry) => entry.isActionable).toList();
-      final selected = due.isNotEmpty
-          ? due
-          : plan.nextAction == null
-              ? <CropTimelineEntry>[]
-              : [plan.nextAction!];
-      for (final entry in selected) {
-        alerts.add(_CropActivityAlert(crop: crop, entry: entry));
-      }
-    }
-
-    alerts.sort((a, b) => a.entry.dueDate.compareTo(b.entry.dueDate));
-    return alerts.take(10).toList();
-  }
-
-  static void _showAlertDetail(
-    BuildContext context,
-    _CropActivityAlert alert,
-  ) {
-    final entry = alert.entry;
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 22),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const _SheetHandle(),
-              const SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: _timelineStatusColor(entry.status)
-                          .withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      _timelineStatusIcon(entry.status),
-                      color: _timelineStatusColor(entry.status),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          entry.step.title,
-                          style: const TextStyle(
-                            color: FarmioColors.textPrimary,
-                            fontSize: 19,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _timelineStatusLabel(entry.status),
-                          style: TextStyle(
-                            color: _timelineStatusColor(entry.status),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              _AlertDetailLine(
-                label: 'Crop',
-                value:
-                    '${alert.crop.cropTypeName}${alert.crop.variety.isEmpty ? '' : ' - ${alert.crop.variety}'}',
-              ),
-              _AlertDetailLine(label: 'Field', value: alert.crop.fieldName),
-              _AlertDetailLine(label: 'Season', value: alert.crop.season),
-              _AlertDetailLine(
-                label: 'Activity type',
-                value: entry.step.activityType,
-              ),
-              _AlertDetailLine(
-                label: 'Expected window',
-                value:
-                    '${Fmt.date(entry.startDate)} - ${Fmt.date(entry.endDate)}',
-              ),
-              _AlertDetailLine(
-                label: 'Due date',
-                value: Fmt.date(entry.dueDate),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Recommendation',
-                style: TextStyle(
-                  color: FarmioColors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                entry.step.recommendation,
-                style: const TextStyle(
-                  color: FarmioColors.textSecond,
-                  height: 1.35,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      data: (data) {
+        final items = data.notifications.take(5).toList();
+        if (items.isEmpty) {
+          return const _EmptyCard(
+            icon: 'OK',
+            label: 'All caught up',
+            sub: 'No overdue activities, low stock or harvest alerts.',
+          );
+        }
+        return Column(
+          children: items
+              .map((item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _NeedsAttentionRow(item: item),
+                  ))
+              .toList(),
+        );
+      },
     );
   }
 
@@ -600,38 +398,61 @@ class _DashboardAlertsSheet extends ConsumerWidget {
   }
 }
 
-class _DashboardAlertRow extends StatelessWidget {
-  final _CropActivityAlert alert;
-  final VoidCallback onTap;
+class _NeedsAttentionRow extends StatelessWidget {
+  final AppNotification item;
+  const _NeedsAttentionRow({required this.item});
 
-  const _DashboardAlertRow({required this.alert, required this.onTap});
+  IconData get _icon {
+    switch (item.type) {
+      case 'harvest_due':
+        return Icons.agriculture_outlined;
+      case 'low_inventory':
+        return Icons.inventory_2_outlined;
+      case 'no_activity':
+        return Icons.event_busy_outlined;
+      default:
+        return Icons.priority_high_rounded;
+    }
+  }
+
+  Color get _color {
+    switch (item.type) {
+      case 'harvest_due':
+        return FarmioColors.success;
+      case 'low_inventory':
+        return FarmioColors.warning;
+      case 'no_activity':
+        return FarmioColors.textMuted;
+      default:
+        return FarmioColors.danger;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final color = _timelineStatusColor(alert.entry.status);
+    final colors = context.colors;
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
+      color: colors.surface,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        onTap: item.link == null ? null : () => context.push(item.link!),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: FarmioColors.softBorder),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: colors.softBorder),
           ),
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
+                  color: _color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(_timelineStatusIcon(alert.entry.status),
-                    color: color, size: 22),
+                child: Icon(_icon, color: _color, size: 19),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -639,38 +460,33 @@ class _DashboardAlertRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      alert.entry.step.title,
+                      item.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: FarmioColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
+                      style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 4),
                     Text(
-                      '${alert.crop.cropTypeName} - ${alert.crop.fieldName}',
+                      item.message,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: FarmioColors.textMuted,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                      style: TextStyle(
+                        color: colors.textMuted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                Fmt.date(alert.entry.dueDate),
-                style: const TextStyle(
-                  color: FarmioColors.textSecond,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
+              if (item.link != null) ...[
+                const SizedBox(width: 6),
+                Icon(Icons.chevron_right_rounded,
+                    size: 18, color: colors.textMuted),
+              ],
             ],
           ),
         ),
@@ -679,158 +495,55 @@ class _DashboardAlertRow extends StatelessWidget {
   }
 }
 
-class _AlertsMessage extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String message;
-
-  const _AlertsMessage({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
+// ── Weather line ─────────────────────────────────────────────────────────────
+class _WeatherLine extends ConsumerWidget {
+  const _WeatherLine();
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const _SheetHandle(),
-          const SizedBox(height: 28),
-          Icon(icon, size: 42, color: FarmioColors.primary),
-          const SizedBox(height: 14),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: FarmioColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: FarmioColors.textMuted,
-              fontSize: 13,
-              height: 1.35,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SheetHandle extends StatelessWidget {
-  const _SheetHandle();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 44,
-        height: 4,
-        decoration: BoxDecoration(
-          color: FarmioColors.softBorder,
-          borderRadius: BorderRadius.circular(999),
-        ),
-      ),
-    );
-  }
-}
-
-class _CropActivityAlert {
-  final CropFieldModel crop;
-  final CropTimelineEntry entry;
-
-  const _CropActivityAlert({
-    required this.crop,
-    required this.entry,
-  });
-}
-
-class _AlertDetailLine extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _AlertDetailLine({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 118,
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: FarmioColors.textMuted,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weather = ref.watch(weatherProvider);
+    return weather.when(
+      loading: () => const FarmioShimmer(width: double.infinity, height: 56, radius: 16),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (data) {
+        final current = data.current;
+        if (current == null) return const SizedBox.shrink();
+        return FarmioCard(
+          onTap: () => context.push('/weather'),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          radius: 16,
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: FarmioColors.info.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.wb_cloudy_outlined,
+                    size: 18, color: FarmioColors.info),
               ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: FarmioColors.textPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '${current.temp.round()}° · ${weatherCodeLabel(current.code)} in ${data.farmName}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: FarmioColors.textPrimary,
+                  ),
+                ),
               ),
-            ),
+              const Icon(Icons.chevron_right_rounded,
+                  size: 18, color: FarmioColors.textMuted),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
-  }
-}
-
-Color _timelineStatusColor(CropTimelineStatus status) {
-  switch (status) {
-    case CropTimelineStatus.done:
-      return FarmioColors.success;
-    case CropTimelineStatus.due:
-      return FarmioColors.primary;
-    case CropTimelineStatus.overdue:
-      return FarmioColors.danger;
-    case CropTimelineStatus.upcoming:
-      return FarmioColors.textMuted;
-  }
-}
-
-IconData _timelineStatusIcon(CropTimelineStatus status) {
-  switch (status) {
-    case CropTimelineStatus.done:
-      return Icons.check_circle_outline_rounded;
-    case CropTimelineStatus.due:
-      return Icons.notifications_active_outlined;
-    case CropTimelineStatus.overdue:
-      return Icons.priority_high_rounded;
-    case CropTimelineStatus.upcoming:
-      return Icons.schedule_rounded;
-  }
-}
-
-String _timelineStatusLabel(CropTimelineStatus status) {
-  switch (status) {
-    case CropTimelineStatus.done:
-      return 'Completed';
-    case CropTimelineStatus.due:
-      return 'Due now';
-    case CropTimelineStatus.overdue:
-      return 'Overdue';
-    case CropTimelineStatus.upcoming:
-      return 'Upcoming';
   }
 }
 
@@ -1169,9 +882,9 @@ class _ExpenseBreakdownCard extends StatelessWidget {
   }
 }
 
-class _StatGrid extends StatelessWidget {
+class _StatStrip extends StatelessWidget {
   final DashboardData data;
-  const _StatGrid({required this.data});
+  const _StatStrip({required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -1182,7 +895,7 @@ class _StatGrid extends StatelessWidget {
         value:   '${data.totalFields}',
         sub:     Fmt.haShort(data.totalArea),
         color:   FarmioColors.primary,
-        gradient: [const Color(0xFF0D9488), const Color(0xFF0F766E)],
+        gradient: [FarmioColors.primary, FarmioColors.primary.darken()],
         onTap:   () => context.push('/fields'),
       ),
       _StatItem(
@@ -1191,7 +904,7 @@ class _StatGrid extends StatelessWidget {
         value:   '${data.activeCrops}',
         sub:     'active',
         color:   FarmioColors.success,
-        gradient: [const Color(0xFF10B981), const Color(0xFF059669)],
+        gradient: [FarmioColors.success, FarmioColors.success.darken()],
         onTap:   () => context.push('/crops'),
       ),
       _StatItem(
@@ -1200,7 +913,7 @@ class _StatGrid extends StatelessWidget {
         value:   Fmt.mwk(data.income),
         sub:     'total',
         color:   FarmioColors.success,
-        gradient: [const Color(0xFF10B981), const Color(0xFF059669)],
+        gradient: [FarmioColors.success, FarmioColors.success.darken()],
         onTap:   () => context.push('/finance'),
       ),
       _StatItem(
@@ -1209,7 +922,7 @@ class _StatGrid extends StatelessWidget {
         value:   Fmt.mwk(data.expense),
         sub:     'total',
         color:   FarmioColors.danger,
-        gradient: [const Color(0xFFEF4444), const Color(0xFFDC2626)],
+        gradient: [FarmioColors.danger, FarmioColors.danger.darken()],
         onTap:   () => context.push('/finance'),
       ),
       _StatItem(
@@ -1218,7 +931,7 @@ class _StatGrid extends StatelessWidget {
         value:   '${data.activeEmployees}',
         sub:     'of ${data.totalEmployees}',
         color:   FarmioColors.info,
-        gradient: [const Color(0xFF3B82F6), const Color(0xFF2563EB)],
+        gradient: [FarmioColors.info, FarmioColors.info.darken()],
         onTap:   () => context.push('/employees'),
       ),
       _StatItem(
@@ -1230,38 +943,29 @@ class _StatGrid extends StatelessWidget {
             ? FarmioColors.success
             : FarmioColors.danger,
         gradient: data.net >= 0
-            ? [const Color(0xFF10B981), const Color(0xFF059669)]
-            : [const Color(0xFFEF4444), const Color(0xFFDC2626)],
+            ? [FarmioColors.success, FarmioColors.success.darken()]
+            : [FarmioColors.danger, FarmioColors.danger.darken()],
         onTap:   () => context.push('/finance'),
       ),
     ];
 
-    return Column(
-      children: [
-        for (var i = 0; i < stats.length; i += 2)
-          Padding(
-            padding: EdgeInsets.only(bottom: i + 2 < stats.length ? 12 : 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 106,
-                    child: _StatCard(item: stats[i]),
-                  ),
+    return SizedBox(
+      height: 106,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final stat in stats)
+              Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: SizedBox(
+                  width: 108,
+                  child: _StatCard(item: stat),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: i + 1 < stats.length
-                      ? SizedBox(
-                          height: 106,
-                          child: _StatCard(item: stats[i + 1]),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            ),
-          ),
-      ],
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1352,103 +1056,6 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ── Quick actions ─────────────────────────────────────────────────────────────
-class _QuickActionsGrid extends StatelessWidget {
-  const _QuickActionsGrid();
-
-  @override
-  Widget build(BuildContext context) {
-    final actions = [
-      _Action('Fields',      Icons.map_rounded,
-          const Color(0xFF0D9488), '/fields'),
-      _Action('Crops',       Icons.grass_rounded,
-          const Color(0xFF10B981), '/crops'),
-      _Action('Activities',  Icons.assignment_rounded,
-          const Color(0xFF8B5CF6), '/activities'),
-      _Action('Finance',     Icons.account_balance_wallet_rounded,
-          const Color(0xFFF59E0B), '/finance'),
-      _Action('Reports',     Icons.bar_chart_rounded,
-          const Color(0xFF3B82F6), '/reports'),
-      _Action('Records',     Icons.file_present_rounded,
-          const Color(0xFF0D9488), '/records'),
-      _Action('Employees',   Icons.people_alt_rounded,
-          const Color(0xFF2563EB), '/employees'),
-      _Action('Templates',   Icons.fact_check_rounded,
-          const Color(0xFF7C3AED), '/templates'),
-      _Action('Profile',     Icons.person_rounded,
-          const Color(0xFF64748B), '/profile'),
-    ];
-
-    return Column(
-      children: [
-        for (var i = 0; i < actions.length; i += 4)
-          Padding(
-            padding: EdgeInsets.only(bottom: i + 4 < actions.length ? 8 : 0),
-            child: Row(
-              children: [
-                for (var j = i; j < i + 4; j++) ...[
-                  if (j > i) const SizedBox(width: 8),
-                  Expanded(
-                    child: j < actions.length
-                        ? SizedBox(
-                            height: 84,
-                            child: _ActionTile(action: actions[j]),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ],
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _Action {
-  final String label, route;
-  final IconData icon;
-  final Color    color;
-  const _Action(this.label, this.icon, this.color, this.route);
-}
-
-class _ActionTile extends StatelessWidget {
-  final _Action action;
-  const _ActionTile({required this.action});
-
-  @override
-  Widget build(BuildContext context) {
-    return FarmioCard(
-      onTap: () => context.push(action.route),
-      padding: EdgeInsets.zero,
-      radius: 14,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width:  36, height: 36,
-              decoration: BoxDecoration(
-                color:        action.color
-                    .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(action.icon,
-                  color: action.color, size: 18),
-            ),
-            const SizedBox(height: 5),
-            Text(action.label,
-                style: const TextStyle(
-                  fontSize:   10,
-                  fontWeight: FontWeight.w700,
-                  color:      FarmioColors.textPrimary,
-                ),
-                textAlign: TextAlign.center),
-          ],
-        ),
-    );
-  }
-}
-
 // ── Land use ──────────────────────────────────────────────────────────────────
 class _LandUseRow extends StatelessWidget {
   final FieldLandUse field;
@@ -1529,12 +1136,13 @@ class _ActivityRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: colors.border),
       ),
       child: Row(children: [
         Container(
@@ -1555,19 +1163,19 @@ class _ActivityRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(activity.activityType,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize:   13,
                     fontWeight: FontWeight.w700,
-                    color:      FarmioColors.textPrimary,
+                    color:      colors.textPrimary,
                   )),
               Text(
                 activity.fieldName +
                     (activity.cropName != null
                         ? ' · ${activity.cropName}'
                         : ''),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color:    FarmioColors.textMuted,
+                  color:    colors.textMuted,
                 ),
               ),
             ],
@@ -1577,15 +1185,15 @@ class _ActivityRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(
               horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color:        FarmioColors.slate100,
+            color:        colors.background,
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
             Fmt.timeAgo(activity.date),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize:   10,
               fontWeight: FontWeight.w600,
-              color:      FarmioColors.textMuted,
+              color:      colors.textMuted,
             ),
           ),
         ),
@@ -1638,27 +1246,28 @@ class _EmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: colors.border),
       ),
       child: Column(children: [
         Text(icon, style: const TextStyle(fontSize: 32)),
         const SizedBox(height: 8),
         Text(label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize:   14,
               fontWeight: FontWeight.w700,
-              color:      FarmioColors.textPrimary,
+              color:      colors.textPrimary,
             )),
         const SizedBox(height: 4),
         Text(sub,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color:    FarmioColors.textMuted,
+              color:    colors.textMuted,
             )),
       ]),
     );
@@ -1693,29 +1302,16 @@ class _Skeleton extends StatelessWidget {
                   childAspectRatio: 1.6,
                 ),
                 itemCount:   6,
-                itemBuilder: (_, __) => _ShimmerBox(radius: 16),
+                itemBuilder: (_, __) => const FarmioShimmer(
+                  width: double.infinity,
+                  height: double.infinity,
+                  radius: 16,
+                ),
               ),
             ]),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ShimmerBox extends StatelessWidget {
-  final double? height;
-  final double  radius;
-  const _ShimmerBox({this.height, required this.radius});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height:     height,
-      decoration: BoxDecoration(
-        color:        FarmioColors.slate200,
-        borderRadius: BorderRadius.circular(radius),
-      ),
     );
   }
 }
@@ -1732,6 +1328,7 @@ class _ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = _messageFor(error);
+    final colors = context.colors;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1739,11 +1336,11 @@ class _ErrorView extends StatelessWidget {
           const Icon(Icons.error_outline_rounded,
               size: 48, color: FarmioColors.danger),
           const SizedBox(height: 12),
-          const Text('Could not load dashboard',
+          Text('Could not load dashboard',
               style: TextStyle(
                 fontSize:   16,
                 fontWeight: FontWeight.w700,
-                color:      FarmioColors.textPrimary,
+                color:      colors.textPrimary,
               )),
           const SizedBox(height: 20),
           ElevatedButton.icon(
@@ -1759,8 +1356,8 @@ class _ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: FarmioColors.textMuted,
+              style: TextStyle(
+                color: colors.textMuted,
                 fontSize: 12,
                 height: 1.35,
               ),

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/field_detail.dart';
 import '../../shared/utils/formatters.dart';
+import '../../shared/widgets/farmio_card.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
-import '../field_map/field_boundary_editor_screen.dart';
 import 'fields_provider.dart';
 
 class FieldDetailScreen extends ConsumerWidget {
@@ -16,7 +17,7 @@ class FieldDetailScreen extends ConsumerWidget {
     final detail = ref.watch(fieldDetailProvider(fieldId));
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Field detail',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -24,12 +25,7 @@ class FieldDetailScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.gps_fixed_outlined),
             tooltip: 'Boundary & zones',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => FieldBoundaryEditorScreen(fieldId: fieldId),
-              ),
-            ),
+            onPressed: () => context.push('/fields/$fieldId/boundary'),
           ),
         ],
       ),
@@ -57,6 +53,7 @@ class _FieldErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -66,12 +63,12 @@ class _FieldErrorView extends StatelessWidget {
             const Icon(Icons.error_outline_rounded,
                 size: 46, color: FarmioColors.danger),
             const SizedBox(height: 12),
-            const Text('Could not load field',
+            Text('Could not load field',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: FarmioColors.textPrimary,
+                  color: colors.textPrimary,
                 )),
             const SizedBox(height: 8),
             Text(
@@ -79,8 +76,8 @@ class _FieldErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: FarmioColors.textMuted,
+              style: TextStyle(
+                color: colors.textMuted,
                 height: 1.35,
               ),
             ),
@@ -106,6 +103,7 @@ class _DetailContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final usedPct = field.cultivatableArea > 0
         ? (field.allocatedArea / field.cultivatableArea).clamp(0.0, 1.0)
         : 0.0;
@@ -132,7 +130,9 @@ class _DetailContent extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Info card
-        _Card(
+        FarmioCard(
+          padding: const EdgeInsets.all(18),
+          radius: 18,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -151,19 +151,19 @@ class _DetailContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(field.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18, fontWeight: FontWeight.w800,
-                          color: FarmioColors.textPrimary,
+                          color: colors.textPrimary,
                         )),
                     Text(field.soilType,
-                        style: const TextStyle(
-                          fontSize: 13, color: FarmioColors.textMuted,
+                        style: TextStyle(
+                          fontSize: 13, color: colors.textMuted,
                         )),
                   ],
                 )),
               ]),
               const SizedBox(height: 16),
-              const Divider(color: FarmioColors.border),
+              Divider(color: colors.border),
               const SizedBox(height: 16),
               Row(children: [
                 _InfoItem(label: 'Total area',       value: Fmt.haShort(field.totalArea)),
@@ -176,10 +176,10 @@ class _DetailContent extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Land allocated',
-                      style: TextStyle(fontSize: 12, color: FarmioColors.textMuted)),
+                  Text('Land allocated',
+                      style: TextStyle(fontSize: 12, color: colors.textMuted)),
                   Text('${(usedPct * 100).toStringAsFixed(0)}%',
-                      style: const TextStyle(fontSize: 12, color: FarmioColors.textMuted)),
+                      style: TextStyle(fontSize: 12, color: colors.textMuted)),
                 ],
               ),
               const SizedBox(height: 6),
@@ -188,7 +188,7 @@ class _DetailContent extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value:           usedPct,
                   minHeight:       8,
-                  backgroundColor: FarmioColors.border,
+                  backgroundColor: colors.border,
                   valueColor:      AlwaysStoppedAnimation<Color>(
                     usedPct >= 1.0 ? FarmioColors.danger : FarmioColors.primary,
                   ),
@@ -198,14 +198,14 @@ class _DetailContent extends StatelessWidget {
               if (field.notes != null && field.notes!.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text('Notes',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12, fontWeight: FontWeight.w700,
-                      color: FarmioColors.textMuted,
+                      color: colors.textMuted,
                     )),
                 const SizedBox(height: 4),
                 Text(field.notes!,
-                    style: const TextStyle(
-                      fontSize: 13, color: FarmioColors.textPrimary,
+                    style: TextStyle(
+                      fontSize: 13, color: colors.textPrimary,
                     )),
               ],
             ],
@@ -214,20 +214,20 @@ class _DetailContent extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Crops
-        const Text('Crops on this field',
+        Text('Crops on this field',
             style: TextStyle(
               fontSize: 16, fontWeight: FontWeight.w800,
-              color: FarmioColors.textPrimary,
+              color: colors.textPrimary,
             )),
         const SizedBox(height: 10),
 
         if (field.crops.isEmpty)
-          _Card(
-            child: const Center(
+          FarmioCard(
+            child: Center(
               child: Padding(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 child: Text('No crops on this field',
-                    style: TextStyle(color: FarmioColors.textMuted)),
+                    style: TextStyle(color: colors.textMuted)),
               ),
             ),
           )
@@ -240,20 +240,20 @@ class _DetailContent extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Recent activities
-        const Text('Recent activities',
+        Text('Recent activities',
             style: TextStyle(
               fontSize: 16, fontWeight: FontWeight.w800,
-              color: FarmioColors.textPrimary,
+              color: colors.textPrimary,
             )),
         const SizedBox(height: 10),
 
         if (field.recentActivities.isEmpty)
-          _Card(
-            child: const Center(
+          FarmioCard(
+            child: Center(
               child: Padding(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 child: Text('No activities recorded',
-                    style: TextStyle(color: FarmioColors.textMuted)),
+                    style: TextStyle(color: colors.textMuted)),
               ),
             ),
           )
@@ -273,20 +273,21 @@ class _CropTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final days     = crop.daysToHarvest;
     final isOverdue = days < 0;
     final isDueSoon = days >= 0 && days <= 14;
 
     Color statusColor = FarmioColors.primary;
     if (isOverdue)  statusColor = FarmioColors.danger;
-    if (isDueSoon)  statusColor = const Color(0xFFD97706);
+    if (isDueSoon)  statusColor = FarmioColors.warning;
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: colors.border),
       ),
       child: Row(
         children: [
@@ -307,13 +308,13 @@ class _CropTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('${crop.cropTypeName} · ${crop.variety}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w700,
-                      color: FarmioColors.textPrimary,
+                      color: colors.textPrimary,
                     )),
                 Text('${crop.season} · ${Fmt.haShort(crop.areaPlanted)}',
-                    style: const TextStyle(
-                      fontSize: 12, color: FarmioColors.textMuted,
+                    style: TextStyle(
+                      fontSize: 12, color: colors.textMuted,
                     )),
               ],
             ),
@@ -360,12 +361,13 @@ class _ActivityTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: colors.border),
       ),
       child: Row(
         children: [
@@ -380,21 +382,21 @@ class _ActivityTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(activity.activityType,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w700,
-                      color: FarmioColors.textPrimary,
+                      color: colors.textPrimary,
                     )),
                 if (activity.cropName != null)
                   Text(activity.cropName!,
-                      style: const TextStyle(
-                        fontSize: 12, color: FarmioColors.textMuted,
+                      style: TextStyle(
+                        fontSize: 12, color: colors.textMuted,
                       )),
               ],
             ),
           ),
           Text(Fmt.dateShort(activity.date),
-              style: const TextStyle(
-                fontSize: 11, color: FarmioColors.textMuted,
+              style: TextStyle(
+                fontSize: 11, color: colors.textMuted,
               )),
         ],
       ),
@@ -408,41 +410,23 @@ class _InfoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(
-                fontSize: 10, color: FarmioColors.textMuted,
+              style: TextStyle(
+                fontSize: 10, color: colors.textMuted,
               )),
           const SizedBox(height: 2),
           Text(value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13, fontWeight: FontWeight.w700,
-                color: FarmioColors.textPrimary,
+                color: colors.textPrimary,
               )),
         ],
       ),
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  final Widget child;
-  const _Card({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width:   double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color:        Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: FarmioColors.border),
-      ),
-      child: child,
     );
   }
 }

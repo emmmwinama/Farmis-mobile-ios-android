@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'finance_provider.dart';
@@ -67,9 +68,9 @@ class _TransactionFormScreenState
             ? null
             : _seasonCtrl.text.trim(),
       });
-      if (mounted) Navigator.pop(context);
+      if (mounted) context.pop();
     } catch (e) {
-      setState(() => _error = 'Failed to save.');
+      setState(() => _error = 'Failed to save: $e');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -86,7 +87,7 @@ class _TransactionFormScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Add transaction',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -104,7 +105,7 @@ class _TransactionFormScreenState
                 child: _TypeButton(
                   label:      'Income',
                   selected:   _type == 'Income',
-                  color:      const Color(0xFF16A34A),
+                  color:      FarmioColors.success,
                   onTap:      () => setState(() {
                     _type     = 'Income';
                     _category = _incomeCategories.first;
