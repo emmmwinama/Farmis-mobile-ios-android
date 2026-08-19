@@ -204,16 +204,14 @@ class _OverheadFormScreenState
                 hintText: 'Any additional notes...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                      color: FarmioColors.border),
+                  borderSide: BorderSide(color: context.colors.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                      color: FarmioColors.border),
+                  borderSide: BorderSide(color: context.colors.border),
                 ),
                 filled:    true,
-                fillColor: FarmioColors.background,
+                fillColor: context.colors.background,
               ),
             ),
 
@@ -246,10 +244,10 @@ class _OverheadFormScreenState
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize:   12,
           fontWeight: FontWeight.w700,
-          color:      FarmioColors.textMuted,
+          color:      context.colors.textMuted,
         )),
   );
 
@@ -265,14 +263,14 @@ class _OverheadFormScreenState
           hintText: hint,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: FarmioColors.border),
+            borderSide: BorderSide(color: context.colors.border),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: FarmioColors.border),
+            borderSide: BorderSide(color: context.colors.border),
           ),
           filled:    true,
-          fillColor: FarmioColors.background,
+          fillColor: context.colors.background,
         ),
       );
 }

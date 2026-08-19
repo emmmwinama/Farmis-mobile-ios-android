@@ -237,14 +237,14 @@ class _TransactionFormScreenState
           hintText: hint,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: FarmioColors.border),
+            borderSide: BorderSide(color: context.colors.border),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: FarmioColors.border),
+            borderSide: BorderSide(color: context.colors.border),
           ),
           filled:    true,
-          fillColor: FarmioColors.background,
+          fillColor: context.colors.background,
         ),
       );
 

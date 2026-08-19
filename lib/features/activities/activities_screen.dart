@@ -253,9 +253,9 @@ class _ActivityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
         boxShadow: [
           BoxShadow(
             color:      Colors.black.withValues(alpha:0.03),

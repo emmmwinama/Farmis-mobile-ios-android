@@ -100,7 +100,7 @@ class _KeypadButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: FarmioColors.surface,
+      color: context.colors.surface,
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onTap,
@@ -111,12 +111,12 @@ class _KeypadButton extends StatelessWidget {
           child: Center(
             child: label != null
                 ? Text(label!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: FarmioColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ))
-                : Icon(icon, color: FarmioColors.textSecond),
+                : Icon(icon, color: context.colors.textSecond),
           ),
         ),
       ),

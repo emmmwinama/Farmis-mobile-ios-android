@@ -426,16 +426,14 @@ class _ActivityFormScreenState
                 hintText: 'Any notes about this activity...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                  const BorderSide(color: FarmioColors.border),
+                  borderSide: BorderSide(color: context.colors.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                  const BorderSide(color: FarmioColors.border),
+                  borderSide: BorderSide(color: context.colors.border),
                 ),
                 filled:    true,
-                fillColor: FarmioColors.background,
+                fillColor: context.colors.background,
               ),
             ),
             const SizedBox(height: 24),
@@ -578,14 +576,14 @@ class _ActivityFormScreenState
     hintText: hintText,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: FarmioColors.border),
+      borderSide: BorderSide(color: context.colors.border),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: FarmioColors.border),
+      borderSide: BorderSide(color: context.colors.border),
     ),
     filled: true,
-    fillColor: FarmioColors.background,
+    fillColor: context.colors.background,
   );
 }
 
@@ -601,14 +599,14 @@ class _ResponsiblePersonFallback extends StatelessWidget {
         hintText: 'Enter worker or crew name',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: FarmioColors.border),
+          borderSide: BorderSide(color: context.colors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: FarmioColors.border),
+          borderSide: BorderSide(color: context.colors.border),
         ),
         filled: true,
-        fillColor: FarmioColors.background,
+        fillColor: context.colors.background,
       ),
     );
   }
@@ -860,16 +858,14 @@ class _SmallField extends StatelessWidget {
             horizontal: 10, vertical: 10),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide:
-          const BorderSide(color: FarmioColors.border),
+          borderSide: BorderSide(color: context.colors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide:
-          const BorderSide(color: FarmioColors.border),
+          borderSide: BorderSide(color: context.colors.border),
         ),
         filled:    true,
-        fillColor: FarmioColors.background,
+        fillColor: context.colors.background,
       ),
     );
   }

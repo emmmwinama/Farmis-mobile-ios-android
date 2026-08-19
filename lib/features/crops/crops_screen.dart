@@ -448,7 +448,7 @@ class _CropCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color:        Colors.white,
+          color:        context.colors.surface,
           borderRadius: BorderRadius.circular(16),
           border:       Border.all(
             color: color.withValues(alpha:0.25),
@@ -715,17 +715,17 @@ class _DropdownFilter extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color:        Colors.white,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(10),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value:      value,
           isExpanded: true,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize:   12,
-            color:      FarmioColors.textPrimary,
+            color:      context.colors.textPrimary,
             fontWeight: FontWeight.w600,
           ),
           items: items.map((i) => DropdownMenuItem(

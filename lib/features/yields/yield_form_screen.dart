@@ -105,7 +105,7 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
     final cropsAsync = ref.watch(allCropsProvider);
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('Record harvest',
             style: TextStyle(fontWeight: FontWeight.w800)),
@@ -276,16 +276,14 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
                 hintText: 'Storage location, buyer name, etc...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                      color: FarmioColors.border),
+                  borderSide: BorderSide(color: context.colors.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                      color: FarmioColors.border),
+                  borderSide: BorderSide(color: context.colors.border),
                 ),
                 filled:    true,
-                fillColor: FarmioColors.background,
+                fillColor: context.colors.background,
               ),
             ),
 
@@ -320,10 +318,10 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize:   12,
           fontWeight: FontWeight.w700,
-          color:      FarmioColors.textMuted,
+          color:      context.colors.textMuted,
         )),
   );
 
@@ -340,16 +338,14 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
           hintText: hint,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-                color: FarmioColors.border),
+            borderSide: BorderSide(color: context.colors.border),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-                color: FarmioColors.border),
+            borderSide: BorderSide(color: context.colors.border),
           ),
           filled:    true,
-          fillColor: FarmioColors.background,
+          fillColor: context.colors.background,
         ),
       );
 }

@@ -530,15 +530,15 @@ class _WeatherLine extends ConsumerWidget {
                   '${current.temp.round()}° · ${weatherCodeLabel(current.code)} in ${data.farmName}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded,
-                  size: 18, color: FarmioColors.textMuted),
+              Icon(Icons.chevron_right_rounded,
+                  size: 18, color: context.colors.textMuted),
             ],
           ),
         );
@@ -592,20 +592,20 @@ class _DashboardFilterToggle extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Filters',
+                Text('Filters',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: FarmioColors.textMuted,
+                      color: context.colors.textMuted,
                     )),
                 Text(
                   _summary,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ],
@@ -624,8 +624,8 @@ class _DashboardFilterToggle extends StatelessWidget {
           AnimatedRotation(
             turns: expanded ? 0.5 : 0,
             duration: const Duration(milliseconds: 200),
-            child: const Icon(Icons.keyboard_arrow_down_rounded,
-                size: 18, color: FarmioColors.textMuted),
+            child: Icon(Icons.keyboard_arrow_down_rounded,
+                size: 18, color: context.colors.textMuted),
           ),
         ],
       ),
@@ -668,10 +668,10 @@ class _DashboardFilterPanel extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text('Filter dashboard',
                     style: TextStyle(
-                      color: FarmioColors.textPrimary,
+                      color: context.colors.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w900,
                     )),
@@ -682,7 +682,7 @@ class _DashboardFilterPanel extends StatelessWidget {
                   icon: const Icon(Icons.close, size: 14),
                   label: const Text('Clear', style: TextStyle(fontSize: 12)),
                   style: TextButton.styleFrom(
-                    foregroundColor: FarmioColors.textMuted,
+                    foregroundColor: context.colors.textMuted,
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     minimumSize: Size.zero,
@@ -744,10 +744,10 @@ class _FilterSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w800,
-              color: FarmioColors.textMuted,
+              color: context.colors.textMuted,
               letterSpacing: 0.4,
             )),
         const SizedBox(height: 8),
@@ -761,14 +761,14 @@ class _FilterSection extends StatelessWidget {
               selected: isSelected,
               onSelected: (_) => onSelected(option),
               selectedColor: FarmioColors.primary,
-              backgroundColor: FarmioColors.background,
+              backgroundColor: context.colors.background,
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : FarmioColors.textSecond,
+                color: isSelected ? Colors.white : context.colors.textSecond,
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),
               side: BorderSide(
-                color: isSelected ? FarmioColors.primary : FarmioColors.border,
+                color: isSelected ? FarmioColors.primary : context.colors.border,
               ),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(999)),
@@ -799,11 +799,11 @@ class _ExpenseBreakdownCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Expense breakdown',
                   style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                   ),
@@ -821,10 +821,10 @@ class _ExpenseBreakdownCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           if (items.isEmpty)
-            const Text(
+            Text(
               'No expense categories returned for this period.',
               style: TextStyle(
-                color: FarmioColors.textMuted,
+                color: context.colors.textMuted,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),
@@ -843,8 +843,8 @@ class _ExpenseBreakdownCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             item.label,
-                            style: const TextStyle(
-                              color: FarmioColors.textPrimary,
+                            style: TextStyle(
+                              color: context.colors.textPrimary,
                               fontSize: 13,
                               fontWeight: FontWeight.w800,
                             ),
@@ -852,8 +852,8 @@ class _ExpenseBreakdownCard extends StatelessWidget {
                         ),
                         Text(
                           Fmt.mwk(item.amount),
-                          style: const TextStyle(
-                            color: FarmioColors.textSecond,
+                          style: TextStyle(
+                            color: context.colors.textSecond,
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                           ),
@@ -1041,10 +1041,10 @@ class _StatCard extends StatelessWidget {
                   ),
                 ),
                 Text(item.label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize:   10,
                       fontWeight: FontWeight.w600,
-                      color:      FarmioColors.textPrimary,
+                      color:      context.colors.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
@@ -1075,18 +1075,18 @@ class _LandUseRow extends StatelessWidget {
         Row(children: [
           Expanded(
             child: Text(field.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize:   13,
                   fontWeight: FontWeight.w700,
-                  color:      FarmioColors.textPrimary,
+                  color:      context.colors.textPrimary,
                 )),
           ),
           Text(
             '${Fmt.haShort(field.allocated)} / '
                 '${Fmt.haShort(field.cultivatableArea)}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color:    FarmioColors.textMuted,
+              color:    context.colors.textMuted,
             ),
           ),
         ]),
@@ -1110,16 +1110,16 @@ class _LandUseRow extends StatelessWidget {
           children: [
             Text(
               '${(pct * 100).toStringAsFixed(0)}% allocated',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
-                color:    FarmioColors.textMuted,
+                color:    context.colors.textMuted,
               ),
             ),
             Text(
               '${Fmt.haShort(field.available)} free',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
-                color:    FarmioColors.textMuted,
+                color:    context.colors.textMuted,
               ),
             ),
           ],
@@ -1214,10 +1214,10 @@ class _SectionTitle extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize:   16,
               fontWeight: FontWeight.w800,
-              color:      FarmioColors.textPrimary,
+              color:      context.colors.textPrimary,
               letterSpacing: -0.3,
             )),
         if (onMore != null)

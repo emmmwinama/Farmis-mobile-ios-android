@@ -344,11 +344,13 @@ class AppTheme {
         ),
         contentPadding: const EdgeInsets.symmetric(
             horizontal: 18, vertical: 15),
+        // textSecond (not textMuted) — textMuted on slate50 fill computes to
+        // ~2.6:1 contrast, below WCAG AA's 4.5:1 minimum for form text.
         hintStyle: GoogleFonts.inter(
-          color: FarmioColors.textMuted, fontSize: 14,
+          color: FarmioColors.textSecond, fontSize: 14,
         ),
         labelStyle: GoogleFonts.inter(
-          color: FarmioColors.textMuted, fontSize: 14,
+          color: FarmioColors.textSecond, fontSize: 14,
         ),
         floatingLabelStyle: GoogleFonts.inter(
           color: FarmioColors.primary, fontSize: 13, fontWeight: FontWeight.w600,

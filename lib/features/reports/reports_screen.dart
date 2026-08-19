@@ -520,9 +520,9 @@ class _AnalyticsIntro extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 14, 16, 2),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: FarmioColors.softBorder),
+        border: Border.all(color: context.colors.softBorder),
       ),
       child: Row(
         children: [
