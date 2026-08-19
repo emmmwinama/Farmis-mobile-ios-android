@@ -1,0 +1,28 @@
+workflows:
+  ios-sideload:
+    name: iOS unsigned build (AltStore sideload)
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios
+          pod install
+      - name: Run tests
+        script: flutter test
+      - name: Build unsigned iOS app
+        script: |
+          flutter build ios --release --no-codesign
+      - name: Package unsigned IPA
+        script: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r farmis-mobile.ipa Payload
+    artifacts:
+      - farmis-mobile.ipa
