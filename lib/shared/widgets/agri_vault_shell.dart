@@ -70,14 +70,14 @@ class AgriVaultShell extends ConsumerWidget {
 
     if (tablet) {
       return Scaffold(
-        backgroundColor: FarmioColors.background,
+        backgroundColor: context.colors.background,
         body: Row(
           children: [
             NavigationRail(
               selectedIndex: index,
               onDestinationSelected: (i) => context.go(_shellItems[i].route),
               minWidth: 78,
-              backgroundColor: Colors.white,
+              backgroundColor: context.colors.surface,
               indicatorColor: FarmioColors.primaryBg,
               labelType: NavigationRailLabelType.all,
               leading: const Padding(
@@ -93,7 +93,7 @@ class AgriVaultShell extends ConsumerWidget {
                       ))
                   .toList(),
             ),
-            const VerticalDivider(width: 1, color: FarmioColors.softBorder),
+            VerticalDivider(width: 1, color: context.colors.softBorder),
             Expanded(child: child),
           ],
         ),
@@ -102,12 +102,24 @@ class AgriVaultShell extends ConsumerWidget {
 
     final bottomInset = MediaQuery.of(context).padding.bottom;
     const pillHeight = 64.0;
+    const pillMargin = 12.0;
+    // Total vertical space the floating pill actually occupies, so
+    // extendBody below can let each screen's own content/FAB flow the full
+    // height without landing underneath it — matches the ~90-96px bottom
+    // padding individual screens already build in for exactly this.
+    final pillClearance = pillHeight + pillMargin + bottomInset + 12;
 
     return Scaffold(
-      backgroundColor: FarmioColors.background,
-      body: child,
+      backgroundColor: context.colors.background,
+      extendBody: true,
+      body: MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          padding: MediaQuery.of(context).padding.copyWith(bottom: pillClearance),
+        ),
+        child: child,
+      ),
       bottomNavigationBar: Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset + 12),
+        padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset + pillMargin),
         child: Container(
           height: pillHeight,
           decoration: BoxDecoration(
