@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/auth/account_provider.dart';
 import '../../core/auth/pin_provider.dart';
 import '../../core/db/app_database.dart';
 import '../../core/theme/app_theme.dart';
+import 'account_sync_section.dart';
 import 'farm_profile_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -12,6 +14,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(farmProfileProvider);
+    ref.watch(accountHydrationProvider);
 
     return Scaffold(
       backgroundColor: context.colors.background,
@@ -88,6 +91,8 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            const AccountSyncSection(),
             const SizedBox(height: 16),
             _ProfileAction(
               icon: Icons.file_present_outlined,

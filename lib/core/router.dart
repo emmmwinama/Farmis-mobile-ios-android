@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/pin_setup_screen.dart';
 import '../features/auth/pin_unlock_screen.dart';
+import '../features/auth/login_screen.dart';
+import '../features/auth/register_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/fields/fields_screen.dart';
@@ -102,6 +104,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path:    '/pin-unlock',
         builder: (_, __) => const PinUnlockScreen(),
+      ),
+      // Account sign-in is optional and layered on top of the PIN-gated
+      // local flow — reached only via the Profile screen's "Account & Sync"
+      // section, never part of the redirect chain above.
+      GoRoute(
+        path:    '/login',
+        builder: (_, __) => const LoginScreen(),
+      ),
+      GoRoute(
+        path:    '/register',
+        builder: (_, __) => const RegisterScreen(),
       ),
       // Full-screen drill-down routes for Fields — deliberately outside the
       // ShellRoute (no bottom nav/rail while editing or viewing a single
