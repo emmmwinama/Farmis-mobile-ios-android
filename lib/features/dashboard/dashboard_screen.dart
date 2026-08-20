@@ -14,6 +14,7 @@ import '../../shared/widgets/glass_panel.dart';
 import '../notifications/notifications_provider.dart';
 import '../weather/weather_provider.dart';
 import 'dashboard_provider.dart';
+import 'sync_status_icon.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -100,6 +101,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
                 onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
               ),
+              const SyncStatusIcon(),
               GestureDetector(
                 onTap: () => context.push('/profile'),
                 child: Container(

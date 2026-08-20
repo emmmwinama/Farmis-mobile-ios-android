@@ -1,8 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/sync/auto_sync_service.dart';
 import '../../core/theme/app_theme.dart';
 import 'app_brand_mark.dart';
 
@@ -50,13 +52,18 @@ int tabIndexForLocation(String location) {
   return 0;
 }
 
-class AgriVaultShell extends StatelessWidget {
+class AgriVaultShell extends ConsumerWidget {
   final Widget child;
 
   const AgriVaultShell({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Just being watched here starts the auto-sync watcher for the whole
+    // logged-in session, regardless of which tab the user lands on first —
+    // it stays alive afterward since this isn't an autoDispose provider.
+    ref.watch(autoSyncProvider);
+
     final width = MediaQuery.of(context).size.width;
     final tablet = width >= 760;
     final index = tabIndexForLocation(GoRouterState.of(context).matchedLocation);

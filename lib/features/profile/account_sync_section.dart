@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/api/api_client.dart';
 import '../../core/auth/account_provider.dart';
 import '../../core/db/database_provider.dart';
-import '../../core/migration/export_service.dart';
 import '../../core/migration/import_service.dart';
+import '../../core/sync/auto_sync_service.dart';
 import '../../core/theme/app_theme.dart';
 
 /// "Account & Sync" card on the Profile screen — the only place the optional
@@ -23,15 +23,18 @@ class AccountSyncSection extends ConsumerStatefulWidget {
 class _AccountSyncSectionState extends ConsumerState<AccountSyncSection> {
   bool _busy = false;
 
+  // Delegates to the same notifier the background auto-sync watcher uses, so
+  // a manual tap here and the dashboard's sync icon always agree on status.
   Future<void> _backup() async {
     setState(() => _busy = true);
     try {
-      final json = await ExportService(ref.read(databaseProvider)).exportToJson();
-      final counts = await ref.read(accountRepositoryProvider).backup(json);
-      final total = counts.values.fold(0, (s, c) => s + c);
-      _toast('Backed up $total record${total == 1 ? '' : 's'} to the cloud.');
-    } catch (e) {
-      _toast(apiErrorMessage(e, fallback: 'Could not back up your data.'), isError: true);
+      await ref.read(autoSyncProvider.notifier).syncNow();
+      final result = ref.read(autoSyncProvider);
+      if (result.status == SyncStatus.error) {
+        _toast(result.errorMessage ?? 'Could not back up your data.', isError: true);
+      } else {
+        _toast('Backed up to the cloud.');
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -178,6 +181,19 @@ class _AccountSyncSectionState extends ConsumerState<AccountSyncSection> {
         ),
         const SizedBox(height: 16),
         if (isPaid) ...[
+          Row(
+            children: [
+              Icon(Icons.sync, size: 14, color: context.colors.textMuted),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  '${describeSyncStatus(ref.watch(autoSyncProvider))} — new records sync automatically.',
+                  style: TextStyle(fontSize: 11.5, color: context.colors.textMuted),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(

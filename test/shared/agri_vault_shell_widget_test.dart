@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:farmio_mobile/shared/widgets/agri_vault_shell.dart';
@@ -20,7 +21,7 @@ void main() {
         ),
       ],
     );
-    return MaterialApp.router(routerConfig: router);
+    return ProviderScope(child: MaterialApp.router(routerConfig: router));
   }
 
   testWidgets('phone layout renders all 5 tab icons, with only the active label shown',
