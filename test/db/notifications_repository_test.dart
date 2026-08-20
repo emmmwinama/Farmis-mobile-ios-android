@@ -161,6 +161,66 @@ void main() {
     expect(data.notifications.any((n) => n.type == 'low_inventory'), isTrue);
   });
 
+  test('getNotifications does not generate alerts for a crop already marked harvested',
+      () async {
+    final field = await fields.createField({
+      'name': 'North Field',
+      'totalArea': '10',
+      'cultivatableArea': '9',
+      'soilType': 'Loam',
+    });
+    final cropType = await crops.createCropType('Maize');
+    final crop = await crops.createCrop({
+      'cropTypeId': cropType.id,
+      'fieldId': field.id,
+      'variety': 'DK8053',
+      'areaPlanted': '3',
+      'season': '2026 Rain',
+      // Both overdue on its timeline steps and overdue on expected harvest.
+      'plantingDate':
+          DateTime.now().subtract(const Duration(days: 200)).toIso8601String(),
+      'expectedHarvestDate':
+          DateTime.now().subtract(const Duration(days: 10)).toIso8601String(),
+    });
+    await crops.markHarvested(crop.id);
+
+    final data = await repo.getNotifications();
+
+    expect(data.notifications.any((n) => n.type == 'crop_activity_due'), isFalse);
+    expect(data.notifications.any((n) => n.type == 'harvest_due'), isFalse);
+  });
+
+  test('getNotifications purges a stale alert once its crop is marked harvested afterward',
+      () async {
+    final field = await fields.createField({
+      'name': 'North Field',
+      'totalArea': '10',
+      'cultivatableArea': '9',
+      'soilType': 'Loam',
+    });
+    final cropType = await crops.createCropType('Maize');
+    final crop = await crops.createCrop({
+      'cropTypeId': cropType.id,
+      'fieldId': field.id,
+      'variety': 'DK8053',
+      'areaPlanted': '3',
+      'season': '2026 Rain',
+      'plantingDate':
+          DateTime.now().subtract(const Duration(days: 200)).toIso8601String(),
+      'expectedHarvestDate':
+          DateTime.now().subtract(const Duration(days: 10)).toIso8601String(),
+    });
+
+    final before = await repo.getNotifications();
+    expect(before.notifications.any((n) => n.type == 'crop_activity_due'), isTrue);
+
+    await crops.markHarvested(crop.id);
+    final after = await repo.getNotifications();
+
+    expect(after.notifications.any((n) => n.type == 'crop_activity_due'), isFalse);
+    expect(after.notifications.any((n) => n.type == 'harvest_due'), isFalse);
+  });
+
   test('markAllRead clears the unread count', () async {
     final field = await fields.createField({
       'name': 'North Field',

@@ -54,8 +54,20 @@ class NotificationsRepository {
         existing.any((n) => n.type == 'harvest_due' && n.link == '/crops');
 
     final toInsert = <NotificationsCompanion>[];
+    // Tracks which crop_activity_due/no_activity titles are still legitimate
+    // right now, so stale ones — e.g. a crop that's since been harvested —
+    // can be purged below instead of lingering forever (they're only ever
+    // inserted, never otherwise cleaned up).
+    final stillDueTitles = <String>{};
+    final stillNoActivityTitles = <String>{};
+    var anyHarvestStillDue = false;
 
-    final crops = await _crops.getCrops(archived: 'false');
+    // Only genuinely still-growing crops should generate activity/harvest
+    // alerts — getCrops(archived: 'false') only excludes literal 'Archived',
+    // which misses crops already marked 'Harvested' (still shown in crop
+    // lists, but done needing attention).
+    final crops = (await _crops.getCrops(archived: 'false'))
+        .where((c) => c.status == 'Active');
     for (final crop in crops) {
       final detail = await _crops.getCrop(crop.id);
 
@@ -67,6 +79,7 @@ class NotificationsRepository {
           .take(2);
       for (final entry in dueSteps) {
         final title = '${detail.cropTypeName}: ${entry.step.title}';
+        stillDueTitles.add(title);
         if (existsByTitle('crop_activity_due', title)) continue;
         final isOverdue = entry.status == CropTimelineStatus.overdue;
         toInsert.add(NotificationsCompanion.insert(
@@ -80,37 +93,58 @@ class NotificationsRepository {
         ));
       }
 
-      if (detail.isDueSoon && !harvestDueExists) {
-        final days = detail.daysToHarvest;
-        toInsert.add(NotificationsCompanion.insert(
-          id: newId(),
-          type: 'harvest_due',
-          title: '${detail.cropTypeName} harvest due',
-          message:
-              '${detail.cropTypeName} (${detail.variety}) is due for harvest ${days == 0 ? 'today' : 'in $days day${days == 1 ? '' : 's'}'}',
-          link: const Value('/crops'),
-          createdAt: DateTime.now(),
-        ));
-        harvestDueExists = true;
+      if (detail.isDueSoon) {
+        anyHarvestStillDue = true;
+        if (!harvestDueExists) {
+          final days = detail.daysToHarvest;
+          toInsert.add(NotificationsCompanion.insert(
+            id: newId(),
+            type: 'harvest_due',
+            title: '${detail.cropTypeName} harvest due',
+            message:
+                '${detail.cropTypeName} (${detail.variety}) is due for harvest ${days == 0 ? 'today' : 'in $days day${days == 1 ? '' : 's'}'}',
+            link: const Value('/crops'),
+            createdAt: DateTime.now(),
+          ));
+          harvestDueExists = true;
+        }
       }
 
       if (detail.activities.isNotEmpty) {
         final lastActivity = detail.activities
             .reduce((a, b) => a.date.isAfter(b.date) ? a : b);
         final daysSince = DateTime.now().difference(lastActivity.date).inDays;
-        if (daysSince >= 21 &&
-            !existsByTitleContains('no_activity', detail.cropTypeName)) {
-          toInsert.add(NotificationsCompanion.insert(
-            id: newId(),
-            type: 'no_activity',
-            title: 'No activity: ${detail.cropTypeName}',
-            message:
-                'No activities logged for ${detail.cropTypeName} (${detail.variety}) in $daysSince days',
-            link: const Value('/activities'),
-            createdAt: DateTime.now(),
-          ));
+        if (daysSince >= 21) {
+          final title = 'No activity: ${detail.cropTypeName}';
+          stillNoActivityTitles.add(title);
+          if (!existsByTitleContains('no_activity', detail.cropTypeName)) {
+            toInsert.add(NotificationsCompanion.insert(
+              id: newId(),
+              type: 'no_activity',
+              title: title,
+              message:
+                  'No activities logged for ${detail.cropTypeName} (${detail.variety}) in $daysSince days',
+              link: const Value('/activities'),
+              createdAt: DateTime.now(),
+            ));
+          }
         }
       }
+    }
+
+    // Purge stale auto-generated notifications: a crop that's since been
+    // harvested/archived, had its overdue step finally logged, or resumed
+    // activity no longer belongs on this list, and these three types are
+    // never otherwise cleaned up once inserted.
+    final staleIds = existing
+        .where((n) =>
+            (n.type == 'crop_activity_due' && !stillDueTitles.contains(n.title)) ||
+            (n.type == 'no_activity' && !stillNoActivityTitles.contains(n.title)) ||
+            (n.type == 'harvest_due' && n.link == '/crops' && !anyHarvestStillDue))
+        .map((n) => n.id)
+        .toList();
+    if (staleIds.isNotEmpty) {
+      await (_db.delete(_db.notifications)..where((t) => t.id.isIn(staleIds))).go();
     }
 
     final items = await _inventory.getItems();

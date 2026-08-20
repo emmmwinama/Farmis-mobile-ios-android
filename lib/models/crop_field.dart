@@ -30,8 +30,9 @@ class CropFieldModel {
   int get daysToHarvest =>
       expectedHarvestDate.difference(DateTime.now()).inDays;
 
-  bool get isOverdue => daysToHarvest < 0;
-  bool get isDueSoon => daysToHarvest >= 0 && daysToHarvest <= 14;
+  bool get isActive => status == 'Active';
+  bool get isOverdue => isActive && daysToHarvest < 0;
+  bool get isDueSoon => isActive && daysToHarvest >= 0 && daysToHarvest <= 14;
 
   factory CropFieldModel.fromJson(Map<String, dynamic> json) => CropFieldModel(
     id:                  json['id']                  as String,

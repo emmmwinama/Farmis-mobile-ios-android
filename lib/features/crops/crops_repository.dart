@@ -101,6 +101,18 @@ class CropsRepository {
     return getCrops().then((list) => list.firstWhere((c) => c.id == id));
   }
 
+  /// The explicit "take it out of focus" action: a harvested crop stops
+  /// generating overdue/due-soon and activity-reminder alerts (see
+  /// CropDetail.isActive and NotificationsRepository), but — unlike
+  /// archiving — stays visible in the normal crop list and still counts
+  /// toward the field's allocated area, since the land is still occupied
+  /// until something new is planted there.
+  Future<void> markHarvested(String id) async {
+    await (_db.update(_db.cropFields)..where((t) => t.id.equals(id))).write(
+      const CropFieldsCompanion(status: Value('Harvested')),
+    );
+  }
+
   Future<void> archiveCrop(String id) async {
     await (_db.update(_db.cropFields)..where((t) => t.id.equals(id))).write(
       const CropFieldsCompanion(

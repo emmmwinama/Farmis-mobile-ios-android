@@ -29,6 +29,12 @@ class CropDetailScreen extends ConsumerWidget {
           detail.whenOrNull(
             data: (crop) => PopupMenuButton<String>(
               onSelected: (v) async {
+                if (v == 'harvested') {
+                  await ref
+                      .read(cropsRepositoryProvider)
+                      .markHarvested(cropId);
+                  if (context.mounted) context.pop();
+                }
                 if (v == 'archive') {
                   await ref
                       .read(cropsRepositoryProvider)
@@ -43,6 +49,24 @@ class CropDetailScreen extends ConsumerWidget {
                 }
               },
               itemBuilder: (_) => [
+                if (crop.isActive)
+                  const PopupMenuItem(
+                    value: 'harvested',
+                    child: Row(children: [
+                      Icon(Icons.check_circle_outline, size: 18),
+                      SizedBox(width: 8),
+                      Text('Mark as harvested'),
+                    ]),
+                  ),
+                if (!crop.isActive)
+                  const PopupMenuItem(
+                    value: 'restore',
+                    child: Row(children: [
+                      Icon(Icons.replay_outlined, size: 18),
+                      SizedBox(width: 8),
+                      Text('Mark as active'),
+                    ]),
+                  ),
                 if (!crop.isArchived)
                   const PopupMenuItem(
                     value: 'archive',
@@ -50,15 +74,6 @@ class CropDetailScreen extends ConsumerWidget {
                       Icon(Icons.archive_outlined, size: 18),
                       SizedBox(width: 8),
                       Text('Archive crop'),
-                    ]),
-                  ),
-                if (crop.isArchived)
-                  const PopupMenuItem(
-                    value: 'restore',
-                    child: Row(children: [
-                      Icon(Icons.unarchive_outlined, size: 18),
-                      SizedBox(width: 8),
-                      Text('Restore crop'),
                     ]),
                   ),
               ],
@@ -102,12 +117,12 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
     final isDueSoon = crop.isDueSoon;
 
     Color accentColor = FarmioColors.primary;
-    if (crop.isArchived) accentColor = FarmioColors.textMuted;
+    if (!crop.isActive) accentColor = FarmioColors.textMuted;
     if (isOverdue)       accentColor = FarmioColors.danger;
     if (isDueSoon)       accentColor = FarmioColors.warning;
 
     double progressValue = 0;
-    if (!crop.isArchived) {
+    if (crop.isActive) {
       final total   = crop.expectedHarvestDate
           .difference(crop.plantingDate).inDays;
       final elapsed = DateTime.now()
@@ -121,7 +136,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        if (!crop.isArchived && timelinePlan.entries.isNotEmpty) ...[
+        if (crop.isActive && timelinePlan.entries.isNotEmpty) ...[
           _TimelineSummaryRow(plan: timelinePlan),
           const SizedBox(height: 12),
         ],
@@ -179,7 +194,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
                   value: Fmt.date(crop.expectedHarvestDate)),
             ]),
 
-            if (!crop.isArchived) ...[
+            if (crop.isActive) ...[
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

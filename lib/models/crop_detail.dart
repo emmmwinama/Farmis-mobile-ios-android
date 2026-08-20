@@ -114,8 +114,12 @@ class CropDetail {
       expectedHarvestDate.difference(DateTime.now()).inDays;
 
   bool get isArchived => status == 'Archived';
-  bool get isOverdue  => !isArchived && daysToHarvest < 0;
-  bool get isDueSoon  => !isArchived && daysToHarvest >= 0 && daysToHarvest <= 14;
+  // "Active" is the only status still meant to draw attention — a crop
+  // that's been harvested or archived is done, and shouldn't keep showing
+  // up as overdue/due-soon just because its expectedHarvestDate has passed.
+  bool get isActive   => status == 'Active';
+  bool get isOverdue  => isActive && daysToHarvest < 0;
+  bool get isDueSoon  => isActive && daysToHarvest >= 0 && daysToHarvest <= 14;
 
   double get totalYieldKg =>
       yields.fold(0, (s, y) => s + y.totalKg);

@@ -78,6 +78,27 @@ void main() {
     expect(restored.first.status, 'Active');
   });
 
+  test('markHarvested sets status without archiving — stays in the non-archived list', () async {
+    final cropType = await repo.createCropType('Beans');
+    final fieldId = await _seedField();
+    final crop = await repo.createCrop({
+      'cropTypeId': cropType.id,
+      'fieldId': fieldId,
+      'variety': 'Local',
+      'areaPlanted': '1',
+      'season': '2026 Rain',
+      'plantingDate': DateTime(2026, 1, 1).toIso8601String(),
+      'expectedHarvestDate': DateTime(2026, 4, 1).toIso8601String(),
+    });
+
+    await repo.markHarvested(crop.id);
+
+    final notArchived = await repo.getCrops(archived: 'false');
+    expect(notArchived, hasLength(1));
+    expect(notArchived.first.status, 'Harvested');
+    expect(notArchived.first.isActive, isFalse);
+  });
+
   test('getCrop(id) computes costs from activity children', () async {
     final cropType = await repo.createCropType('Tobacco');
     final fieldId = await _seedField();

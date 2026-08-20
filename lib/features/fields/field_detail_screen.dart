@@ -275,8 +275,9 @@ class _CropTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final days     = crop.daysToHarvest;
-    final isOverdue = days < 0;
-    final isDueSoon = days >= 0 && days <= 14;
+    final isActive = crop.status == 'Active';
+    final isOverdue = isActive && days < 0;
+    final isDueSoon = isActive && days >= 0 && days <= 14;
 
     Color statusColor = FarmioColors.primary;
     if (isOverdue)  statusColor = FarmioColors.danger;
