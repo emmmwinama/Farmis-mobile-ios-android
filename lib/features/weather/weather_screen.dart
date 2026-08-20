@@ -92,14 +92,16 @@ class _CurrentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final current = data.current!;
+    final fill = HeroFill(
+      context,
+      colors: const [FarmioColors.primaryDark, FarmioColors.primary],
+      flat: FarmioColors.primaryDark,
+    );
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [FarmioColors.primaryDark, FarmioColors.primary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: fill.color,
+        gradient: fill.gradient,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(

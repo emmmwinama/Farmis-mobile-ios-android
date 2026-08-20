@@ -233,17 +233,19 @@ class _HeroBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fill = HeroFill(
+      context,
+      colors: const [
+        FarmioColors.primaryDark,
+        FarmioColors.primary,
+        FarmioColors.success,
+      ],
+      flat: FarmioColors.primaryDark,
+    );
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            FarmioColors.primaryDark,
-            FarmioColors.primary,
-            FarmioColors.success,
-          ],
-          begin:  Alignment.topLeft,
-          end:    Alignment.bottomRight,
-        ),
+      decoration: BoxDecoration(
+        color: fill.color,
+        gradient: fill.gradient,
       ),
       child: SafeArea(
         child: Stack(
@@ -994,6 +996,7 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final badgeFill = HeroFill(context, colors: item.gradient, flat: item.gradient.first);
     return FarmioCard(
       onTap: item.onTap,
         padding: const EdgeInsets.all(12),
@@ -1009,11 +1012,8 @@ class _StatCard extends StatelessWidget {
                 Container(
                   width:  28, height: 28,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: item.gradient,
-                      begin:  Alignment.topLeft,
-                      end:    Alignment.bottomRight,
-                    ),
+                    color: badgeFill.color,
+                    gradient: badgeFill.gradient,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(item.icon,

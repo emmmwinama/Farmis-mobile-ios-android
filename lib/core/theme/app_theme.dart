@@ -153,6 +153,32 @@ extension FarmioThemeContext on BuildContext {
   /// extension is registered (e.g. in a widget test with a bare [ThemeData]).
   FarmioColorsExt get colors =>
       Theme.of(this).extension<FarmioColorsExt>() ?? FarmioColorsExt.light;
+
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+}
+
+/// Fill for a hero/accent surface (dashboard header, weather/credit-score
+/// cards, stat badges, ...) — a multi-stop gradient in light mode, this
+/// app's original bold-SaaS signature, flattened to a single solid color in
+/// dark mode instead. Layered gradients read as muddy against dark
+/// surfaces; a single saturated fill reads as a deliberate, professional
+/// accent instead. Spread the result into a [BoxDecoration]'s `color` and
+/// `gradient` fields — exactly one of the two is ever non-null.
+class HeroFill {
+  final Gradient? gradient;
+  final Color? color;
+  const HeroFill._({this.gradient, this.color});
+
+  factory HeroFill(
+    BuildContext context, {
+    required List<Color> colors,
+    required Color flat,
+    AlignmentGeometry begin = Alignment.topLeft,
+    AlignmentGeometry end = Alignment.bottomRight,
+  }) {
+    if (context.isDark) return HeroFill._(color: flat);
+    return HeroFill._(gradient: LinearGradient(colors: colors, begin: begin, end: end));
+  }
 }
 
 /// Colored "glow" shadows under primary CTAs/hero surfaces — a bold-SaaS

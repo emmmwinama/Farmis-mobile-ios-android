@@ -78,6 +78,15 @@ class _HubScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tablet = MediaQuery.of(context).size.width >= 760;
+    final heroFill = HeroFill(
+      context,
+      colors: [
+        FarmioColors.primaryDark.withValues(alpha: 0.94),
+        FarmioColors.primary.withValues(alpha: 0.82),
+        FarmioColors.cyan.withValues(alpha: 0.52),
+      ],
+      flat: FarmioColors.primaryDark,
+    );
 
     return Scaffold(
       backgroundColor: context.colors.background,
@@ -98,15 +107,8 @@ class _HubScaffold extends StatelessWidget {
             GlassPanel(
               padding: const EdgeInsets.all(18),
               radius: 24,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  FarmioColors.primaryDark.withValues(alpha: 0.94),
-                  FarmioColors.primary.withValues(alpha: 0.82),
-                  FarmioColors.cyan.withValues(alpha: 0.52),
-                ],
-              ),
+              gradient: heroFill.gradient,
+              color: heroFill.color,
               border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

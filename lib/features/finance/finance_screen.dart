@@ -390,6 +390,13 @@ class _SummaryTab extends ConsumerWidget {
           final totalExpense =
               summary.expense + overheadTotal + activityTotal;
           final net = summary.income - totalExpense;
+          final netFill = HeroFill(
+            context,
+            colors: net >= 0
+                ? [FarmioColors.success.darken(0.5), FarmioColors.success.darken(0.15)]
+                : [FarmioColors.danger.darken(0.5), FarmioColors.danger.darken(0.15)],
+            flat: (net >= 0 ? FarmioColors.success : FarmioColors.danger).darken(0.3),
+          );
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
@@ -399,19 +406,8 @@ class _SummaryTab extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: net >= 0
-                        ? [
-                      FarmioColors.success.darken(0.5),
-                      FarmioColors.success.darken(0.15),
-                    ]
-                        : [
-                      FarmioColors.danger.darken(0.5),
-                      FarmioColors.danger.darken(0.15),
-                    ],
-                    begin: Alignment.topLeft,
-                    end:   Alignment.bottomRight,
-                  ),
+                  color: netFill.color,
+                  gradient: netFill.gradient,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(

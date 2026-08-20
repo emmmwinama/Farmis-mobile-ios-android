@@ -63,4 +63,67 @@ void main() {
 
     expect(capturedContext.colors.background, FarmioColors.background);
   });
+
+  testWidgets('context.isDark reflects the theme brightness', (tester) async {
+    late BuildContext lightContext, darkContext;
+    await tester.pumpWidget(MaterialApp(
+      home: Theme(
+        data: ThemeData(colorScheme: const ColorScheme.light()),
+        child: Builder(builder: (context) {
+          lightContext = context;
+          return const SizedBox();
+        }),
+      ),
+    ));
+    expect(lightContext.isDark, isFalse);
+
+    await tester.pumpWidget(MaterialApp(
+      home: Theme(
+        data: ThemeData(colorScheme: const ColorScheme.dark()),
+        child: Builder(builder: (context) {
+          darkContext = context;
+          return const SizedBox();
+        }),
+      ),
+    ));
+    expect(darkContext.isDark, isTrue);
+  });
+
+  group('HeroFill', () {
+    testWidgets('light mode uses the gradient, not a flat color',
+        (tester) async {
+      late HeroFill fill;
+      await tester.pumpWidget(MaterialApp(
+        theme: ThemeData(colorScheme: const ColorScheme.light()),
+        home: Builder(builder: (context) {
+          fill = HeroFill(context,
+              colors: const [FarmioColors.primaryDark, FarmioColors.primary],
+              flat: FarmioColors.primaryDark);
+          return const SizedBox();
+        }),
+      ));
+
+      expect(fill.color, isNull);
+      expect(fill.gradient, isNotNull);
+      expect((fill.gradient as LinearGradient).colors,
+          const [FarmioColors.primaryDark, FarmioColors.primary]);
+    });
+
+    testWidgets('dark mode uses the flat color, not the gradient',
+        (tester) async {
+      late HeroFill fill;
+      await tester.pumpWidget(MaterialApp(
+        theme: ThemeData(colorScheme: const ColorScheme.dark()),
+        home: Builder(builder: (context) {
+          fill = HeroFill(context,
+              colors: const [FarmioColors.primaryDark, FarmioColors.primary],
+              flat: FarmioColors.primaryDark);
+          return const SizedBox();
+        }),
+      ));
+
+      expect(fill.gradient, isNull);
+      expect(fill.color, FarmioColors.primaryDark);
+    });
+  });
 }

@@ -24,15 +24,17 @@ class FarmioSummaryBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fill = HeroFill(
+      context,
+      colors: const [FarmioColors.primaryDark, FarmioColors.slate900],
+      flat: FarmioColors.primaryDark,
+    );
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [FarmioColors.primaryDark, FarmioColors.slate900],
-        ),
+        color: fill.color,
+        gradient: fill.gradient,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(

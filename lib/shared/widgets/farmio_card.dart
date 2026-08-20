@@ -77,6 +77,7 @@ class FarmioGradientCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fill = HeroFill(context, colors: colors, flat: colors.first);
     return Material(
       color:        Colors.transparent,
       borderRadius: BorderRadius.circular(radius),
@@ -87,11 +88,8 @@ class FarmioGradientCard extends StatelessWidget {
           width:   double.infinity,
           padding: padding ?? const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: colors,
-              begin:  Alignment.topLeft,
-              end:    Alignment.bottomRight,
-            ),
+            color: fill.color,
+            gradient: fill.gradient,
             borderRadius: BorderRadius.circular(radius),
             boxShadow: [
               BoxShadow(
