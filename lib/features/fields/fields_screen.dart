@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/limits/limits_gate.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/field.dart';
 import '../../shared/filters/entity_filter_bar.dart';
@@ -35,7 +36,7 @@ class _FieldsScreenState extends ConsumerState<FieldsScreen> {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.add),
-                  onPressed: () => context.push('/fields/new'),
+                  onPressed: () => _addField(context, ref),
                 ),
               ],
             ),
@@ -103,10 +104,15 @@ class _FieldsScreenState extends ConsumerState<FieldsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: FarmioColors.primary,
-        onPressed: () => context.push('/fields/new'),
+        onPressed: () => _addField(context, ref),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
+  }
+
+  Future<void> _addField(BuildContext context, WidgetRef ref) async {
+    if (!await ensureCanAdd(context, ref, LimitResource.fields)) return;
+    if (context.mounted) context.push('/fields/new');
   }
 
   Future<void> _confirmDelete(

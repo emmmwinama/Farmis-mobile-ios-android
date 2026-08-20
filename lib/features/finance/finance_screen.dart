@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/limits/limits_gate.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/transaction.dart';
 import '../../models/overhead.dart';
@@ -189,6 +190,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
           backgroundColor: FarmioColors.primary,
           onPressed: () async {
             if (_tabs.index == 0) {
+              if (!await ensureCanAdd(context, ref, LimitResource.transactions)) return;
+              if (!context.mounted) return;
               await context.push('/finance/new-transaction');
               ref.invalidate(financeProvider);
             } else if (_tabs.index == 1) {

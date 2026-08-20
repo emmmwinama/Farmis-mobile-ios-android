@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/limits/limits_gate.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/activity.dart';
 import '../../models/field.dart';
@@ -194,6 +195,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: FarmioColors.primary,
         onPressed: () async {
+          if (!await ensureCanAdd(context, ref, LimitResource.activities)) return;
+          if (!context.mounted) return;
           await context.push('/activities/new');
           ref.invalidate(activitiesDataProvider);
         },

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/limits/limits_gate.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/employee.dart';
 import '../../shared/filters/entity_filter_bar.dart';
@@ -38,7 +39,10 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
               ],
             ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/employees/new'),
+        onPressed: () async {
+          if (!await ensureCanAdd(context, ref, LimitResource.employees)) return;
+          if (context.mounted) context.push('/employees/new');
+        },
         icon: const Icon(Icons.person_add_alt_1_rounded),
         label: const Text('Add worker'),
       ),

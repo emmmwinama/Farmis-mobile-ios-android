@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/limits/limits_gate.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/farmio_card.dart';
 import '../../shared/widgets/glass_panel.dart';
 
-class CaptureHubScreen extends StatelessWidget {
+class CaptureHubScreen extends ConsumerWidget {
   const CaptureHubScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return _HubScaffold(
       title: 'Capture',
       subtitle: 'Log field activity, harvests and records from these forms.',
@@ -19,6 +21,7 @@ class CaptureHubScreen extends StatelessWidget {
           body: 'Field work, labour, inputs and notes.',
           route: '/activities/new',
           color: FarmioColors.primary,
+          limitResource: LimitResource.activities,
         ),
         _ActionCard(
           icon: Icons.agriculture_outlined,
@@ -33,6 +36,7 @@ class CaptureHubScreen extends StatelessWidget {
           body: 'Income, expense and sales records.',
           route: '/finance/new-transaction',
           color: FarmioColors.info,
+          limitResource: LimitResource.transactions,
         ),
         _ActionCard(
           icon: Icons.attach_file_outlined,
@@ -140,13 +144,14 @@ class _HubScaffold extends StatelessWidget {
   }
 }
 
-class _ActionCard extends StatelessWidget {
+class _ActionCard extends ConsumerWidget {
   final IconData icon;
   final String title;
   final String body;
   final String? route;
   final Color color;
   final bool locked;
+  final LimitResource? limitResource;
 
   const _ActionCard({
     required this.icon,
@@ -154,12 +159,19 @@ class _ActionCard extends StatelessWidget {
     required this.body,
     required this.route,
     required this.color,
+    this.limitResource,
   }) : locked = false;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return FarmioCard(
-      onTap: route == null ? null : () => context.push(route!),
+      onTap: route == null
+          ? null
+          : () async {
+              final resource = limitResource;
+              if (resource != null && !await ensureCanAdd(context, ref, resource)) return;
+              if (context.mounted) context.push(route!);
+            },
       padding: const EdgeInsets.all(15),
       radius: 18,
       child: Column(
