@@ -6,6 +6,7 @@ import '../../core/api/api_client.dart';
 import '../../core/auth/account_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_brand_mark.dart';
+import '../../shared/widgets/farmio_error_banner.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -31,8 +32,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     final email = _emailCtrl.text.trim();
     final password = _passwordCtrl.text;
-    if (email.isEmpty || password.isEmpty) {
-      setState(() => _error = 'Enter your email and password.');
+    if (email.isEmpty || !email.contains('@') || password.isEmpty) {
+      setState(() => _error = 'Enter a valid email and password.');
       return;
     }
     setState(() {
@@ -106,11 +107,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _loading ? null : () => context.push('/forgot-password'),
+                  child: const Text('Forgot password?'),
+                ),
+              ),
               if (_error != null) ...[
-                const SizedBox(height: 14),
-                Text(_error!, style: const TextStyle(color: FarmioColors.danger, fontSize: 13)),
+                const SizedBox(height: 8),
+                FarmioErrorBanner(message: _error!),
               ],
-              const SizedBox(height: 22),
+              const SizedBox(height: 16),
               SizedBox(
                 height: 52,
                 child: ElevatedButton(

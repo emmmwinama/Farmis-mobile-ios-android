@@ -61,6 +61,9 @@ dependencies:
   # PIN hashing
   crypto: ^3.0.3
 
+  # Opening Terms/Privacy links in an external browser
+  url_launcher: ^6.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

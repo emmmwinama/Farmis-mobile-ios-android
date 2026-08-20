@@ -38,6 +38,25 @@ class AccountRepository {
     return (token: token, account: Account.fromJson(data));
   }
 
+  /// Requests a one-time reset code by email. Always succeeds server-side
+  /// regardless of whether the email is registered (avoids leaking which
+  /// emails have accounts) — no return value to act on beyond "it was sent."
+  Future<void> requestPasswordReset(String email) async {
+    await _dio.post('/api/mobile/forgot-password', data: {'email': email});
+  }
+
+  Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    await _dio.post('/api/mobile/reset-password', data: {
+      'email': email,
+      'code': code,
+      'newPassword': newPassword,
+    });
+  }
+
   Future<Account> fetchProfile() async {
     final res = await _dio.get('/api/mobile/profile');
     return Account.fromJson(res.data as Map<String, dynamic>);

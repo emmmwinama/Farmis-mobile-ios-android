@@ -6,6 +6,7 @@ import '../features/auth/pin_setup_screen.dart';
 import '../features/auth/pin_unlock_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/register_screen.dart';
+import '../features/auth/forgot_password_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/fields/fields_screen.dart';
@@ -115,6 +116,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path:    '/register',
         builder: (_, __) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path:    '/forgot-password',
+        builder: (_, __) => const ForgotPasswordScreen(),
       ),
       // Full-screen drill-down routes for Fields — deliberately outside the
       // ShellRoute (no bottom nav/rail while editing or viewing a single
