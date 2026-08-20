@@ -42,7 +42,10 @@ dependencies:
   image_picker: ^1.1.2
 
   # File picking for data import/export
-  file_picker: ^8.1.2
+  # 8.x hardcodes compileSdk 34 in its own Android module, which no longer
+  # satisfies flutter_plugin_android_lifecycle's compileSdk-36 requirement —
+  # 10.3.3+ reads flutter.compileSdkVersion dynamically instead.
+  file_picker: ^10.3.3
 
   # PDF report export
   path_provider: ^2.1.4

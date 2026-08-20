@@ -6,7 +6,9 @@ plugins {
 
 android {
     namespace = "com.bytebridgemw.farmis_mobile"
-    compileSdk = flutter.compileSdkVersion
+    // Pinned above flutter.compileSdkVersion (34) — file_picker's transitive
+    // dependency on flutter_plugin_android_lifecycle requires compileSdk 36.
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
