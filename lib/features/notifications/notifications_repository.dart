@@ -20,6 +20,7 @@ class NotificationsRepository {
     await _generateNotifications();
 
     final rows = await (_db.select(_db.notifications)
+          ..where((t) => t.dismissed.equals(false))
           ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
           ..limit(50))
         .get();
@@ -35,6 +36,23 @@ class NotificationsRepository {
     await (_db.update(_db.notifications)
           ..where((t) => t.isRead.equals(false)))
         .write(const NotificationsCompanion(isRead: Value(true)));
+  }
+
+  Future<void> markRead(String id) async {
+    await (_db.update(_db.notifications)..where((t) => t.id.equals(id)))
+        .write(const NotificationsCompanion(isRead: Value(true)));
+  }
+
+  /// A deliberate user dismissal ("cancel this reminder") — sets [dismissed]
+  /// rather than deleting the row, so [_generateNotifications]'s dedupe
+  /// check (which looks at all existing rows regardless of dismissed/read
+  /// state) still sees it and won't just recreate the same alert the next
+  /// time notifications refresh, as long as the underlying condition is
+  /// still true. Once that condition genuinely resolves, the row is hard-
+  /// deleted by the stale-notification purge below like any other.
+  Future<void> dismissNotification(String id) async {
+    await (_db.update(_db.notifications)..where((t) => t.id.equals(id)))
+        .write(const NotificationsCompanion(dismissed: Value(true)));
   }
 
   /// Ports the backend's `generateNotifications()` — it used to run as a
@@ -70,6 +88,12 @@ class NotificationsRepository {
         .where((c) => c.status == 'Active');
     for (final crop in crops) {
       final detail = await _crops.getCrop(crop.id);
+      // Field name (not just crop type) makes the title unique per planting
+      // — without it, two Maize plots on different fields would collide
+      // under the same "Maize: Weeding" title and only ever generate one
+      // alert between them, silently dropping the other field's reminder.
+      final cropLabel = '${detail.cropTypeName} at ${detail.fieldName}';
+      final cropLink = '/crops/${detail.id}';
 
       final plan = CropTimelineCatalog.buildPlan(crop: detail);
       final dueSteps = plan.entries
@@ -78,7 +102,7 @@ class NotificationsRepository {
               e.status == CropTimelineStatus.overdue)
           .take(2);
       for (final entry in dueSteps) {
-        final title = '${detail.cropTypeName}: ${entry.step.title}';
+        final title = '$cropLabel: ${entry.step.title}';
         stillDueTitles.add(title);
         if (existsByTitle('crop_activity_due', title)) continue;
         final isOverdue = entry.status == CropTimelineStatus.overdue;
@@ -87,8 +111,8 @@ class NotificationsRepository {
           type: 'crop_activity_due',
           title: title,
           message:
-              '${entry.step.title} is ${isOverdue ? 'overdue' : 'generally due'} for ${detail.cropTypeName} (${detail.variety}). ${entry.step.recommendation}',
-          link: const Value('/activities'),
+              '${entry.step.title} is ${isOverdue ? 'overdue' : 'generally due'} for ${detail.cropTypeName} (${detail.variety}) at ${detail.fieldName} — it hasn\'t been recorded for this crop yet. ${entry.step.recommendation}',
+          link: Value(cropLink),
           createdAt: DateTime.now(),
         ));
       }
@@ -102,8 +126,8 @@ class NotificationsRepository {
             type: 'harvest_due',
             title: '${detail.cropTypeName} harvest due',
             message:
-                '${detail.cropTypeName} (${detail.variety}) is due for harvest ${days == 0 ? 'today' : 'in $days day${days == 1 ? '' : 's'}'}',
-            link: const Value('/crops'),
+                '${detail.cropTypeName} (${detail.variety}) at ${detail.fieldName} is due for harvest ${days == 0 ? 'today' : 'in $days day${days == 1 ? '' : 's'}'}',
+            link: Value(cropLink),
             createdAt: DateTime.now(),
           ));
           harvestDueExists = true;
@@ -115,16 +139,22 @@ class NotificationsRepository {
             .reduce((a, b) => a.date.isAfter(b.date) ? a : b);
         final daysSince = DateTime.now().difference(lastActivity.date).inDays;
         if (daysSince >= 21) {
-          final title = 'No activity: ${detail.cropTypeName}';
+          final title = 'No activity: $cropLabel';
           stillNoActivityTitles.add(title);
-          if (!existsByTitleContains('no_activity', detail.cropTypeName)) {
+          if (!existsByTitle('no_activity', title)) {
+            // Name the specific timeline stage this silence has left
+            // unrecorded, when the crop's own timeline has one due/overdue
+            // — falls back to the generic silence message only when the
+            // crop is between stages (nothing currently due).
+            final missingStep = dueSteps.isNotEmpty ? dueSteps.first.step.title : null;
             toInsert.add(NotificationsCompanion.insert(
               id: newId(),
               type: 'no_activity',
               title: title,
-              message:
-                  'No activities logged for ${detail.cropTypeName} (${detail.variety}) in $daysSince days',
-              link: const Value('/activities'),
+              message: missingStep != null
+                  ? '$missingStep hasn\'t been recorded for ${detail.cropTypeName} (${detail.variety}) at ${detail.fieldName} — no activity logged in $daysSince days.'
+                  : 'No activities logged for ${detail.cropTypeName} (${detail.variety}) at ${detail.fieldName} in $daysSince days.',
+              link: Value(cropLink),
               createdAt: DateTime.now(),
             ));
           }

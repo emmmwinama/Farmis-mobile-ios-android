@@ -221,6 +221,81 @@ void main() {
     expect(after.notifications.any((n) => n.type == 'harvest_due'), isFalse);
   });
 
+  test('getNotifications generates a distinct alert per crop-field, not '
+      'just per crop type — two Maize plots on different fields each get '
+      'their own reminder', () async {
+    final fieldA = await fields.createField({
+      'name': 'North Field',
+      'totalArea': '10',
+      'cultivatableArea': '9',
+      'soilType': 'Loam',
+    });
+    final fieldB = await fields.createField({
+      'name': 'South Field',
+      'totalArea': '10',
+      'cultivatableArea': '9',
+      'soilType': 'Loam',
+    });
+    final cropType = await crops.createCropType('Maize');
+    for (final field in [fieldA, fieldB]) {
+      await crops.createCrop({
+        'cropTypeId': cropType.id,
+        'fieldId': field.id,
+        'variety': 'DK8053',
+        'areaPlanted': '3',
+        'season': '2026 Rain',
+        'plantingDate':
+            DateTime.now().subtract(const Duration(days: 60)).toIso8601String(),
+        'expectedHarvestDate':
+            DateTime.now().add(const Duration(days: 60)).toIso8601String(),
+      });
+    }
+
+    final data = await repo.getNotifications();
+    final dueTitles = data.notifications
+        .where((n) => n.type == 'crop_activity_due')
+        .map((n) => n.title)
+        .toSet();
+
+    // Both plots' alerts survive — proves they didn't collide under a
+    // shared "Maize: <step>" title and dedupe away one of them.
+    expect(dueTitles.any((t) => t.contains('North Field')), isTrue);
+    expect(dueTitles.any((t) => t.contains('South Field')), isTrue);
+  });
+
+  test('dismissNotification hides it from the list without it reappearing '
+      'while the underlying condition is still true', () async {
+    final field = await fields.createField({
+      'name': 'North Field',
+      'totalArea': '10',
+      'cultivatableArea': '9',
+      'soilType': 'Loam',
+    });
+    final cropType = await crops.createCropType('Maize');
+    await crops.createCrop({
+      'cropTypeId': cropType.id,
+      'fieldId': field.id,
+      'variety': 'DK8053',
+      'areaPlanted': '3',
+      'season': '2026 Rain',
+      'plantingDate':
+          DateTime.now().subtract(const Duration(days: 60)).toIso8601String(),
+      'expectedHarvestDate':
+          DateTime.now().add(const Duration(days: 60)).toIso8601String(),
+    });
+
+    final before = await repo.getNotifications();
+    final target = before.notifications.firstWhere((n) => n.type == 'crop_activity_due');
+
+    await repo.dismissNotification(target.id);
+    final after = await repo.getNotifications();
+
+    expect(after.notifications.any((n) => n.id == target.id), isFalse);
+    // Not regenerated under a fresh id with the same title either, since
+    // the condition hasn't changed — dedupe still sees the dismissed row.
+    expect(after.notifications.any((n) => n.title == target.title), isFalse);
+  });
+
   test('markAllRead clears the unread count', () async {
     final field = await fields.createField({
       'name': 'North Field',

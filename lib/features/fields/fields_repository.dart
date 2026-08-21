@@ -15,7 +15,9 @@ class FieldsRepository {
     for (final row in rows) {
       final crops = await (_db.select(_db.cropFields)
             ..where((t) =>
-                t.fieldId.equals(row.id) & t.isArchived.equals(false)))
+                t.fieldId.equals(row.id) &
+                t.isArchived.equals(false) &
+                t.status.equals('Active')))
           .get();
       final cropNames = <String>{};
       for (final crop in crops) {
@@ -66,9 +68,17 @@ class FieldsRepository {
       activities.add({...activity.toJson(), 'cropName': cropName});
     }
 
+    // Only still-growing crops occupy land — a harvested or archived
+    // crop-field's area shouldn't keep counting against what's available to
+    // plant next, even though it still belongs in the field's crop history
+    // above.
+    final allocatedArea = cropRows
+        .where((c) => !c.isArchived && c.status == 'Active')
+        .fold(0.0, (s, c) => s + c.areaPlanted);
+
     return FieldDetail.fromJson({
       ...field.toJson(),
-      'allocatedArea': cropRows.fold(0.0, (s, c) => s + c.areaPlanted),
+      'allocatedArea': allocatedArea,
       'crops': crops,
       'recentActivities': activities,
     });

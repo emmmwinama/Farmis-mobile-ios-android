@@ -298,6 +298,11 @@ class Notifications extends Table {
   BoolColumn get isRead => boolean().withDefault(const Constant(false))();
   TextColumn get link => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
+  // A deliberate user dismissal, distinct from a hard delete: the row is
+  // kept (not shown in the list, not re-notified) so the same still-true
+  // condition doesn't just get regenerated the next time notifications
+  // refresh — see NotificationsRepository.dismissNotification.
+  BoolColumn get dismissed => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -450,7 +455,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -473,6 +478,9 @@ class AppDatabase extends _$AppDatabase {
         onUpgrade: (m, from, to) async {
           if (from < 2) {
             await m.addColumn(farmProfile, farmProfile.ownerName);
+          }
+          if (from < 3) {
+            await m.addColumn(notifications, notifications.dismissed);
           }
         },
       );

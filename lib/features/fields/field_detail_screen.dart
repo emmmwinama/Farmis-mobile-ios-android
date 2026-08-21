@@ -234,7 +234,7 @@ class _DetailContent extends StatelessWidget {
         else
           ...field.crops.map((c) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child:   _CropTile(crop: c),
+            child:   _CropTile(crop: c, onTap: () => context.push('/crops/${c.id}')),
           )),
 
         const SizedBox(height: 16),
@@ -260,7 +260,7 @@ class _DetailContent extends StatelessWidget {
         else
           ...field.recentActivities.map((a) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child:   _ActivityTile(activity: a),
+            child:   _ActivityTile(activity: a, onTap: () => context.push('/activities/${a.id}')),
           )),
       ],
     );
@@ -269,7 +269,8 @@ class _DetailContent extends StatelessWidget {
 
 class _CropTile extends StatelessWidget {
   final FieldCrop crop;
-  const _CropTile({required this.crop});
+  final VoidCallback onTap;
+  const _CropTile({required this.crop, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -283,13 +284,10 @@ class _CropTile extends StatelessWidget {
     if (isOverdue)  statusColor = FarmioColors.danger;
     if (isDueSoon)  statusColor = FarmioColors.warning;
 
-    return Container(
+    return FarmioCard(
+      onTap: onTap,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color:        colors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border:       Border.all(color: colors.border),
-      ),
+      radius: 14,
       child: Row(
         children: [
           Container(
@@ -358,18 +356,16 @@ class _CropTile extends StatelessWidget {
 
 class _ActivityTile extends StatelessWidget {
   final FieldActivity activity;
-  const _ActivityTile({required this.activity});
+  final VoidCallback onTap;
+  const _ActivityTile({required this.activity, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return Container(
+    return FarmioCard(
+      onTap: onTap,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color:        colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: colors.border),
-      ),
+      radius: 12,
       child: Row(
         children: [
           Icon(

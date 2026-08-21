@@ -102,6 +102,91 @@ void main() {
     expect(detail.recentActivities.first.cropName, 'Beans');
   });
 
+  test('getField(id) excludes harvested/archived crops from allocatedArea, '
+      'but still lists them under crops', () async {
+    final field = await repo.createField({
+      'name': 'Mixed Field',
+      'totalArea': '10',
+      'cultivatableArea': '10',
+      'soilType': 'Loam',
+    });
+    await db.into(db.cropTypes).insert(
+        const CropTypesCompanion(id: Value('ct-3'), name: Value('Maize')));
+
+    // Still growing — counts toward allocatedArea.
+    await db.into(db.cropFields).insert(CropFieldsCompanion.insert(
+          id: 'cf-active',
+          cropTypeId: 'ct-3',
+          fieldId: field.id,
+          variety: 'DK8053',
+          areaPlanted: 3.0,
+          season: '2026 Rain',
+          plantingDate: DateTime(2026, 1, 10),
+          expectedHarvestDate: DateTime(2026, 5, 10),
+          createdAt: DateTime.now(),
+        ));
+    // Marked harvested (not archived) — shouldn't count toward allocatedArea
+    // anymore, but should still appear in the field's crop history.
+    await db.into(db.cropFields).insert(CropFieldsCompanion.insert(
+          id: 'cf-harvested',
+          cropTypeId: 'ct-3',
+          fieldId: field.id,
+          variety: 'DK8053',
+          areaPlanted: 4.0,
+          season: '2025 Rain',
+          plantingDate: DateTime(2025, 1, 10),
+          expectedHarvestDate: DateTime(2025, 5, 10),
+          createdAt: DateTime.now(),
+          status: const Value('Harvested'),
+        ));
+    // Archived — same expectation.
+    await db.into(db.cropFields).insert(CropFieldsCompanion.insert(
+          id: 'cf-archived',
+          cropTypeId: 'ct-3',
+          fieldId: field.id,
+          variety: 'DK8053',
+          areaPlanted: 2.0,
+          season: '2024 Rain',
+          plantingDate: DateTime(2024, 1, 10),
+          expectedHarvestDate: DateTime(2024, 5, 10),
+          createdAt: DateTime.now(),
+          isArchived: const Value(true),
+        ));
+
+    final detail = await repo.getField(field.id);
+    expect(detail.allocatedArea, 3.0); // only the still-Active crop
+    expect(detail.crops, hasLength(3)); // all three still show in history
+  });
+
+  test('getFields excludes harvested/archived crops from allocatedArea and crop tags',
+      () async {
+    final field = await repo.createField({
+      'name': 'Mixed Field List',
+      'totalArea': '10',
+      'cultivatableArea': '10',
+      'soilType': 'Loam',
+    });
+    await db.into(db.cropTypes).insert(
+        const CropTypesCompanion(id: Value('ct-4'), name: Value('Beans')));
+    await db.into(db.cropFields).insert(CropFieldsCompanion.insert(
+          id: 'cf-h2',
+          cropTypeId: 'ct-4',
+          fieldId: field.id,
+          variety: 'Local',
+          areaPlanted: 5.0,
+          season: '2025 Rain',
+          plantingDate: DateTime(2025, 1, 10),
+          expectedHarvestDate: DateTime(2025, 5, 10),
+          createdAt: DateTime.now(),
+          status: const Value('Harvested'),
+        ));
+
+    final fields = await repo.getFields();
+    expect(fields.first.allocatedArea, 0);
+    expect(fields.first.cropCount, 0);
+    expect(fields.first.crops, isEmpty);
+  });
+
   test('updateField patches only provided fields', () async {
     final field = await repo.createField({
       'name': 'West Field',

@@ -186,7 +186,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 else
                   ...data.recentActivities.map((a) => Padding(
                         padding: const EdgeInsets.only(bottom: 8),
-                        child: _ActivityRow(activity: a),
+                        child: _ActivityRow(
+                          activity: a,
+                          onTap: () => context.push('/activities/${a.id}'),
+                        ),
                       )),
                 const SizedBox(height: 32),
               ]),
@@ -1134,18 +1137,16 @@ class _LandUseRow extends StatelessWidget {
 // ── Activity row ──────────────────────────────────────────────────────────────
 class _ActivityRow extends StatelessWidget {
   final RecentActivity activity;
-  const _ActivityRow({required this.activity});
+  final VoidCallback onTap;
+  const _ActivityRow({required this.activity, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return Container(
+    return FarmioCard(
+      onTap: onTap,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color:        colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: colors.border),
-      ),
+      radius: 12,
       child: Row(children: [
         Container(
           width:  38, height: 38,

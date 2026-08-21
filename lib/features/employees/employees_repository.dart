@@ -33,4 +33,8 @@ class EmployeesRepository {
       'isActive': true,
     });
   }
+
+  Future<void> deleteEmployee(String id) async {
+    await (_db.delete(_db.employees)..where((t) => t.id.equals(id))).go();
+  }
 }

@@ -264,4 +264,26 @@ class LivestockRepository {
         throw ArgumentError('Unsupported livestock record type: $recordType');
     }
   }
+
+  Future<void> deleteRecord(String recordType, String id) async {
+    switch (recordType) {
+      case 'health':
+        await (_db.delete(_db.animalHealthRecords)..where((t) => t.id.equals(id))).go();
+        return;
+      case 'production':
+        await (_db.delete(_db.animalProductionRecords)..where((t) => t.id.equals(id))).go();
+        return;
+      case 'weight':
+        await (_db.delete(_db.animalWeightRecords)..where((t) => t.id.equals(id))).go();
+        return;
+      case 'expense':
+        await (_db.delete(_db.animalExpenseRecords)..where((t) => t.id.equals(id))).go();
+        return;
+      case 'sale':
+        await (_db.delete(_db.animalSaleRecords)..where((t) => t.id.equals(id))).go();
+        return;
+      default:
+        throw ArgumentError('Unsupported livestock record type: $recordType');
+    }
+  }
 }

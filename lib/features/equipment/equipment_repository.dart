@@ -46,6 +46,14 @@ class EquipmentRepository {
         ));
   }
 
+  Future<void> deleteEquipment(String id) async {
+    await (_db.delete(_db.inventoryItems)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<void> deleteCost(String id) async {
+    await (_db.delete(_db.overheadExpenses)..where((t) => t.id.equals(id))).go();
+  }
+
   Future<void> addCost(Map<String, dynamic> data) async {
     await _db.into(_db.overheadExpenses).insert(
           OverheadExpensesCompanion.insert(

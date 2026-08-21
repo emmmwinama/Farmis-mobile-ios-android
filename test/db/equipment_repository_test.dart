@@ -58,4 +58,27 @@ void main() {
     expect(data.costs, hasLength(1));
     expect(data.costs.first.description, 'Diesel refill');
   });
+
+  test('deleteEquipment removes the item', () async {
+    await repo.addEquipment({'name': 'Tractor', 'unit': 'unit'});
+    final id = (await repo.getEquipment()).equipment.first.id;
+
+    await repo.deleteEquipment(id);
+
+    expect((await repo.getEquipment()).equipment, isEmpty);
+  });
+
+  test('deleteCost removes the cost entry', () async {
+    await repo.addCost({
+      'description': 'Diesel refill',
+      'category': 'Fuel',
+      'amount': '25000',
+      'date': DateTime(2026, 3, 1).toIso8601String(),
+    });
+    final id = (await repo.getEquipment()).costs.first.id;
+
+    await repo.deleteCost(id);
+
+    expect((await repo.getEquipment()).costs, isEmpty);
+  });
 }

@@ -368,7 +368,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
         else
           ...crop.activities.map((a) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child:   _ActivityTile(a: a),
+            child:   _ActivityTile(a: a, onTap: () => context.push('/activities/${a.id}')),
           )),
 
         const SizedBox(height: 20),
@@ -1089,17 +1089,15 @@ class _YieldTile extends ConsumerWidget {
 
 class _ActivityTile extends StatelessWidget {
   final CropActivity a;
-  const _ActivityTile({required this.a});
+  final VoidCallback onTap;
+  const _ActivityTile({required this.a, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return FarmioCard(
+      onTap: onTap,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color:        context.colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: context.colors.border),
-      ),
+      radius: 12,
       child: Row(children: [
         Icon(
           Fmt.activityIconData(a.activityType),

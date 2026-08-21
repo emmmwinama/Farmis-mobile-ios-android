@@ -38,6 +38,13 @@ class EquipmentDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(item.name,
             style: const TextStyle(fontWeight: FontWeight.w800)),
+        actions: [
+          IconButton(
+            tooltip: 'Delete equipment',
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => _confirmDeleteEquipment(context, ref),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
@@ -190,11 +197,67 @@ class EquipmentDetailScreen extends ConsumerWidget {
                           style: const TextStyle(
                               fontWeight: FontWeight.w800,
                               color: FarmioColors.danger)),
+                      IconButton(
+                        tooltip: 'Delete log',
+                        icon: const Icon(Icons.delete_outline,
+                            size: 18, color: FarmioColors.textMuted),
+                        onPressed: () => _confirmDeleteCost(context, ref, cost),
+                      ),
                     ],
                   ),
                 )),
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDeleteEquipment(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete equipment'),
+        content: Text('Delete "${item.name}"? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete', style: TextStyle(color: FarmioColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    await ref.read(equipmentRepositoryProvider).deleteEquipment(item.id);
+    ref.invalidate(equipmentProvider);
+    if (context.mounted) Navigator.pop(context);
+  }
+
+  Future<void> _confirmDeleteCost(
+      BuildContext context, WidgetRef ref, OverheadExpense cost) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete log'),
+        content: Text('Delete "${cost.description}"? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete', style: TextStyle(color: FarmioColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await ref.read(equipmentRepositoryProvider).deleteCost(cost.id);
+      ref.invalidate(equipmentProvider);
+    }
   }
 }

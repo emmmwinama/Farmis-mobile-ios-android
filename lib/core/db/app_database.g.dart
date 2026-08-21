@@ -7731,9 +7731,19 @@ class $NotificationsTable extends Notifications
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _dismissedMeta =
+      const VerificationMeta('dismissed');
+  @override
+  late final GeneratedColumn<bool> dismissed = GeneratedColumn<bool>(
+      'dismissed', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("dismissed" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns =>
-      [id, type, title, message, isRead, link, createdAt];
+      [id, type, title, message, isRead, link, createdAt, dismissed];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -7781,6 +7791,10 @@ class $NotificationsTable extends Notifications
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('dismissed')) {
+      context.handle(_dismissedMeta,
+          dismissed.isAcceptableOrUnknown(data['dismissed']!, _dismissedMeta));
+    }
     return context;
   }
 
@@ -7804,6 +7818,8 @@ class $NotificationsTable extends Notifications
           .read(DriftSqlType.string, data['${effectivePrefix}link']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      dismissed: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}dismissed'])!,
     );
   }
 
@@ -7821,6 +7837,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
   final bool isRead;
   final String? link;
   final DateTime createdAt;
+  final bool dismissed;
   const NotificationRow(
       {required this.id,
       required this.type,
@@ -7828,7 +7845,8 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       required this.message,
       required this.isRead,
       this.link,
-      required this.createdAt});
+      required this.createdAt,
+      required this.dismissed});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -7841,6 +7859,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       map['link'] = Variable<String>(link);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['dismissed'] = Variable<bool>(dismissed);
     return map;
   }
 
@@ -7853,6 +7872,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       isRead: Value(isRead),
       link: link == null && nullToAbsent ? const Value.absent() : Value(link),
       createdAt: Value(createdAt),
+      dismissed: Value(dismissed),
     );
   }
 
@@ -7867,6 +7887,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       isRead: serializer.fromJson<bool>(json['isRead']),
       link: serializer.fromJson<String?>(json['link']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      dismissed: serializer.fromJson<bool>(json['dismissed']),
     );
   }
   @override
@@ -7880,6 +7901,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       'isRead': serializer.toJson<bool>(isRead),
       'link': serializer.toJson<String?>(link),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'dismissed': serializer.toJson<bool>(dismissed),
     };
   }
 
@@ -7890,7 +7912,8 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
           String? message,
           bool? isRead,
           Value<String?> link = const Value.absent(),
-          DateTime? createdAt}) =>
+          DateTime? createdAt,
+          bool? dismissed}) =>
       NotificationRow(
         id: id ?? this.id,
         type: type ?? this.type,
@@ -7899,6 +7922,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
         isRead: isRead ?? this.isRead,
         link: link.present ? link.value : this.link,
         createdAt: createdAt ?? this.createdAt,
+        dismissed: dismissed ?? this.dismissed,
       );
   NotificationRow copyWithCompanion(NotificationsCompanion data) {
     return NotificationRow(
@@ -7909,6 +7933,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       isRead: data.isRead.present ? data.isRead.value : this.isRead,
       link: data.link.present ? data.link.value : this.link,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      dismissed: data.dismissed.present ? data.dismissed.value : this.dismissed,
     );
   }
 
@@ -7921,14 +7946,15 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
           ..write('message: $message, ')
           ..write('isRead: $isRead, ')
           ..write('link: $link, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('dismissed: $dismissed')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode =>
-      Object.hash(id, type, title, message, isRead, link, createdAt);
+      Object.hash(id, type, title, message, isRead, link, createdAt, dismissed);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -7939,7 +7965,8 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
           other.message == this.message &&
           other.isRead == this.isRead &&
           other.link == this.link &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.dismissed == this.dismissed);
 }
 
 class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
@@ -7950,6 +7977,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
   final Value<bool> isRead;
   final Value<String?> link;
   final Value<DateTime> createdAt;
+  final Value<bool> dismissed;
   final Value<int> rowid;
   const NotificationsCompanion({
     this.id = const Value.absent(),
@@ -7959,6 +7987,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
     this.isRead = const Value.absent(),
     this.link = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.dismissed = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   NotificationsCompanion.insert({
@@ -7969,6 +7998,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
     this.isRead = const Value.absent(),
     this.link = const Value.absent(),
     required DateTime createdAt,
+    this.dismissed = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         type = Value(type),
@@ -7983,6 +8013,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
     Expression<bool>? isRead,
     Expression<String>? link,
     Expression<DateTime>? createdAt,
+    Expression<bool>? dismissed,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -7993,6 +8024,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
       if (isRead != null) 'is_read': isRead,
       if (link != null) 'link': link,
       if (createdAt != null) 'created_at': createdAt,
+      if (dismissed != null) 'dismissed': dismissed,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -8005,6 +8037,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
       Value<bool>? isRead,
       Value<String?>? link,
       Value<DateTime>? createdAt,
+      Value<bool>? dismissed,
       Value<int>? rowid}) {
     return NotificationsCompanion(
       id: id ?? this.id,
@@ -8014,6 +8047,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
       isRead: isRead ?? this.isRead,
       link: link ?? this.link,
       createdAt: createdAt ?? this.createdAt,
+      dismissed: dismissed ?? this.dismissed,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -8042,6 +8076,9 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (dismissed.present) {
+      map['dismissed'] = Variable<bool>(dismissed.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -8058,6 +8095,7 @@ class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
           ..write('isRead: $isRead, ')
           ..write('link: $link, ')
           ..write('createdAt: $createdAt, ')
+          ..write('dismissed: $dismissed, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -15168,6 +15206,7 @@ typedef $$NotificationsTableCreateCompanionBuilder = NotificationsCompanion
   Value<bool> isRead,
   Value<String?> link,
   required DateTime createdAt,
+  Value<bool> dismissed,
   Value<int> rowid,
 });
 typedef $$NotificationsTableUpdateCompanionBuilder = NotificationsCompanion
@@ -15179,6 +15218,7 @@ typedef $$NotificationsTableUpdateCompanionBuilder = NotificationsCompanion
   Value<bool> isRead,
   Value<String?> link,
   Value<DateTime> createdAt,
+  Value<bool> dismissed,
   Value<int> rowid,
 });
 
@@ -15211,6 +15251,9 @@ class $$NotificationsTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get dismissed => $composableBuilder(
+      column: $table.dismissed, builder: (column) => ColumnFilters(column));
 }
 
 class $$NotificationsTableOrderingComposer
@@ -15242,6 +15285,9 @@ class $$NotificationsTableOrderingComposer
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get dismissed => $composableBuilder(
+      column: $table.dismissed, builder: (column) => ColumnOrderings(column));
 }
 
 class $$NotificationsTableAnnotationComposer
@@ -15273,6 +15319,9 @@ class $$NotificationsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get dismissed =>
+      $composableBuilder(column: $table.dismissed, builder: (column) => column);
 }
 
 class $$NotificationsTableTableManager extends RootTableManager<
@@ -15308,6 +15357,7 @@ class $$NotificationsTableTableManager extends RootTableManager<
             Value<bool> isRead = const Value.absent(),
             Value<String?> link = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
+            Value<bool> dismissed = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               NotificationsCompanion(
@@ -15318,6 +15368,7 @@ class $$NotificationsTableTableManager extends RootTableManager<
             isRead: isRead,
             link: link,
             createdAt: createdAt,
+            dismissed: dismissed,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -15328,6 +15379,7 @@ class $$NotificationsTableTableManager extends RootTableManager<
             Value<bool> isRead = const Value.absent(),
             Value<String?> link = const Value.absent(),
             required DateTime createdAt,
+            Value<bool> dismissed = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               NotificationsCompanion.insert(
@@ -15338,6 +15390,7 @@ class $$NotificationsTableTableManager extends RootTableManager<
             isRead: isRead,
             link: link,
             createdAt: createdAt,
+            dismissed: dismissed,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

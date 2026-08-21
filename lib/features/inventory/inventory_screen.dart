@@ -131,7 +131,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     ),
                   );
                 }
-                return _ItemCard(item: filtered[index - 1]);
+                final item = filtered[index - 1];
+                return _ItemCard(
+                  item: item,
+                  onDelete: () => _confirmDelete(context, ref, item),
+                );
               },
             ),
           );
@@ -139,11 +143,37 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       ),
     );
   }
+
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, InventoryItem item) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete item'),
+        content: Text('Delete "${item.name}"? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete', style: TextStyle(color: FarmioColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await ref.read(inventoryRepositoryProvider).deleteItem(item.id);
+      ref.invalidate(inventoryItemsProvider);
+    }
+  }
 }
 
 class _ItemCard extends StatelessWidget {
   final InventoryItem item;
-  const _ItemCard({required this.item});
+  final VoidCallback onDelete;
+  const _ItemCard({required this.item, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +207,7 @@ class _ItemCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (item.lowStock)
+              if (item.lowStock) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 8, vertical: 4),
@@ -191,6 +221,21 @@ class _ItemCard extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                           color: FarmioColors.warning)),
                 ),
+                const SizedBox(width: 4),
+              ],
+              PopupMenuButton<String>(
+                onSelected: (v) { if (v == 'delete') onDelete(); },
+                itemBuilder: (_) => [
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(children: [
+                      Icon(Icons.delete_outline, color: FarmioColors.danger, size: 18),
+                      SizedBox(width: 8),
+                      Text('Delete', style: TextStyle(color: FarmioColors.danger)),
+                    ]),
+                  ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 10),

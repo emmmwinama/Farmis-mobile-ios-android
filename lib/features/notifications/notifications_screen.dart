@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/app_notification.dart';
 import 'notifications_provider.dart';
@@ -50,8 +51,37 @@ class NotificationsScreen extends ConsumerWidget {
             child: ListView.builder(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
               itemCount: data.notifications.length,
-              itemBuilder: (context, index) =>
-                  _NotificationTile(item: data.notifications[index]),
+              itemBuilder: (context, index) {
+                final item = data.notifications[index];
+                return Dismissible(
+                  key: ValueKey(item.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    alignment: Alignment.centerRight,
+                    decoration: BoxDecoration(
+                      color: FarmioColors.danger,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.close, color: Colors.white),
+                  ),
+                  onDismissed: (_) async {
+                    await ref.read(notificationsRepositoryProvider).dismissNotification(item.id);
+                    ref.invalidate(notificationsProvider);
+                  },
+                  child: _NotificationTile(
+                    item: item,
+                    onTap: () async {
+                      if (!item.isRead) {
+                        await ref.read(notificationsRepositoryProvider).markRead(item.id);
+                        ref.invalidate(notificationsProvider);
+                      }
+                      if (item.link != null && context.mounted) context.push(item.link!);
+                    },
+                  ),
+                );
+              },
             ),
           );
         },
@@ -62,49 +92,58 @@ class NotificationsScreen extends ConsumerWidget {
 
 class _NotificationTile extends StatelessWidget {
   final AppNotification item;
-  const _NotificationTile({required this.item});
+  final VoidCallback onTap;
+  const _NotificationTile({required this.item, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: item.isRead ? FarmioColors.surface : FarmioColors.infoBg,
+        color: item.isRead ? colors.surface : FarmioColors.infoBg,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: item.isRead ? FarmioColors.border : FarmioColors.info,
+          color: item.isRead ? colors.border : FarmioColors.info,
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            item.isRead
-                ? Icons.notifications_none_rounded
-                : Icons.notifications_active_rounded,
-            color: item.isRead
-                ? FarmioColors.textMuted
-                : FarmioColors.info,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: item.link != null ? onTap : null,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: FarmioColors.textPrimary)),
-                const SizedBox(height: 2),
-                Text(item.message,
-                    style: const TextStyle(
-                        fontSize: 13, color: FarmioColors.textSecond)),
+                Icon(
+                  item.isRead
+                      ? Icons.notifications_none_rounded
+                      : Icons.notifications_active_rounded,
+                  color: item.isRead ? colors.textMuted : FarmioColors.info,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item.title,
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              color: colors.textPrimary)),
+                      const SizedBox(height: 2),
+                      Text(item.message,
+                          style: TextStyle(fontSize: 13, color: colors.textSecond)),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

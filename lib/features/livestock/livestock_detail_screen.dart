@@ -20,6 +20,13 @@ class AnimalDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Animal detail',
             style: TextStyle(fontWeight: FontWeight.w800)),
+        actions: [
+          IconButton(
+            tooltip: 'Delete animal',
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => _confirmDeleteAnimal(context, ref),
+          ),
+        ],
       ),
       body: animal.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -39,6 +46,7 @@ class AnimalDetailScreen extends ConsumerWidget {
               animalId: animalId,
               rows: data.healthRecords
                   .map((r) => _RecordRow(
+                        id: r.id,
                         title: r.type,
                         detail: r.description,
                         meta: Fmt.date(r.date),
@@ -54,6 +62,7 @@ class AnimalDetailScreen extends ConsumerWidget {
               animalId: animalId,
               rows: data.productions
                   .map((r) => _RecordRow(
+                        id: r.id,
                         title: r.type,
                         detail: '${r.quantity} ${r.unit}',
                         meta: Fmt.date(r.date),
@@ -71,6 +80,7 @@ class AnimalDetailScreen extends ConsumerWidget {
               animalId: animalId,
               rows: data.weightRecords
                   .map((r) => _RecordRow(
+                        id: r.id,
                         title: '${r.weight} ${r.unit}',
                         detail: r.notes ?? '',
                         meta: Fmt.date(r.date),
@@ -86,6 +96,7 @@ class AnimalDetailScreen extends ConsumerWidget {
               animalId: animalId,
               rows: data.expenses
                   .map((r) => _RecordRow(
+                        id: r.id,
                         title: r.description,
                         detail: r.category,
                         meta: Fmt.date(r.date),
@@ -101,6 +112,7 @@ class AnimalDetailScreen extends ConsumerWidget {
               animalId: animalId,
               rows: data.sales
                   .map((r) => _RecordRow(
+                        id: r.id,
                         title: r.buyer ?? 'Sale',
                         detail: '${r.quantity} head',
                         meta: Fmt.date(r.saleDate),
@@ -112,6 +124,32 @@ class AnimalDetailScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDeleteAnimal(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete animal'),
+        content: const Text(
+            'Delete this animal and all of its health, production, weight, expense and sale records? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete', style: TextStyle(color: FarmioColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    await ref.read(livestockRepositoryProvider).deleteAnimal(animalId);
+    ref.invalidate(livestockProvider);
+    if (context.mounted) context.pop();
   }
 }
 
@@ -179,11 +217,13 @@ class _HeaderStat extends StatelessWidget {
 }
 
 class _RecordRow {
+  final String id;
   final String title;
   final String detail;
   final String meta;
   final String value;
   const _RecordRow({
+    required this.id,
     required this.title,
     required this.detail,
     required this.meta,
@@ -283,12 +323,44 @@ class _RecordSection extends ConsumerWidget {
                             style:
                                 const TextStyle(fontWeight: FontWeight.w800)),
                       ],
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        tooltip: 'Delete record',
+                        icon: const Icon(Icons.close,
+                            size: 16, color: FarmioColors.textMuted),
+                        onPressed: () => _confirmDeleteRecord(context, ref, row.id),
+                      ),
                     ],
                   ),
                 )),
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDeleteRecord(
+      BuildContext context, WidgetRef ref, String recordId) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete record'),
+        content: const Text('Delete this record? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete', style: TextStyle(color: FarmioColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await ref.read(livestockRepositoryProvider).deleteRecord(recordType, recordId);
+      ref.invalidate(animalDetailProvider(animalId));
+    }
   }
 }
 

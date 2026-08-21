@@ -68,4 +68,20 @@ void main() {
     expect(receipts, hasLength(1));
     expect(receipts.first.name, 'Receipt');
   });
+
+  test('deleteDocument removes both the row and the backing file', () async {
+    await repo.uploadDocument(
+      name: 'Receipt',
+      type: 'receipt',
+      bytes: [1, 2, 3],
+      extension: 'jpg',
+    );
+    final doc = (await repo.getDocuments()).first;
+    expect(File(doc.url).existsSync(), isTrue);
+
+    await repo.deleteDocument(doc.id);
+
+    expect(await repo.getDocuments(), isEmpty);
+    expect(File(doc.url).existsSync(), isFalse);
+  });
 }

@@ -14,6 +14,27 @@ import 'finance_provider.dart';
 bool _inRange(DateTime date, DateTimeRange range) =>
     !date.isBefore(range.start) && !date.isAfter(range.end);
 
+Future<bool> _confirmDelete(BuildContext context, String label) async {
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Delete record'),
+      content: Text('Delete "$label"? This cannot be undone.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('Delete', style: TextStyle(color: FarmioColors.danger)),
+        ),
+      ],
+    ),
+  );
+  return ok == true;
+}
+
 /// Whether [t] matches the shared crop/season/field/period filters plus the
 /// Finance-specific transaction type/category filters.
 bool _matchesTransaction(
@@ -261,6 +282,7 @@ class _TransactionsTab extends ConsumerWidget {
                 child:   _TransactionTile(
                   transaction: t,
                   onDelete: () async {
+                    if (!await _confirmDelete(context, t.description)) return;
                     await ref
                         .read(financeRepositoryProvider)
                         .deleteTransaction(t.id);
@@ -329,6 +351,7 @@ class _OverheadTab extends ConsumerWidget {
                 child:   _OverheadTile(
                   expense: e,
                   onDelete: () async {
+                    if (!await _confirmDelete(context, e.description)) return;
                     await ref
                         .read(financeRepositoryProvider)
                         .deleteOverhead(e.id);

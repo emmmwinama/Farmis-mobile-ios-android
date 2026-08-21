@@ -84,6 +84,25 @@ void main() {
     expect(financeData.transactions.first.amount, 80000);
   });
 
+  test('deleteRecord(health) removes just that health record', () async {
+    final typeId = (await repo.getLivestock()).types.first.id;
+    await repo.createAnimal({'livestockTypeId': typeId, 'sex': 'Male'});
+    final animalId = (await repo.getLivestock()).animals.first.id;
+    await repo.addRecord({
+      'recordType': 'health',
+      'animalId': animalId,
+      'type': 'Vaccination',
+      'description': 'Foot and mouth vaccine',
+      'cost': '5000',
+      'date': DateTime(2026, 2, 1).toIso8601String(),
+    });
+    final recordId = (await repo.getAnimal(animalId)).healthRecords.first.id;
+
+    await repo.deleteRecord('health', recordId);
+
+    expect((await repo.getAnimal(animalId)).healthRecords, isEmpty);
+  });
+
   test('deleteAnimal removes the row', () async {
     final typeId = (await repo.getLivestock()).types.first.id;
     await repo.createAnimal({'livestockTypeId': typeId, 'sex': 'Male'});

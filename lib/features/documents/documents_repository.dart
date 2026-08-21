@@ -44,4 +44,17 @@ class DocumentsRepository {
           uploadedAt: DateTime.now(),
         ));
   }
+
+  Future<void> deleteDocument(String id) async {
+    final row = await (_db.select(_db.farmDocuments)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+    await (_db.delete(_db.farmDocuments)..where((t) => t.id.equals(id))).go();
+    if (row == null) return;
+    // Best-effort: the on-device file backing this record — a missing file
+    // (e.g. already cleared) shouldn't block the record itself being gone.
+    try {
+      final file = File(row.url);
+      if (await file.exists()) await file.delete();
+    } catch (_) {}
+  }
 }

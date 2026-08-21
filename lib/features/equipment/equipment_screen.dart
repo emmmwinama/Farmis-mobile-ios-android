@@ -91,7 +91,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen>
           controller: _tabController,
           children: [
             _EquipmentList(items: data.equipment, allCosts: data.costs),
-            _CostsList(costs: data.costs),
+            _CostsList(costs: data.costs, onDelete: (cost) => _confirmDeleteCost(context, cost)),
           ],
         ),
       ),
@@ -105,6 +105,30 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen>
       backgroundColor: Colors.transparent,
       builder: (_) => const EquipmentCostForm(),
     );
+  }
+
+  Future<void> _confirmDeleteCost(BuildContext context, OverheadExpense cost) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete cost'),
+        content: Text('Delete "${cost.description}"? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete', style: TextStyle(color: FarmioColors.danger)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await ref.read(equipmentRepositoryProvider).deleteCost(cost.id);
+      ref.invalidate(equipmentProvider);
+    }
   }
 }
 
@@ -216,7 +240,8 @@ class _EquipmentSummary extends StatelessWidget {
 
 class _CostsList extends StatefulWidget {
   final List<OverheadExpense> costs;
-  const _CostsList({required this.costs});
+  final ValueChanged<OverheadExpense> onDelete;
+  const _CostsList({required this.costs, required this.onDelete});
 
   @override
   State<_CostsList> createState() => _CostsListState();
@@ -299,6 +324,12 @@ class _CostsListState extends State<_CostsList> {
                   style: const TextStyle(
                       fontWeight: FontWeight.w800,
                       color: FarmioColors.danger)),
+              IconButton(
+                tooltip: 'Delete cost',
+                icon: const Icon(Icons.delete_outline,
+                    size: 18, color: FarmioColors.textMuted),
+                onPressed: () => widget.onDelete(cost),
+              ),
             ],
           ),
         );
