@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/auth/pin_provider.dart';
+import 'core/notifications/daily_reminder_provider.dart';
 import 'core/onboarding/onboarding_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_mode_provider.dart';
@@ -32,6 +33,7 @@ class AgriVaultApp extends ConsumerWidget {
     ref.watch(pinHydrationProvider);
     ref.watch(onboardingHydrationProvider);
     ref.watch(themeModeHydrationProvider);
+    ref.watch(dailyReminderHydrationProvider);
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
     return MaterialApp.router(

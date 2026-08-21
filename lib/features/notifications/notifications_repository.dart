@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import '../../core/db/app_database.dart';
 import '../../core/db/db_utils.dart';
+import '../../core/notifications/daily_reminder_service.dart';
 import '../../features/crops/crops_repository.dart';
 import '../../features/inventory/inventory_repository.dart';
 import '../../models/app_notification.dart';
@@ -8,13 +9,19 @@ import '../../models/crop_timeline.dart';
 import '../../shared/agronomy/crop_timeline_catalog.dart';
 
 class NotificationsRepository {
-  NotificationsRepository(this._db)
+  NotificationsRepository(this._db, {DailyReminderService? reminders})
       : _crops = CropsRepository(_db),
-        _inventory = InventoryRepository(_db);
+        _inventory = InventoryRepository(_db),
+        _reminders = reminders ?? DailyReminderService();
 
   final AppDatabase _db;
   final CropsRepository _crops;
   final InventoryRepository _inventory;
+  // Uninitialized (and therefore a no-op) unless something calls
+  // DailyReminderService.initialize() — main.dart does this once at app
+  // startup; repository tests never do, so they never touch a platform
+  // channel that doesn't exist in the test environment.
+  final DailyReminderService _reminders;
 
   Future<NotificationsData> getNotifications() async {
     await _generateNotifications();
@@ -25,6 +32,8 @@ class NotificationsRepository {
           ..limit(50))
         .get();
     final unread = rows.where((r) => !r.isRead).length;
+
+    await _reminders.sync(rows);
 
     return NotificationsData.fromJson({
       'notifications': rows.map((r) => r.toJson()).toList(),
@@ -53,6 +62,11 @@ class NotificationsRepository {
   Future<void> dismissNotification(String id) async {
     await (_db.update(_db.notifications)..where((t) => t.id.equals(id)))
         .write(const NotificationsCompanion(dismissed: Value(true)));
+    // Cancel the device reminder immediately rather than waiting for the
+    // next getNotifications() call's sync() to catch up — otherwise a
+    // dismissal made just before closing the app could still fire once
+    // more tomorrow morning.
+    await _reminders.cancelOne(id);
   }
 
   /// Ports the backend's `generateNotifications()` — it used to run as a
