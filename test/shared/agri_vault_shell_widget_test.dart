@@ -82,7 +82,7 @@ void main() {
   });
 
   testWidgets(
-      'phone layout feeds the pill\'s reserved height back through MediaQuery '
+      'phone layout feeds the pill\'s reserved height back through MediaQuery.viewPadding '
       'so a screen\'s own FAB still clears it',
       (tester) async {
     tester.view.physicalSize = const Size(400, 800);
@@ -90,7 +90,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    late double bottomPaddingSeenByScreen;
+    late double viewPaddingSeenByScreen;
     final router = GoRouter(
       initialLocation: '/dashboard',
       routes: [
@@ -100,7 +100,7 @@ void main() {
             GoRoute(
               path: '/dashboard',
               builder: (context, __) {
-                bottomPaddingSeenByScreen = MediaQuery.of(context).padding.bottom;
+                viewPaddingSeenByScreen = MediaQuery.of(context).viewPadding.bottom;
                 return const SizedBox();
               },
             ),
@@ -111,11 +111,15 @@ void main() {
     await tester.pumpWidget(ProviderScope(child: MaterialApp.router(routerConfig: router)));
     await tester.pumpAndSettle();
 
-    // extendBody alone would let a screen's default-positioned FAB land
-    // underneath the pill; the shell must widen the bottom safe-area padding
-    // descendants see to compensate — comfortably more than the pill's own
-    // ~64px height plus its margins.
-    expect(bottomPaddingSeenByScreen, greaterThan(80));
+    // MediaQuery.padding.bottom is a dead end for this — Scaffold's FAB
+    // safe-margin math (FabFloatOffsetY.getOffsetY) derives from
+    // minViewPadding, which traces back to MediaQuery.viewPadding, not
+    // .padding (which Scaffold itself resets from viewInsets/the keyboard
+    // whenever resizeToAvoidBottomInset is on, its default — see
+    // test/shared/fab_pill_overlap_test.dart for the actual rendered-position
+    // proof this works). 76 = the pill's 64px height + its 12px margin, with
+    // zero device safe-area inset in this test viewport.
+    expect(viewPaddingSeenByScreen, greaterThanOrEqualTo(76));
   });
 
   testWidgets('tablet layout renders exactly 5 rail destinations in order',

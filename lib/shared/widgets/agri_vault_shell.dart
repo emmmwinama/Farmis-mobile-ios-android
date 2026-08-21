@@ -103,18 +103,28 @@ class AgriVaultShell extends ConsumerWidget {
     final bottomInset = MediaQuery.of(context).padding.bottom;
     const pillHeight = 64.0;
     const pillMargin = 12.0;
-    // Total vertical space the floating pill actually occupies, so
-    // extendBody below can let each screen's own content/FAB flow the full
-    // height without landing underneath it — matches the ~90-96px bottom
-    // padding individual screens already build in for exactly this.
-    final pillClearance = pillHeight + pillMargin + bottomInset + 12;
+    final pillClearance = pillHeight + bottomInset + pillMargin;
 
     return Scaffold(
       backgroundColor: context.colors.background,
+      // extendBody:true lets scrollable content flow behind the pill (it's
+      // meant to show through — the pill blurs it), but a descendant
+      // screen's own FloatingActionButton needs real clearance, not just a
+      // visual allowance. Scaffold's FAB math (FabFloatOffsetY.getOffsetY in
+      // the framework) computes its safe margin from
+      // ScaffoldPrelayoutGeometry.minViewPadding, which traces back to
+      // MediaQuery.viewPadding — NOT MediaQuery.padding, which is what
+      // extendBody's own built-in mechanism (and an earlier, ultimately
+      // wrong attempt at this fix) feeds. padding.bottom is a dead end here:
+      // Scaffold's contentBottom calculation discards it in favor of
+      // viewInsets.bottom (the keyboard) whenever resizeToAvoidBottomInset
+      // is on, which it is by default — so overriding it, no matter the
+      // value, never moves the FAB. viewPadding.bottom is the one MediaQuery
+      // field that actually reaches the FAB's own safe-margin math.
       extendBody: true,
       body: MediaQuery(
         data: MediaQuery.of(context).copyWith(
-          padding: MediaQuery.of(context).padding.copyWith(bottom: pillClearance),
+          viewPadding: MediaQuery.of(context).viewPadding.copyWith(bottom: pillClearance),
         ),
         child: child,
       ),
