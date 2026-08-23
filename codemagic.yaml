@@ -7,6 +7,12 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
+      # Pulls in API_BASE_URL_OVERRIDE (and anything else added to this
+      # group later) from Codemagic's Environment variables page — a
+      # variable being set there isn't enough on its own, the workflow has
+      # to explicitly ask for its group.
+      groups:
+        - main
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
