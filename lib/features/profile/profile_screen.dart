@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/auth/account_provider.dart';
 import '../../core/auth/pin_provider.dart';
 import '../../core/db/app_database.dart';
+import '../../core/dev/dev_reset_service.dart';
 import '../../core/theme/app_theme.dart';
 import 'account_sync_section.dart';
 import 'farm_profile_provider.dart';
@@ -133,8 +135,72 @@ class ProfileScreen extends ConsumerWidget {
                 onPressed: () => ref.read(pinProvider.notifier).lock(),
               ),
             ),
+            if (kDebugMode) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 52,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.restart_alt),
+                  label: const Text('Reset app (testing)'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: FarmioColors.danger,
+                    side: const BorderSide(color: FarmioColors.danger),
+                  ),
+                  onPressed: () => _confirmResetForTesting(context, ref),
+                ),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  // Debug-build only — see the kDebugMode gate above. Wipes the local
+  // database and all secure storage, then asks the tester to fully close
+  // and reopen the app rather than trying to fake a live in-memory reset.
+  Future<void> _confirmResetForTesting(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Reset app for testing?'),
+        content: const Text(
+          'This permanently deletes every local record — fields, crops, activities, '
+          'everything — and signs you out. Only for testing; there is no undo.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: FarmioColors.danger),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Reset everything'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    await resetAppForTesting(ref);
+
+    if (!context.mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Data cleared'),
+        content: const Text(
+          'Everything has been wiped. Fully close the app (not just background '
+          'it) and reopen it to see the fresh state.',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Got it'),
+          ),
+        ],
       ),
     );
   }

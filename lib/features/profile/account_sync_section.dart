@@ -226,7 +226,7 @@ class _AccountSyncSectionState extends ConsumerState<AccountSyncSection> {
           SizedBox(
             height: 44,
             child: ElevatedButton(
-              onPressed: () => _toast('Upgrades are coming soon.'),
+              onPressed: () => context.push('/upgrade'),
               child: const Text('See upgrade options'),
             ),
           ),

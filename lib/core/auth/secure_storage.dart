@@ -90,6 +90,12 @@ class SecureStorage {
     ]);
   }
 
+  // Wipes every key this store holds — PIN, auth, theme, everything. Used
+  // only by the debug-only "reset app for testing" action; a real signed-in
+  // user should never hit this (clearAuth()/clearPin() are the targeted,
+  // user-facing equivalents).
+  static Future<void> deleteAll() => _storage.deleteAll();
+
   static Future<bool> isLoggedIn() async {
     final token = await getToken();
     return token != null && token.trim().isNotEmpty;

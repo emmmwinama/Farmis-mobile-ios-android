@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/api/api_client.dart';
 import '../../core/api/legal_links.dart';
 import '../../core/auth/account_provider.dart';
+import '../../core/auth/google_auth_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_brand_mark.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
@@ -23,6 +24,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmPasswordCtrl = TextEditingController();
+  final _googleAuth = GoogleAuthService();
   bool _obscure = true;
   bool _acceptedTerms = false;
   bool _loading = false;
@@ -78,6 +80,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (mounted) context.go('/profile');
     } catch (e) {
       setState(() => _error = apiErrorMessage(e, fallback: 'Could not create your account. Please try again.'));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _continueWithGoogle() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final idToken = await _googleAuth.signInAndGetIdToken();
+      if (idToken == null) return; // user closed the account picker
+      await ref.read(accountProvider.notifier).loginWithGoogle(idToken);
+      if (mounted) context.go('/profile');
+    } catch (e) {
+      setState(() => _error = apiErrorMessage(e, fallback: 'Could not sign in with Google. Please try again.'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -188,6 +207,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                         )
                       : const Text('Create account'),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(child: Divider(color: context.colors.border)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Text('or', style: TextStyle(color: context.colors.textMuted, fontSize: 12)),
+                  ),
+                  Expanded(child: Divider(color: context.colors.border)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 52,
+                // No Google "G" mark here deliberately — using it without
+                // Google's actual brand asset would look off, and Material
+                // has no built-in equivalent worth faking.
+                child: OutlinedButton(
+                  onPressed: _loading ? null : _continueWithGoogle,
+                  child: const Text('Continue with Google'),
                 ),
               ),
               const SizedBox(height: 16),

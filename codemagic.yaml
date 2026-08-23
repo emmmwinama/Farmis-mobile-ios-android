@@ -18,7 +18,16 @@ workflows:
         script: flutter test
       - name: Build unsigned iOS app
         script: |
-          flutter build ios --release --no-codesign
+          # API_BASE_URL_OVERRIDE lets a build point at a dev/tunnel backend
+          # instead of the compiled-in production default (api_config.dart) —
+          # set it as a Codemagic environment variable only when you need a
+          # one-off test build; leave unset for a normal build.
+          if [ -n "$API_BASE_URL_OVERRIDE" ]; then
+            echo "Building against API_BASE_URL override: $API_BASE_URL_OVERRIDE"
+            flutter build ios --release --no-codesign --dart-define=API_BASE_URL=$API_BASE_URL_OVERRIDE
+          else
+            flutter build ios --release --no-codesign
+          fi
       - name: Package unsigned IPA
         script: |
           mkdir -p Payload

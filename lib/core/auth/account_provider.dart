@@ -65,6 +65,11 @@ class AccountNotifier extends StateNotifier<AccountState> {
     await _applyAuthResult(result);
   }
 
+  Future<void> loginWithGoogle(String idToken) async {
+    final result = await _ref.read(accountRepositoryProvider).loginWithGoogle(idToken);
+    await _applyAuthResult(result);
+  }
+
   Future<void> register({
     required String name,
     required String email,

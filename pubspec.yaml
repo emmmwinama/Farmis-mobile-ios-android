@@ -64,6 +64,10 @@ dependencies:
   # Opening Terms/Privacy links in an external browser
   url_launcher: ^6.3.1
 
+  # Google sign-in (needs OAuth client IDs from Google Cloud — not yet
+  # configured, see android/app and ios/Runner setup notes)
+  google_sign_in: ^6.2.1
+
   # Daily device reminders for open alerts
   flutter_local_notifications: ^18.0.1
   timezone: ^0.9.4

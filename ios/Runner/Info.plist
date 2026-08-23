@@ -24,6 +24,24 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<!-- Google Sign-In — client id from the iOS OAuth client created in
+	     Google Cloud Console for this bundle id (com.bytebridgemw.farmisMobile).
+	     The URL scheme below is that client id's "reversed" form — required
+	     so the OS can hand control back to the app after the web-based
+	     sign-in flow completes. -->
+	<key>GIDClientID</key>
+	<string>41683793251-3g045t12bls1c57pju51te4pn5s1vm2a.apps.googleusercontent.com</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.41683793251-3g045t12bls1c57pju51te4pn5s1vm2a</string>
+			</array>
+		</dict>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIFileSharingEnabled</key>

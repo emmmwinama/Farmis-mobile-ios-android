@@ -27,6 +27,7 @@ import '../features/activities/activities_screen.dart';
 import '../features/finance/finance_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/profile/import_screen.dart';
+import '../features/profile/upgrade_screen.dart';
 import '../features/reports/reports_screen.dart';
 import '../features/employees/employees_screen.dart';
 import '../features/employees/employee_form_screen.dart';
@@ -120,6 +121,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path:    '/forgot-password',
         builder: (_, __) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path:    '/upgrade',
+        builder: (_, __) => const UpgradeScreen(),
       ),
       // Full-screen drill-down routes for Fields — deliberately outside the
       // ShellRoute (no bottom nav/rail while editing or viewing a single

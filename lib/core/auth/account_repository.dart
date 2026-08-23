@@ -15,6 +15,15 @@ class AccountRepository {
     return _authResult(res.data as Map<String, dynamic>);
   }
 
+  /// Signs in with a Google ID token obtained on-device via
+  /// [GoogleAuthService] — the backend verifies it, and creates the account
+  /// automatically on first use, so there's no separate "register with
+  /// Google" call needed.
+  Future<AuthResult> loginWithGoogle(String idToken) async {
+    final res = await _dio.post('/api/mobile/login-google', data: {'idToken': idToken});
+    return _authResult(res.data as Map<String, dynamic>);
+  }
+
   Future<AuthResult> register({
     required String name,
     required String email,
@@ -75,5 +84,18 @@ class AccountRepository {
   Future<Map<String, dynamic>> restore() async {
     final res = await _dio.get('/api/mobile/backup');
     return res.data as Map<String, dynamic>;
+  }
+
+  /// Starts a PayPal checkout for [plan] ("monthly" or "lifetime") and
+  /// returns the approval URL to open in a browser. The subscription itself
+  /// only activates once PayPal's webhook confirms payment server-side —
+  /// this call just kicks off that flow, it doesn't grant anything by itself.
+  Future<Uri> startCheckout(String plan) async {
+    final res = await _dio.post('/api/mobile/paypal/checkout', data: {'plan': plan});
+    final approveUrl = (res.data as Map<String, dynamic>)['approveUrl'] as String?;
+    if (approveUrl == null || approveUrl.isEmpty) {
+      throw DioException(requestOptions: RequestOptions(), error: 'No approval link returned');
+    }
+    return Uri.parse(approveUrl);
   }
 }

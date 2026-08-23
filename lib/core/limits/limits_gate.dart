@@ -53,7 +53,7 @@ Future<bool> ensureCanAdd(BuildContext context, WidgetRef ref, LimitResource res
 
   if (!context.mounted) return false;
   final wantsUpgrade = await showUpgradePromptSheet(context, resourceLabel: resource.label, limit: resource.max);
-  if (wantsUpgrade && context.mounted) context.push('/profile');
+  if (wantsUpgrade && context.mounted) context.push('/upgrade');
   return false;
 }
 
@@ -74,6 +74,6 @@ Future<bool> ensureCanAddCropForSeason(BuildContext context, WidgetRef ref, Stri
     resourceLabel: 'crops in the $season season',
     limit: FreeTierLimits.maxCropFieldsPerSeason,
   );
-  if (wantsUpgrade && context.mounted) context.push('/profile');
+  if (wantsUpgrade && context.mounted) context.push('/upgrade');
   return false;
 }
