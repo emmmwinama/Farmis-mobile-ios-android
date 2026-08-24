@@ -96,7 +96,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       await ref.read(accountProvider.notifier).loginWithGoogle(idToken);
       if (mounted) context.go('/profile');
     } catch (e) {
-      setState(() => _error = apiErrorMessage(e, fallback: 'Could not sign in with Google. Please try again.'));
+      // TODO: switch back to the plain apiErrorMessage() fallback once
+      // Google sign-in is confirmed working end-to-end — see login_screen.dart.
+      setState(() => _error =
+          '${apiErrorMessage(e, fallback: 'Could not sign in with Google.')}\n\n[debug] ${e.runtimeType}: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }

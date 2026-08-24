@@ -66,7 +66,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await ref.read(accountProvider.notifier).loginWithGoogle(idToken);
       if (mounted) context.go('/profile');
     } catch (e) {
-      setState(() => _error = apiErrorMessage(e, fallback: 'Could not sign in with Google. Please try again.'));
+      // TODO: switch back to the plain apiErrorMessage() fallback once
+      // Google sign-in is confirmed working end-to-end — this raw detail is
+      // deliberately noisy for diagnosing whether a failure is happening in
+      // the native sign-in step (before any network call) vs the backend.
+      setState(() => _error =
+          '${apiErrorMessage(e, fallback: 'Could not sign in with Google.')}\n\n[debug] ${e.runtimeType}: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
