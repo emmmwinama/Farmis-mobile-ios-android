@@ -162,6 +162,37 @@ class FinanceRepository {
         ));
   }
 
+  Future<void> updateTransaction(String id, Map<String, dynamic> data) async {
+    await (_db.update(_db.transactions)..where((t) => t.id.equals(id))).write(
+      TransactionsCompanion(
+        type: data.containsKey('type')
+            ? Value(data['type'] as String)
+            : const Value.absent(),
+        category: data.containsKey('category')
+            ? Value(data['category'] as String)
+            : const Value.absent(),
+        amount: data.containsKey('amount')
+            ? Value(asDouble(data['amount']))
+            : const Value.absent(),
+        date: data.containsKey('date')
+            ? Value(DateTime.parse(data['date'] as String))
+            : const Value.absent(),
+        description: data.containsKey('description')
+            ? Value(data['description'] as String)
+            : const Value.absent(),
+        season: data.containsKey('season')
+            ? Value(asStringOrNull(data['season']))
+            : const Value.absent(),
+        fieldId: data.containsKey('fieldId')
+            ? Value(asStringOrNull(data['fieldId']))
+            : const Value.absent(),
+        cropFieldId: data.containsKey('cropFieldId')
+            ? Value(asStringOrNull(data['cropFieldId']))
+            : const Value.absent(),
+      ),
+    );
+  }
+
   Future<void> deleteTransaction(String id) async {
     await (_db.delete(_db.transactions)..where((t) => t.id.equals(id))).go();
   }
@@ -194,6 +225,31 @@ class FinanceRepository {
             notes: Value(asStringOrNull(data['notes'])),
           ),
         );
+  }
+
+  Future<void> updateOverhead(String id, Map<String, dynamic> data) async {
+    await (_db.update(_db.overheadExpenses)..where((t) => t.id.equals(id))).write(
+      OverheadExpensesCompanion(
+        description: data.containsKey('description')
+            ? Value(data['description'] as String)
+            : const Value.absent(),
+        category: data.containsKey('category')
+            ? Value(data['category'] as String)
+            : const Value.absent(),
+        amount: data.containsKey('amount')
+            ? Value(asDouble(data['amount']))
+            : const Value.absent(),
+        date: data.containsKey('date')
+            ? Value(DateTime.parse(data['date'] as String))
+            : const Value.absent(),
+        recurring: data.containsKey('recurring')
+            ? Value(asBool(data['recurring']))
+            : const Value.absent(),
+        notes: data.containsKey('notes')
+            ? Value(asStringOrNull(data['notes']))
+            : const Value.absent(),
+      ),
+    );
   }
 
   Future<void> deleteOverhead(String id) async {

@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/api/api_client.dart';
 import '../../core/db/database_provider.dart';
 import '../../models/employee.dart';
 import 'employees_repository.dart';
 
 final employeesRepositoryProvider = Provider<EmployeesRepository>(
-  (ref) => EmployeesRepository(ref.read(databaseProvider)),
+  (ref) => EmployeesRepository(ref.read(databaseProvider), ref.read(apiClientProvider)),
 );
 
 final employeesProvider = FutureProvider.autoDispose<List<EmployeeModel>>(

@@ -281,6 +281,7 @@ class _TransactionsTab extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 10),
                 child:   _TransactionTile(
                   transaction: t,
+                  onEdit: () => context.push('/finance/new-transaction', extra: t),
                   onDelete: () async {
                     if (!await _confirmDelete(context, t.description)) return;
                     await ref
@@ -350,6 +351,7 @@ class _OverheadTab extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 10),
                 child:   _OverheadTile(
                   expense: e,
+                  onEdit: () => context.push('/finance/new-overhead', extra: e),
                   onDelete: () async {
                     if (!await _confirmDelete(context, e.description)) return;
                     await ref
@@ -671,10 +673,12 @@ class _BalanceCard extends StatelessWidget {
 // ── Transaction tile ──────────────────────────────────────────────────────────
 class _TransactionTile extends StatelessWidget {
   final TransactionModel transaction;
+  final VoidCallback     onEdit;
   final VoidCallback     onDelete;
 
   const _TransactionTile({
     required this.transaction,
+    required this.onEdit,
     required this.onDelete,
   });
 
@@ -766,8 +770,19 @@ class _TransactionTile extends StatelessWidget {
           child: PopupMenuButton<String>(
             padding:    EdgeInsets.zero,
             icon: const Icon(Icons.more_vert, size: 22),
-            onSelected: (v) { if (v == 'delete') onDelete(); },
+            onSelected: (v) {
+              if (v == 'edit') onEdit();
+              if (v == 'delete') onDelete();
+            },
             itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'edit',
+                child: Row(children: [
+                  Icon(Icons.edit_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text('Edit'),
+                ]),
+              ),
               const PopupMenuItem(
                 value: 'delete',
                 child: Row(children: [
@@ -789,10 +804,12 @@ class _TransactionTile extends StatelessWidget {
 // ── Overhead tile ─────────────────────────────────────────────────────────────
 class _OverheadTile extends StatelessWidget {
   final OverheadExpense expense;
+  final VoidCallback    onEdit;
   final VoidCallback    onDelete;
 
   const _OverheadTile({
     required this.expense,
+    required this.onEdit,
     required this.onDelete,
   });
 
@@ -874,8 +891,19 @@ class _OverheadTile extends StatelessWidget {
           child: PopupMenuButton<String>(
             padding:    EdgeInsets.zero,
             icon: const Icon(Icons.more_vert, size: 22),
-            onSelected: (v) { if (v == 'delete') onDelete(); },
+            onSelected: (v) {
+              if (v == 'edit') onEdit();
+              if (v == 'delete') onDelete();
+            },
             itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'edit',
+                child: Row(children: [
+                  Icon(Icons.edit_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text('Edit'),
+                ]),
+              ),
               const PopupMenuItem(
                 value: 'delete',
                 child: Row(children: [

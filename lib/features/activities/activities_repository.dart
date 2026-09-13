@@ -252,6 +252,82 @@ class ActivitiesRepository {
     return id;
   }
 
+  /// Updates the core activity row and replaces its inputs/labour/other-cost
+  /// rows wholesale — simpler and just as correct as diffing them, since the
+  /// form always resubmits the full current set of each.
+  Future<void> updateActivity(String id, Map<String, dynamic> data) async {
+    await (_db.update(_db.activities)..where((t) => t.id.equals(id))).write(
+      ActivitiesCompanion(
+        activityType: data.containsKey('activityType')
+            ? Value(data['activityType'] as String)
+            : const Value.absent(),
+        date: data.containsKey('date')
+            ? Value(DateTime.parse(data['date'] as String))
+            : const Value.absent(),
+        fieldId: data.containsKey('fieldId')
+            ? Value(data['fieldId'] as String)
+            : const Value.absent(),
+        notes: data.containsKey('notes')
+            ? Value(asStringOrNull(data['notes']))
+            : const Value.absent(),
+        cropFieldId: data.containsKey('cropFieldId')
+            ? Value(asStringOrNull(data['cropFieldId']))
+            : const Value.absent(),
+      ),
+    );
+
+    if (data.containsKey('inputs')) {
+      await (_db.delete(_db.activityInputs)..where((t) => t.activityId.equals(id))).go();
+      for (final raw in (data['inputs'] as List? ?? const [])) {
+        final input = raw as Map;
+        final quantity = asDouble(input['quantity']);
+        final unitCost = asDouble(input['unitCost']);
+        await _db.into(_db.activityInputs).insert(ActivityInputsCompanion.insert(
+              id: newId(),
+              activityId: id,
+              inputName: input['inputName'] as String,
+              category: asStringOrNull(input['category']) ?? 'Other',
+              quantity: quantity,
+              unit: asStringOrNull(input['unit']) ?? '',
+              unitCost: unitCost,
+              totalCost: quantity * unitCost,
+            ));
+      }
+    }
+
+    if (data.containsKey('otherCosts')) {
+      await (_db.delete(_db.activityOtherCosts)..where((t) => t.activityId.equals(id))).go();
+      for (final raw in (data['otherCosts'] as List? ?? const [])) {
+        final cost = raw as Map;
+        await _db.into(_db.activityOtherCosts).insert(ActivityOtherCostsCompanion.insert(
+              id: newId(),
+              activityId: id,
+              description: cost['description'] as String,
+              amount: asDouble(cost['amount']),
+            ));
+      }
+    }
+
+    if (data.containsKey('labour')) {
+      await (_db.delete(_db.activityLabourRecords)..where((t) => t.activityId.equals(id))).go();
+      for (final raw in (data['labour'] as List? ?? const [])) {
+        final labour = raw as Map;
+        final hours = asDouble(labour['hoursWorked']);
+        final days = asDouble(labour['daysWorked']);
+        await _db.into(_db.activityLabourRecords).insert(
+              ActivityLabourRecordsCompanion.insert(
+                id: newId(),
+                activityId: id,
+                employeeId: labour['employeeId'] as String,
+                hoursWorked: hours,
+                daysWorked: days,
+                totalCost: asDouble(labour['totalCost']),
+              ),
+            );
+      }
+    }
+  }
+
   Future<void> deleteActivity(String id) async {
     await (_db.delete(_db.activityInputs)
           ..where((t) => t.activityId.equals(id)))

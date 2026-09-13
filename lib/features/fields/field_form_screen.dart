@@ -2,25 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/field.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'fields_provider.dart';
 
 class FieldFormScreen extends ConsumerStatefulWidget {
-  const FieldFormScreen({super.key});
+  final FieldModel? existing;
+  const FieldFormScreen({super.key, this.existing});
 
   @override
   ConsumerState<FieldFormScreen> createState() => _FieldFormScreenState();
 }
 
 class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
-  final _nameCtrl      = TextEditingController();
-  final _totalCtrl     = TextEditingController();
-  final _cultivCtrl    = TextEditingController();
-  final _notesCtrl     = TextEditingController();
+  late final _nameCtrl      = TextEditingController(text: widget.existing?.name);
+  late final _totalCtrl     = TextEditingController(text: widget.existing?.totalArea.toString());
+  late final _cultivCtrl    = TextEditingController(text: widget.existing?.cultivatableArea.toString());
+  late final _notesCtrl     = TextEditingController(text: widget.existing?.notes);
 
-  String  _soilType = 'Loam';
+  late String _soilType = widget.existing?.soilType ?? 'Loam';
   bool    _saving   = false;
   String? _error;
+
+  bool get _isEditing => widget.existing != null;
 
   final _soilTypes = [
     'Loam', 'Sandy loam', 'Clay loam', 'Clay',
@@ -37,14 +41,23 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
 
     setState(() { _saving = true; _error = null; });
 
+    final data = {
+      'name':             _nameCtrl.text.trim(),
+      'totalArea':        _totalCtrl.text.trim(),
+      'cultivatableArea': _cultivCtrl.text.trim(),
+      'soilType':         _soilType,
+      'notes':            _notesCtrl.text.trim(),
+    };
+
     try {
-      await ref.read(fieldsRepositoryProvider).createField({
-        'name':             _nameCtrl.text.trim(),
-        'totalArea':        _totalCtrl.text.trim(),
-        'cultivatableArea': _cultivCtrl.text.trim(),
-        'soilType':         _soilType,
-        'notes':            _notesCtrl.text.trim(),
-      });
+      final existing = widget.existing;
+      if (existing != null) {
+        await ref.read(fieldsRepositoryProvider).updateField(existing.id, data);
+        ref.invalidate(fieldDetailProvider(existing.id));
+      } else {
+        await ref.read(fieldsRepositoryProvider).createField(data);
+      }
+      ref.invalidate(fieldsProvider);
       if (mounted) context.pop();
     } catch (e) {
       setState(() => _error = 'Failed to save field: $e');
@@ -67,8 +80,8 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('Add field',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(_isEditing ? 'Edit field' : 'Add field',
+            style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -142,7 +155,7 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
                   child: CircularProgressIndicator(
                       color: Colors.white, strokeWidth: 2),
                 )
-                    : const Text('Save field'),
+                    : Text(_isEditing ? 'Save changes' : 'Save field'),
               ),
             ),
           ],

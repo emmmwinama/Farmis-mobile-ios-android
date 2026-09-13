@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/overhead.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'finance_provider.dart';
 
 class OverheadFormScreen extends ConsumerStatefulWidget {
-  const OverheadFormScreen({super.key});
+  final OverheadExpense? existing;
+  const OverheadFormScreen({super.key, this.existing});
 
   @override
   ConsumerState<OverheadFormScreen> createState() =>
@@ -15,20 +17,23 @@ class OverheadFormScreen extends ConsumerStatefulWidget {
 
 class _OverheadFormScreenState
     extends ConsumerState<OverheadFormScreen> {
-  final _descCtrl   = TextEditingController();
-  final _amountCtrl = TextEditingController();
-  final _notesCtrl  = TextEditingController();
+  late final _descCtrl   = TextEditingController(text: widget.existing?.description);
+  late final _amountCtrl = TextEditingController(text: widget.existing?.amount.toString());
+  late final _notesCtrl  = TextEditingController(text: widget.existing?.notes);
 
-  String   _category  = 'Salary';
-  DateTime _date       = DateTime.now();
-  bool     _recurring  = false;
+  late String   _category  = widget.existing?.category ?? 'Salary';
+  late DateTime _date       = widget.existing?.date ?? DateTime.now();
+  late bool     _recurring  = widget.existing?.recurring ?? false;
   bool     _saving     = false;
   String?  _error;
 
-  final _categories = [
+  bool get _isEditing => widget.existing != null;
+
+  late final _categories = {
     'Salary', 'Rent', 'Utilities', 'Insurance',
     'Loan repayment', 'Maintenance', 'Other',
-  ];
+    if (_isEditing) widget.existing!.category,
+  }.toList();
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -49,19 +54,24 @@ class _OverheadFormScreenState
 
     setState(() { _saving = true; _error = null; });
 
+    final data = {
+      'description': _descCtrl.text.trim(),
+      'category':    _category,
+      'amount':      _amountCtrl.text.trim(),
+      'date':        _date.toIso8601String(),
+      'recurring':   _recurring,
+      'notes':       _notesCtrl.text.trim().isEmpty
+          ? null
+          : _notesCtrl.text.trim(),
+    };
+
     try {
-      await ref
-          .read(financeRepositoryProvider)
-          .createOverhead({
-        'description': _descCtrl.text.trim(),
-        'category':    _category,
-        'amount':      _amountCtrl.text.trim(),
-        'date':        _date.toIso8601String(),
-        'recurring':   _recurring,
-        'notes':       _notesCtrl.text.trim().isEmpty
-            ? null
-            : _notesCtrl.text.trim(),
-      });
+      final existing = widget.existing;
+      if (existing != null) {
+        await ref.read(financeRepositoryProvider).updateOverhead(existing.id, data);
+      } else {
+        await ref.read(financeRepositoryProvider).createOverhead(data);
+      }
       if (mounted) context.pop();
     } catch (e) {
       setState(() => _error = 'Failed to save: $e');
@@ -83,8 +93,8 @@ class _OverheadFormScreenState
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('Add overhead expense',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(_isEditing ? 'Edit overhead expense' : 'Add overhead expense',
+            style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -232,7 +242,7 @@ class _OverheadFormScreenState
                   child:  CircularProgressIndicator(
                       color: Colors.white, strokeWidth: 2),
                 )
-                    : const Text('Save overhead'),
+                    : Text(_isEditing ? 'Save changes' : 'Save overhead'),
               ),
             ),
           ],

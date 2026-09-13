@@ -134,6 +134,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                 else
                   ...filtered.map((e) => _EmployeeCard(
                         e,
+                        onEdit: () => context.push('/employees/new', extra: e),
                         onDelete: () => _confirmDelete(context, ref, e),
                       )),
               ],
@@ -233,9 +234,10 @@ class _SummaryItem extends StatelessWidget {
 
 class _EmployeeCard extends StatelessWidget {
   final EmployeeModel employee;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _EmployeeCard(this.employee, {required this.onDelete});
+  const _EmployeeCard(this.employee, {required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -290,8 +292,19 @@ class _EmployeeCard extends StatelessWidget {
             const SizedBox(width: 4),
           ],
           PopupMenuButton<String>(
-            onSelected: (v) { if (v == 'delete') onDelete(); },
+            onSelected: (v) {
+              if (v == 'edit') onEdit();
+              if (v == 'delete') onDelete();
+            },
             itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'edit',
+                child: Row(children: [
+                  Icon(Icons.edit_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text('Edit'),
+                ]),
+              ),
               const PopupMenuItem(
                 value: 'delete',
                 child: Row(children: [

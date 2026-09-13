@@ -1,15 +1,59 @@
+import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import '../../core/db/app_database.dart';
 import '../../core/db/db_utils.dart';
 import '../../models/field.dart';
 import '../../models/field_detail.dart';
 
+/// Fields live on Ulimi's mobile API now (`/api/mobile/fields`) — this
+/// repository pulls the farm's fields down into the local `fields` table on
+/// every read (so it degrades to whatever's cached when offline) and writes
+/// straight through to the API on create/update/delete, mirroring the
+/// result locally afterward. Fields aren't in the offline batch queue (see
+/// docs/MOBILE-API.md §8), so writes need a connection.
+///
+/// Everything below the API call is unchanged from the local-only version:
+/// allocated area / crop names are still computed from the local
+/// `cropFields` table, which is what keeps Reports/Dashboard/Records
+/// working without having to touch them in this pass.
 class FieldsRepository {
-  FieldsRepository(this._db);
+  FieldsRepository(this._db, this._dio);
 
   final AppDatabase _db;
+  final Dio _dio;
 
   Future<List<FieldModel>> getFields() async {
+    await _pullFromApi();
+    return _localFields();
+  }
+
+  Future<void> _pullFromApi() async {
+    try {
+      final res = await _dio.get('/api/mobile/fields');
+      final rows = ((res.data as Map)['data'] as List).cast<Map<String, dynamic>>();
+      for (final row in rows) {
+        await _upsertFromApi(row);
+      }
+    } catch (_) {
+      // Offline or unreachable — fall back to whatever's cached locally.
+    }
+  }
+
+  Future<void> _upsertFromApi(Map<String, dynamic> row) async {
+    await _db.into(_db.fields).insertOnConflictUpdate(FieldsCompanion.insert(
+          id: row['id'] as String,
+          name: row['name'] as String,
+          totalArea: asDouble(row['total_area']),
+          cultivatableArea: asDouble(row['cultivatable_area']),
+          soilType: row['soil_type'] as String,
+          createdAt: DateTime.tryParse(row['created_at']?.toString() ?? '') ?? DateTime.now(),
+          locationLat: Value(asDoubleOrNull(row['location_lat'])),
+          locationLng: Value(asDoubleOrNull(row['location_lng'])),
+          notes: Value(asStringOrNull(row['notes'])),
+        ));
+  }
+
+  Future<List<FieldModel>> _localFields() async {
     final rows = await _db.select(_db.fields).get();
     final result = <FieldModel>[];
     for (final row in rows) {
@@ -84,65 +128,62 @@ class FieldsRepository {
     });
   }
 
+  Map<String, dynamic> _apiBody(Map<String, dynamic> data) => {
+        'name': data['name'],
+        'total_area': asDouble(data['totalArea']),
+        'cultivatable_area': asDouble(data['cultivatableArea']),
+        'soil_type': data['soilType'],
+        'location_lat': asDoubleOrNull(data['locationLat']),
+        'location_lng': asDoubleOrNull(data['locationLng']),
+        'notes': asStringOrNull(data['notes']),
+      };
+
   Future<FieldModel> createField(Map<String, dynamic> data) async {
-    final id = newId();
-    final now = DateTime.now();
-    await _db.into(_db.fields).insert(FieldsCompanion.insert(
-          id: id,
-          name: data['name'] as String,
-          totalArea: asDouble(data['totalArea']),
-          cultivatableArea: asDouble(data['cultivatableArea']),
-          soilType: data['soilType'] as String,
-          createdAt: now,
-          locationLat: Value(asDoubleOrNull(data['locationLat'])),
-          locationLng: Value(asDoubleOrNull(data['locationLng'])),
-          notes: Value(asStringOrNull(data['notes'])),
-        ));
+    final res = await _dio.post('/api/mobile/fields', data: _apiBody(data));
+    final row = (res.data as Map)['data'] as Map<String, dynamic>;
+    await _upsertFromApi(row);
     return FieldModel.fromJson({
-      'id': id,
-      'name': data['name'],
-      'totalArea': asDouble(data['totalArea']),
-      'cultivatableArea': asDouble(data['cultivatableArea']),
-      'soilType': data['soilType'],
-      'locationLat': asDoubleOrNull(data['locationLat']),
-      'locationLng': asDoubleOrNull(data['locationLng']),
-      'notes': asStringOrNull(data['notes']),
-      'createdAt': now.toIso8601String(),
+      'id': row['id'],
+      'name': row['name'],
+      'totalArea': asDouble(row['total_area']),
+      'cultivatableArea': asDouble(row['cultivatable_area']),
+      'soilType': row['soil_type'],
+      'locationLat': asDoubleOrNull(row['location_lat']),
+      'locationLng': asDoubleOrNull(row['location_lng']),
+      'notes': asStringOrNull(row['notes']),
+      'createdAt': row['created_at'] ?? DateTime.now().toIso8601String(),
       'allocatedArea': 0.0,
       'cropCount': 0,
       'crops': const <String>[],
     });
   }
 
+  /// The API's `PUT` requires the full object (no partial update support
+  /// server-side), so an update that only touches some fields — like the
+  /// rest of this class's callers expect — merges onto the current local
+  /// row before sending, rather than sending `data` as-is and risking
+  /// zeroing out whatever the caller didn't mention.
   Future<void> updateField(String id, Map<String, dynamic> data) async {
-    await (_db.update(_db.fields)..where((t) => t.id.equals(id))).write(
-      FieldsCompanion(
-        name: data.containsKey('name')
-            ? Value(data['name'] as String)
-            : const Value.absent(),
-        totalArea: data.containsKey('totalArea')
-            ? Value(asDouble(data['totalArea']))
-            : const Value.absent(),
-        cultivatableArea: data.containsKey('cultivatableArea')
-            ? Value(asDouble(data['cultivatableArea']))
-            : const Value.absent(),
-        soilType: data.containsKey('soilType')
-            ? Value(data['soilType'] as String)
-            : const Value.absent(),
-        locationLat: data.containsKey('locationLat')
-            ? Value(asDoubleOrNull(data['locationLat']))
-            : const Value.absent(),
-        locationLng: data.containsKey('locationLng')
-            ? Value(asDoubleOrNull(data['locationLng']))
-            : const Value.absent(),
-        notes: data.containsKey('notes')
-            ? Value(asStringOrNull(data['notes']))
-            : const Value.absent(),
-      ),
-    );
+    final current =
+        await (_db.select(_db.fields)..where((t) => t.id.equals(id))).getSingle();
+    final merged = {
+      'name': data.containsKey('name') ? data['name'] : current.name,
+      'totalArea': data.containsKey('totalArea') ? data['totalArea'] : current.totalArea,
+      'cultivatableArea':
+          data.containsKey('cultivatableArea') ? data['cultivatableArea'] : current.cultivatableArea,
+      'soilType': data.containsKey('soilType') ? data['soilType'] : current.soilType,
+      'locationLat': data.containsKey('locationLat') ? data['locationLat'] : current.locationLat,
+      'locationLng': data.containsKey('locationLng') ? data['locationLng'] : current.locationLng,
+      'notes': data.containsKey('notes') ? data['notes'] : current.notes,
+    };
+
+    final res = await _dio.put('/api/mobile/fields/$id', data: _apiBody(merged));
+    final row = (res.data as Map)['data'] as Map<String, dynamic>;
+    await _upsertFromApi(row);
   }
 
   Future<void> deleteField(String id) async {
+    await _dio.post('/api/mobile/fields/$id/delete');
     await (_db.delete(_db.fields)..where((t) => t.id.equals(id))).go();
   }
 

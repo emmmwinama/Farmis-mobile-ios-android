@@ -247,26 +247,30 @@ class _CropsScreenState extends ConsumerState<CropsScreen> {
     ref.invalidate(allCropsProvider);
   }
 
+  // Crop plantings can't be deleted server-side once created (matches the
+  // web app) — only archived, which is what this actually does now, despite
+  // the "delete" naming elsewhere in this screen's call sites.
   Future<void> _confirmDelete(
       BuildContext context, WidgetRef ref, CropFieldModel c) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title:   const Text('Delete crop'),
-        content: Text('Delete "${c.cropTypeName} (${c.variety})"?'),
+        title:   const Text('Archive crop'),
+        content: Text('Archive "${c.cropTypeName} (${c.variety})"? '
+            'It will no longer show up in the active list.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
               child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Delete',
+              child: const Text('Archive',
                   style: TextStyle(color: FarmioColors.danger))),
         ],
       ),
     );
     if (ok == true) {
-      await ref.read(cropsRepositoryProvider).deleteCrop(c.id);
+      await ref.read(cropsRepositoryProvider).archiveCrop(c.id);
       ref.invalidate(allCropsProvider);
     }
   }

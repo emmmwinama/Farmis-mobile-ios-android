@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'livestock_repository.dart';
+import '../../core/api/api_client.dart';
 import '../../core/db/database_provider.dart';
 import '../../models/livestock.dart';
 
 final livestockRepositoryProvider = Provider<LivestockRepository>(
-  (ref) => LivestockRepository(ref.read(databaseProvider)),
+  (ref) => LivestockRepository(
+      ref.read(databaseProvider), ref.read(apiClientProvider)),
 );
 
 final livestockProvider = FutureProvider.autoDispose<LivestockData>((ref) {

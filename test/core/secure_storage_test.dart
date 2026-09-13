@@ -25,7 +25,7 @@ void main() {
   test('clearAuth deletes only authentication keys', () async {
     await SecureStorage.clearAuth();
 
-    expect(calls, hasLength(4));
+    expect(calls, hasLength(5));
     expect(calls.every((call) => call.method == 'delete'), isTrue);
     expect(calls.any((call) => call.method == 'deleteAll'), isFalse);
 
@@ -35,7 +35,7 @@ void main() {
         .toSet();
     expect(
       deletedKeys,
-      containsAll({'auth_token', 'user_id', 'farm_id', 'profile_json'}),
+      containsAll({'auth_token', 'auth_refresh_token', 'user_id', 'farm_id', 'profile_json'}),
     );
     expect(deletedKeys, isNot(contains('agrivault.sync.queue')));
   });

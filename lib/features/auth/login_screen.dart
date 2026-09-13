@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/auth/account_provider.dart';
-import '../../core/auth/google_auth_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_brand_mark.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
@@ -19,7 +18,6 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  final _googleAuth = GoogleAuthService();
   bool _obscure = true;
   bool _loading = false;
   String? _error;
@@ -44,34 +42,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
     try {
       await ref.read(accountProvider.notifier).login(email: email, password: password);
-      // go (not pop) — this screen may be reached via Register's "Sign in"
-      // link, one or two frames deep in the stack; going straight to Profile
-      // is correct regardless of how it was reached.
-      if (mounted) context.go('/profile');
+      // The router's redirect re-evaluates on accountProvider changes and
+      // will take over from here — this is just the immediate transition.
+      if (mounted) context.go('/dashboard');
     } catch (e) {
       setState(() => _error = apiErrorMessage(e, fallback: 'Could not sign in. Please try again.'));
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _continueWithGoogle() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final idToken = await _googleAuth.signInAndGetIdToken();
-      if (idToken == null) return; // user closed the account picker
-      await ref.read(accountProvider.notifier).loginWithGoogle(idToken);
-      if (mounted) context.go('/profile');
-    } catch (e) {
-      // TODO: switch back to the plain apiErrorMessage() fallback once
-      // Google sign-in is confirmed working end-to-end — this raw detail is
-      // deliberately noisy for diagnosing whether a failure is happening in
-      // the native sign-in step (before any network call) vs the backend.
-      setState(() => _error =
-          '${apiErrorMessage(e, fallback: 'Could not sign in with Google.')}\n\n[debug] ${e.runtimeType}: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -102,7 +77,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Sign in to back up your farm data and sync it across devices.',
+                'Sign in to your Ulimi account to manage your farm.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: context.colors.textMuted),
               ),
@@ -155,28 +130,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                         )
                       : const Text('Sign in'),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(child: Divider(color: context.colors.border)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Text('or', style: TextStyle(color: context.colors.textMuted, fontSize: 12)),
-                  ),
-                  Expanded(child: Divider(color: context.colors.border)),
-                ],
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 52,
-                // No Google "G" mark here deliberately — using it without
-                // Google's actual brand asset would look off, and Material
-                // has no built-in equivalent worth faking.
-                child: OutlinedButton(
-                  onPressed: _loading ? null : _continueWithGoogle,
-                  child: const Text('Continue with Google'),
                 ),
               ),
               const SizedBox(height: 16),

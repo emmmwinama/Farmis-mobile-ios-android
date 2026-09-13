@@ -1,7 +1,11 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
 import '../../core/theme/app_theme.dart';
 import '../../models/farm_document.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
@@ -20,7 +24,8 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   final _nameCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
   String _type = documentTypes.first;
-  XFile? _picked;
+  String? _pickedName;
+  Future<List<int>> Function()? _pickedBytes;
   bool _saving = false;
   bool _picking = false;
   String? _error;
@@ -42,7 +47,27 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
       );
       if (file != null) {
         setState(() {
-          _picked = file;
+          _pickedName = file.name;
+          _pickedBytes = file.readAsBytes;
+          if (_nameCtrl.text.trim().isEmpty) {
+            _nameCtrl.text = file.name;
+          }
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
+  }
+
+  Future<void> _pickFile() async {
+    setState(() => _picking = true);
+    try {
+      final result = await FilePicker.platform.pickFiles(withData: false);
+      final file = result?.files.single;
+      if (file?.path != null) {
+        setState(() {
+          _pickedName = file!.name;
+          _pickedBytes = () => File(file.path!).readAsBytes();
           if (_nameCtrl.text.trim().isEmpty) {
             _nameCtrl.text = file.name;
           }
@@ -54,8 +79,8 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   }
 
   Future<void> _save() async {
-    if (_picked == null) {
-      setState(() => _error = 'Add a photo first.');
+    if (_pickedBytes == null) {
+      setState(() => _error = 'Add a file first.');
       return;
     }
     if (_nameCtrl.text.trim().isEmpty) {
@@ -69,7 +94,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     });
 
     try {
-      final bytes = await _picked!.readAsBytes();
+      final bytes = await _pickedBytes!();
       if (bytes.length > _maxUploadBytes) {
         setState(() {
           _error = 'File is too large. Documents must be 10 MB or smaller.';
@@ -82,7 +107,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
             name: _nameCtrl.text.trim(),
             type: _type,
             bytes: bytes,
-            extension: _extensionFor(_picked!.name),
+            extension: _extensionFor(_pickedName!),
             notes: _notesCtrl.text.trim(),
           );
       ref.invalidate(documentsProvider);
@@ -95,10 +120,8 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   }
 
   String _extensionFor(String name) {
-    final lower = name.toLowerCase();
-    if (lower.endsWith('.png')) return 'png';
-    if (lower.endsWith('.webp')) return 'webp';
-    return 'jpg';
+    final ext = p.extension(name);
+    return ext.isEmpty ? 'jpg' : ext.substring(1).toLowerCase();
   }
 
   @override
@@ -136,9 +159,18 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
                 ),
               ],
             ),
-            if (_picked != null) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _picking ? null : _pickFile,
+                icon: const Icon(Icons.attach_file),
+                label: const Text('Choose a file (PDF, etc.)'),
+              ),
+            ),
+            if (_pickedName != null) ...[
               const SizedBox(height: 12),
-              Text('Selected: ${_picked!.name}',
+              Text('Selected: $_pickedName',
                   style: const TextStyle(
                       fontSize: 12, color: FarmioColors.textMuted)),
             ],

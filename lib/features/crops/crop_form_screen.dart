@@ -3,29 +3,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/limits/limits_gate.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/crop_field.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import '../fields/fields_provider.dart';
 import 'crops_provider.dart';
 
 class CropFormScreen extends ConsumerStatefulWidget {
-  const CropFormScreen({super.key});
+  final CropFieldModel? existing;
+  const CropFormScreen({super.key, this.existing});
 
   @override
   ConsumerState<CropFormScreen> createState() => _CropFormScreenState();
 }
 
 class _CropFormScreenState extends ConsumerState<CropFormScreen> {
-  final _varietyCtrl = TextEditingController();
-  final _areaCtrl    = TextEditingController();
-  final _seasonCtrl  = TextEditingController();
+  late final _varietyCtrl = TextEditingController(text: widget.existing?.variety);
+  late final _areaCtrl    = TextEditingController(text: widget.existing?.areaPlanted.toString());
+  late final _seasonCtrl  = TextEditingController(text: widget.existing?.season);
 
-  String?   _fieldId;
-  String?   _cropTypeId;
-  DateTime  _plantingDate        = DateTime.now();
-  DateTime  _expectedHarvestDate =
-  DateTime.now().add(const Duration(days: 120));
+  late String?   _fieldId    = widget.existing?.fieldId;
+  late String?   _cropTypeId = widget.existing?.cropTypeId;
+  late DateTime  _plantingDate        = widget.existing?.plantingDate ?? DateTime.now();
+  late DateTime  _expectedHarvestDate =
+      widget.existing?.expectedHarvestDate ?? DateTime.now().add(const Duration(days: 120));
   bool      _saving = false;
   String?   _error;
+
+  bool get _isEditing => widget.existing != null;
 
   // Quick add crop type
   final _newTypeCtrl = TextEditingController();
@@ -41,20 +45,30 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
     }
 
     final season = _seasonCtrl.text.trim();
-    if (!await ensureCanAddCropForSeason(context, ref, season)) return;
+    if (!_isEditing && !await ensureCanAddCropForSeason(context, ref, season)) return;
 
     setState(() { _saving = true; _error = null; });
 
+    final data = {
+      'fieldId':             _fieldId,
+      'cropTypeId':          _cropTypeId,
+      'variety':             _varietyCtrl.text.trim(),
+      'areaPlanted':         _areaCtrl.text.trim(),
+      'season':              _seasonCtrl.text.trim(),
+      'plantingDate':        _plantingDate.toIso8601String(),
+      'expectedHarvestDate': _expectedHarvestDate.toIso8601String(),
+    };
+
     try {
-      await ref.read(cropsRepositoryProvider).createCrop({
-        'fieldId':             _fieldId,
-        'cropTypeId':          _cropTypeId,
-        'variety':             _varietyCtrl.text.trim(),
-        'areaPlanted':         _areaCtrl.text.trim(),
-        'season':              _seasonCtrl.text.trim(),
-        'plantingDate':        _plantingDate.toIso8601String(),
-        'expectedHarvestDate': _expectedHarvestDate.toIso8601String(),
-      });
+      final existing = widget.existing;
+      if (existing != null) {
+        await ref.read(cropsRepositoryProvider).updateCrop(existing.id, data);
+        ref.invalidate(cropDetailProvider(existing.id));
+      } else {
+        await ref.read(cropsRepositoryProvider).createCrop(data);
+      }
+      ref.invalidate(cropsProvider);
+      ref.invalidate(allCropsProvider);
       if (mounted) context.pop();
     } catch (e) {
       setState(() => _error = 'Failed to save crop: $e');
@@ -98,8 +112,8 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('Add crop',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(_isEditing ? 'Edit crop' : 'Add crop',
+            style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -260,7 +274,7 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
                     width:  20, height: 20,
                     child: CircularProgressIndicator(
                         color: Colors.white, strokeWidth: 2))
-                    : const Text('Save crop'),
+                    : Text(_isEditing ? 'Save changes' : 'Save crop'),
               ),
             ),
           ],

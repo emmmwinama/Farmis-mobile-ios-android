@@ -23,6 +23,13 @@ class ActivityDetailScreen extends ConsumerWidget {
         actions: [
           detail.whenOrNull(
             data: (a) => IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit activity',
+              onPressed: () => context.push('/activities/new', extra: a),
+            ),
+          ) ?? const SizedBox(),
+          detail.whenOrNull(
+            data: (a) => IconButton(
               icon: const Icon(Icons.delete_outline,
                   color: FarmioColors.danger),
               onPressed: () async {

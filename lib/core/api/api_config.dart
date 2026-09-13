@@ -1,5 +1,5 @@
-/// Backend base URL for the account/sync features (login, register, whole-farm
-/// backup). Everything else in the app is local-first and never calls this.
+/// Base URL for Ulimi's mobile API (`/api/mobile/...`) — see
+/// `docs/MOBILE-API.md` in the Ulimi-app repo for the full contract.
 /// Override at build time with `--dart-define=API_BASE_URL=https://…` for a
 /// staging backend; defaults to the production deployment.
 const String apiBaseUrl = String.fromEnvironment(

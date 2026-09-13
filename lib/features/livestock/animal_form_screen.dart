@@ -7,7 +7,8 @@ import '../../shared/widgets/farmio_error_banner.dart';
 import 'livestock_provider.dart';
 
 class AnimalFormScreen extends ConsumerWidget {
-  const AnimalFormScreen({super.key});
+  final Animal? existing;
+  const AnimalFormScreen({super.key, this.existing});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,8 +17,8 @@ class AnimalFormScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('Add animal',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(existing != null ? 'Edit animal' : 'Add animal',
+            style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: livestock.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -29,7 +30,7 @@ class AnimalFormScreen extends ConsumerWidget {
                 style: const TextStyle(color: FarmioColors.textMuted)),
           ),
         ),
-        data: (data) => _AnimalFormBody(types: data.types),
+        data: (data) => _AnimalFormBody(types: data.types, existing: existing),
       ),
     );
   }
@@ -37,27 +38,31 @@ class AnimalFormScreen extends ConsumerWidget {
 
 class _AnimalFormBody extends ConsumerStatefulWidget {
   final List<LivestockType> types;
-  const _AnimalFormBody({required this.types});
+  final Animal? existing;
+  const _AnimalFormBody({required this.types, this.existing});
 
   @override
   ConsumerState<_AnimalFormBody> createState() => _AnimalFormBodyState();
 }
 
 class _AnimalFormBodyState extends ConsumerState<_AnimalFormBody> {
-  final _tagCtrl = TextEditingController();
-  final _nameCtrl = TextEditingController();
-  final _breedCtrl = TextEditingController();
+  late final _tagCtrl = TextEditingController(text: widget.existing?.tag);
+  late final _nameCtrl = TextEditingController(text: widget.existing?.name);
+  late final _breedCtrl = TextEditingController(text: widget.existing?.breed);
   String? _typeId;
-  String _sex = 'Unknown';
+  late String _sex = widget.existing?.sex ?? 'Unknown';
   bool _saving = false;
   String? _error;
+
+  bool get _isEditing => widget.existing != null;
 
   final _sexes = const ['Unknown', 'Male', 'Female'];
 
   @override
   void initState() {
     super.initState();
-    _typeId = widget.types.isNotEmpty ? widget.types.first.id : null;
+    _typeId = widget.existing?.livestockTypeId ??
+        (widget.types.isNotEmpty ? widget.types.first.id : null);
   }
 
   @override
@@ -78,15 +83,23 @@ class _AnimalFormBodyState extends ConsumerState<_AnimalFormBody> {
       _error = null;
     });
 
+    final data = {
+      'livestockTypeId': _typeId,
+      'tag': _tagCtrl.text.trim().isEmpty ? null : _tagCtrl.text.trim(),
+      'name': _nameCtrl.text.trim().isEmpty ? null : _nameCtrl.text.trim(),
+      'sex': _sex,
+      'breed':
+          _breedCtrl.text.trim().isEmpty ? null : _breedCtrl.text.trim(),
+    };
+
     try {
-      await ref.read(livestockRepositoryProvider).createAnimal({
-        'livestockTypeId': _typeId,
-        'tag': _tagCtrl.text.trim().isEmpty ? null : _tagCtrl.text.trim(),
-        'name': _nameCtrl.text.trim().isEmpty ? null : _nameCtrl.text.trim(),
-        'sex': _sex,
-        'breed':
-            _breedCtrl.text.trim().isEmpty ? null : _breedCtrl.text.trim(),
-      });
+      final existing = widget.existing;
+      if (existing != null) {
+        await ref.read(livestockRepositoryProvider).updateAnimal(existing.id, data);
+        ref.invalidate(animalDetailProvider(existing.id));
+      } else {
+        await ref.read(livestockRepositoryProvider).createAnimal(data);
+      }
       ref.invalidate(livestockProvider);
       if (mounted) context.pop();
     } catch (e) {
@@ -170,7 +183,7 @@ class _AnimalFormBodyState extends ConsumerState<_AnimalFormBody> {
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2),
                     )
-                  : const Text('Save animal'),
+                  : Text(_isEditing ? 'Save changes' : 'Save animal'),
             ),
           ),
         ],

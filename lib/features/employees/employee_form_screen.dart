@@ -2,24 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/employee.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'employees_provider.dart';
 
 class EmployeeFormScreen extends ConsumerStatefulWidget {
-  const EmployeeFormScreen({super.key});
+  final EmployeeModel? existing;
+  const EmployeeFormScreen({super.key, this.existing});
 
   @override
   ConsumerState<EmployeeFormScreen> createState() => _EmployeeFormScreenState();
 }
 
 class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
-  final _nameCtrl = TextEditingController();
-  final _roleCtrl = TextEditingController();
-  final _payRateCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-  String _payRateUnit = 'day';
+  late final _nameCtrl = TextEditingController(text: widget.existing?.name);
+  late final _roleCtrl = TextEditingController(text: widget.existing?.role);
+  late final _payRateCtrl = TextEditingController(text: widget.existing?.payRate.toString());
+  late final _phoneCtrl = TextEditingController(text: widget.existing?.phone);
+  late String _payRateUnit = widget.existing?.payRateUnit ?? 'day';
   bool _saving = false;
   String? _error;
+
+  bool get _isEditing => widget.existing != null;
 
   @override
   void dispose() {
@@ -43,18 +47,25 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
       _error = null;
     });
 
+    final data = {
+      'name': _nameCtrl.text.trim(),
+      'role': _roleCtrl.text.trim(),
+      'payRate': _payRateCtrl.text.trim(),
+      'payRateUnit': _payRateUnit,
+      'phone': _phoneCtrl.text.trim(),
+    };
+
     try {
-      await ref.read(employeesRepositoryProvider).createEmployee({
-        'name': _nameCtrl.text.trim(),
-        'role': _roleCtrl.text.trim(),
-        'payRate': _payRateCtrl.text.trim(),
-        'payRateUnit': _payRateUnit,
-        'phone': _phoneCtrl.text.trim(),
-      });
+      final existing = widget.existing;
+      if (existing != null) {
+        await ref.read(employeesRepositoryProvider).updateEmployee(existing.id, data);
+      } else {
+        await ref.read(employeesRepositoryProvider).createEmployee(data);
+      }
       ref.invalidate(employeesProvider);
       if (mounted) context.pop();
     } catch (_) {
-      setState(() => _error = 'Could not add worker. Check your connection.');
+      setState(() => _error = 'Could not save worker. Check your connection.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -65,8 +76,8 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('Add employee',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(_isEditing ? 'Edit employee' : 'Add employee',
+            style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -134,7 +145,7 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2),
                       )
-                    : const Text('Save employee'),
+                    : Text(_isEditing ? 'Save changes' : 'Save employee'),
               ),
             ),
           ],

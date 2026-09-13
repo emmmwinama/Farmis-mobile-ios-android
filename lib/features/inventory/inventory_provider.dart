@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'inventory_repository.dart';
+import '../../core/api/api_client.dart';
 import '../../core/db/database_provider.dart';
 import '../../models/inventory_item.dart';
 
 final inventoryRepositoryProvider = Provider<InventoryRepository>(
-  (ref) => InventoryRepository(ref.read(databaseProvider)),
+  (ref) => InventoryRepository(ref.read(databaseProvider), ref.read(apiClientProvider)),
 );
 
 final inventoryItemsProvider =

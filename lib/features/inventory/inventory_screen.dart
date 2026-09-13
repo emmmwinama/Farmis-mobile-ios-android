@@ -134,6 +134,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 final item = filtered[index - 1];
                 return _ItemCard(
                   item: item,
+                  onEdit: () => context.push('/inventory/new', extra: item),
                   onDelete: () => _confirmDelete(context, ref, item),
                 );
               },
@@ -172,8 +173,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
 class _ItemCard extends StatelessWidget {
   final InventoryItem item;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
-  const _ItemCard({required this.item, required this.onDelete});
+  const _ItemCard({required this.item, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -224,8 +226,19 @@ class _ItemCard extends StatelessWidget {
                 const SizedBox(width: 4),
               ],
               PopupMenuButton<String>(
-                onSelected: (v) { if (v == 'delete') onDelete(); },
+                onSelected: (v) {
+                  if (v == 'edit') onEdit();
+                  if (v == 'delete') onDelete();
+                },
                 itemBuilder: (_) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(children: [
+                      Icon(Icons.edit_outlined, size: 18),
+                      SizedBox(width: 8),
+                      Text('Edit'),
+                    ]),
+                  ),
                   const PopupMenuItem(
                     value: 'delete',
                     child: Row(children: [

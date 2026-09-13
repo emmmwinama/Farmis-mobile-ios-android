@@ -6,28 +6,19 @@ import 'package:farmio_mobile/features/auth/login_screen.dart';
 import 'package:farmio_mobile/features/auth/register_screen.dart';
 import 'package:farmio_mobile/features/auth/forgot_password_screen.dart';
 
-// These cover only client-side validation, which short-circuits before any
-// network call — no dio/account-provider mocking needed since the
-// repository is never reached when validation fails.
+// LoginScreen's validation is covered here (client-side, short-circuits
+// before any network call). RegisterScreen/ForgotPasswordScreen have no
+// form at all — there's no mobile register or password-reset endpoint, so
+// they just point to the web app; covered by presence checks only.
 void main() {
   Widget wrap(Widget home) => ProviderScope(
         child: MaterialApp.router(
-          routerConfig: GoRouter(routes: [GoRoute(path: '/', builder: (_, __) => home)]),
+          routerConfig: GoRouter(routes: [
+            GoRoute(path: '/', builder: (_, __) => home),
+            GoRoute(path: '/login', builder: (_, __) => const Scaffold(body: Text('Login screen'))),
+          ]),
         ),
       );
-
-  // RegisterScreen's form (5 fields + terms checkbox + button) is taller
-  // than the default 800x600 test surface, which pushes the submit button
-  // out of the hit-testable viewport — widen it for every test in this file.
-  setUp(() {
-    final binding = TestWidgetsFlutterBinding.ensureInitialized();
-    binding.platformDispatcher.views.first.physicalSize = const Size(800, 1600);
-    binding.platformDispatcher.views.first.devicePixelRatio = 1.0;
-    addTearDown(() {
-      binding.platformDispatcher.views.first.resetPhysicalSize();
-      binding.platformDispatcher.views.first.resetDevicePixelRatio();
-    });
-  });
 
   group('LoginScreen', () {
     testWidgets('rejects an invalid email format before calling the API', (tester) async {
@@ -47,48 +38,18 @@ void main() {
   });
 
   group('RegisterScreen', () {
-    Future<void> fillValidFields(WidgetTester tester) async {
-      await tester.enterText(find.widgetWithText(TextField, 'Your name'), 'Jane Farmer');
-      await tester.enterText(find.widgetWithText(TextField, 'Email'), 'jane@example.com');
-      await tester.enterText(find.widgetWithText(TextField, 'Password'), 'password123');
-    }
-
-    testWidgets('rejects mismatched passwords', (tester) async {
+    testWidgets('points to the web app instead of a form', (tester) async {
       await tester.pumpWidget(wrap(const RegisterScreen()));
-      await fillValidFields(tester);
-      await tester.enterText(find.widgetWithText(TextField, 'Confirm password'), 'different123');
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Create account'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Passwords do not match.'), findsOneWidget);
-    });
-
-    testWidgets('requires terms acceptance before submitting', (tester) async {
-      await tester.pumpWidget(wrap(const RegisterScreen()));
-      await fillValidFields(tester);
-      await tester.enterText(find.widgetWithText(TextField, 'Confirm password'), 'password123');
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Create account'));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text('Please accept the Terms of Service and Privacy Policy to continue.'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('has a Farm name field', (tester) async {
-      await tester.pumpWidget(wrap(const RegisterScreen()));
-      expect(find.text('Farm name (optional)'), findsOneWidget);
+      expect(find.text('Create your account on the web'), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
     });
   });
 
   group('ForgotPasswordScreen', () {
-    testWidgets('rejects an empty/invalid email before requesting a code', (tester) async {
+    testWidgets('points to the web app instead of a form', (tester) async {
       await tester.pumpWidget(wrap(const ForgotPasswordScreen()));
-      await tester.tap(find.text('Send reset code'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Enter a valid email address.'), findsOneWidget);
+      expect(find.text('Reset your password on the web'), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
     });
   });
 }

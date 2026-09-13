@@ -1,14 +1,39 @@
+import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import '../../core/db/app_database.dart';
 import '../../core/db/db_utils.dart';
 import '../../models/inventory_item.dart';
 
+/// Inventory items live on Ulimi's mobile API now (`/api/mobile/inventory`)
+/// — same write-through pattern as FieldsRepository. Sales stay entirely
+/// local for now: the API's `/inventory/{id}/sell` bundles a stock
+/// decrement + an auto-created Income transaction server-side, but Finance
+/// (transactions) hasn't been ported yet — pushing sales through it now
+/// would create the transaction server-side while the still-local-only
+/// Finance screen never learns about it. Revisit once transactions are
+/// ported too.
+///
+/// One real limitation inherited from the API: create doesn't accept
+/// `crop_field_id`/`harvest_yield_id` at all (not in its validated payload),
+/// so a brand-new item's harvest link only exists locally until the API
+/// grows that field. Existing links survive edits fine — the API's update
+/// only ever touches the columns it validates, so it never nulls those out.
 class InventoryRepository {
-  InventoryRepository(this._db);
+  InventoryRepository(this._db, this._dio);
 
   final AppDatabase _db;
+  final Dio _dio;
 
   Future<List<InventoryItem>> getItems({String? category}) async {
+    await _pullFromApi();
+    return getItemsLocalOnly(category: category);
+  }
+
+  /// Same as [getItems] but skips the network pull — for background/local
+  /// computations (see NotificationsRepository's low-stock scan) that run
+  /// frequently and shouldn't force a round-trip just to check quantities
+  /// against whatever's already cached.
+  Future<List<InventoryItem>> getItemsLocalOnly({String? category}) async {
     final query = _db.select(_db.inventoryItems)
       ..orderBy([(t) => OrderingTerm.desc(t.acquiredAt)]);
     if (category != null) query.where((t) => t.category.equals(category));
@@ -54,6 +79,54 @@ class InventoryRepository {
     return items;
   }
 
+  Future<void> _pullFromApi() async {
+    try {
+      final res = await _dio.get('/api/mobile/inventory');
+      final rows = ((res.data as Map)['data'] as List).cast<Map<String, dynamic>>();
+      for (final row in rows) {
+        await _upsertFromApi(row);
+      }
+    } catch (_) {
+      // Offline or unreachable — fall back to whatever's cached locally.
+    }
+  }
+
+  Future<void> _upsertFromApi(Map<String, dynamic> row) async {
+    await _db.into(_db.inventoryItems).insertOnConflictUpdate(InventoryItemsCompanion.insert(
+          id: row['id'] as String,
+          name: row['name'] as String,
+          category: row['category'] as String,
+          unit: row['unit'] as String,
+          quantity: asDouble(row['quantity']),
+          acquisitionUnitCost: Value(asDoubleOrNull(row['acquisition_unit_cost'])),
+          acquiredAt: Value(row['acquired_at'] != null ? DateTime.tryParse(row['acquired_at'].toString()) : null),
+          unitWeight: Value(asDoubleOrNull(row['unit_weight'])),
+          season: Value(asStringOrNull(row['season'])),
+          // The API doesn't manage crop_field_id at all (never part of its
+          // validated create/update payload, always null in a real create
+          // response) — omitting it here (rather than writing whatever the
+          // API says) means a fresh local row defaults to no link, and an
+          // existing local link survives every future sync untouched.
+          notes: Value(asStringOrNull(row['notes'])),
+        ));
+  }
+
+  Map<String, dynamic> _apiBody(Map<String, dynamic> data) => {
+        'name': data['name'],
+        'category': data['category'],
+        'unit': data['unit'],
+        'quantity': asDouble(data['quantity']),
+        'acquisition_unit_cost': asDoubleOrNull(data['acquisitionUnitCost']),
+        'acquired_at': data['acquiredAt'] != null ? (data['acquiredAt'] as String).split('T').first : null,
+        'unit_weight': asDoubleOrNull(data['unitWeight']),
+        'season': asStringOrNull(data['season']),
+        'notes': asStringOrNull(data['notes']),
+      };
+
+  /// Adding stock for a name/category/unit/season/crop-field combination
+  /// that already exists locally increments that row instead of creating a
+  /// duplicate — same dedup the local-only version always did, just routed
+  /// through an API update instead of a bare local write when a match exists.
   Future<void> createItem(Map<String, dynamic> data) async {
     final name = (data['name'] as String).trim();
     final category = data['category'] as String;
@@ -74,79 +147,59 @@ class InventoryRepository {
         .getSingleOrNull();
 
     if (existing != null) {
-      await (_db.update(_db.inventoryItems)
-            ..where((t) => t.id.equals(existing.id)))
-          .write(InventoryItemsCompanion(
-        quantity: Value(existing.quantity + quantity),
-        acquisitionUnitCost: data['acquisitionUnitCost'] != null
-            ? Value(asDoubleOrNull(data['acquisitionUnitCost']))
-            : Value(existing.acquisitionUnitCost),
-        acquiredAt: data['acquiredAt'] != null
-            ? Value(DateTime.parse(data['acquiredAt'] as String))
-            : Value(existing.acquiredAt),
-        unitWeight: data['unitWeight'] != null
-            ? Value(asDoubleOrNull(data['unitWeight']))
-            : Value(existing.unitWeight),
-        notes: Value(asStringOrNull(data['notes']) != null
-            ? '${existing.notes ?? ''}\nPurchase/addition: ${data['notes']}'
-                .trim()
-            : existing.notes),
-      ));
+      final merged = {
+        'name': existing.name,
+        'category': existing.category,
+        'unit': existing.unit,
+        'quantity': existing.quantity + quantity,
+        'acquisitionUnitCost':
+            data['acquisitionUnitCost'] ?? existing.acquisitionUnitCost,
+        'acquiredAt': data['acquiredAt'] ?? existing.acquiredAt?.toIso8601String(),
+        'unitWeight': data['unitWeight'] ?? existing.unitWeight,
+        'season': existing.season,
+        'notes': asStringOrNull(data['notes']) != null
+            ? '${existing.notes ?? ''}\nPurchase/addition: ${data['notes']}'.trim()
+            : existing.notes,
+      };
+      final res = await _dio.put('/api/mobile/inventory/${existing.id}', data: _apiBody(merged));
+      await _upsertFromApi((res.data as Map)['data'] as Map<String, dynamic>);
       return;
     }
 
-    await _db.into(_db.inventoryItems).insert(InventoryItemsCompanion.insert(
-          id: newId(),
-          name: name,
-          category: category,
-          unit: unit,
-          quantity: quantity,
-          acquisitionUnitCost: Value(asDoubleOrNull(data['acquisitionUnitCost'])),
-          acquiredAt: Value(data['acquiredAt'] != null
-              ? DateTime.parse(data['acquiredAt'] as String)
-              : null),
-          unitWeight: Value(asDoubleOrNull(data['unitWeight'])),
-          season: Value(season),
-          cropFieldId: Value(cropFieldId),
-          notes: Value(asStringOrNull(data['notes'])),
-        ));
+    final res = await _dio.post('/api/mobile/inventory', data: _apiBody(data));
+    final row = (res.data as Map)['data'] as Map<String, dynamic>;
+    await _upsertFromApi(row);
+    if (cropFieldId != null) {
+      await (_db.update(_db.inventoryItems)..where((t) => t.id.equals(row['id'] as String)))
+          .write(InventoryItemsCompanion(cropFieldId: Value(cropFieldId)));
+    }
   }
 
   Future<void> updateItem(String id, Map<String, dynamic> data) async {
-    await (_db.update(_db.inventoryItems)..where((t) => t.id.equals(id)))
-        .write(InventoryItemsCompanion(
-      name: data['name'] != null ? Value(data['name'] as String) : const Value.absent(),
-      category: data['category'] != null
-          ? Value(data['category'] as String)
-          : const Value.absent(),
-      unit: data['unit'] != null ? Value(data['unit'] as String) : const Value.absent(),
-      quantity: data['quantity'] != null
-          ? Value(asDouble(data['quantity']))
-          : const Value.absent(),
-      acquisitionUnitCost: data.containsKey('acquisitionUnitCost')
-          ? Value(asDoubleOrNull(data['acquisitionUnitCost']))
-          : const Value.absent(),
-      acquiredAt: data.containsKey('acquiredAt')
-          ? Value(data['acquiredAt'] != null
-              ? DateTime.parse(data['acquiredAt'] as String)
-              : null)
-          : const Value.absent(),
-      unitWeight: data.containsKey('unitWeight')
-          ? Value(asDoubleOrNull(data['unitWeight']))
-          : const Value.absent(),
-      season: data.containsKey('season')
-          ? Value(asStringOrNull(data['season']))
-          : const Value.absent(),
-      cropFieldId: data.containsKey('cropFieldId')
-          ? Value(asStringOrNull(data['cropFieldId']))
-          : const Value.absent(),
-      notes: data.containsKey('notes')
-          ? Value(asStringOrNull(data['notes']))
-          : const Value.absent(),
-    ));
+    final current =
+        await (_db.select(_db.inventoryItems)..where((t) => t.id.equals(id))).getSingle();
+    final merged = {
+      'name': data['name'] ?? current.name,
+      'category': data['category'] ?? current.category,
+      'unit': data['unit'] ?? current.unit,
+      'quantity': data['quantity'] ?? current.quantity,
+      'acquisitionUnitCost': data.containsKey('acquisitionUnitCost')
+          ? data['acquisitionUnitCost']
+          : current.acquisitionUnitCost,
+      'acquiredAt': data.containsKey('acquiredAt')
+          ? data['acquiredAt']
+          : current.acquiredAt?.toIso8601String(),
+      'unitWeight': data.containsKey('unitWeight') ? data['unitWeight'] : current.unitWeight,
+      'season': data.containsKey('season') ? data['season'] : current.season,
+      'notes': data.containsKey('notes') ? data['notes'] : current.notes,
+    };
+
+    final res = await _dio.put('/api/mobile/inventory/$id', data: _apiBody(merged));
+    await _upsertFromApi((res.data as Map)['data'] as Map<String, dynamic>);
   }
 
   Future<void> deleteItem(String id) async {
+    await _dio.post('/api/mobile/inventory/$id/delete');
     await (_db.delete(_db.inventoryItems)..where((t) => t.id.equals(id))).go();
   }
 
@@ -157,6 +210,7 @@ class InventoryRepository {
     final totalAmount = sold * pricePerUnit;
     final saleDate = DateTime.parse(data['saleDate'] as String);
     final buyerName = asStringOrNull(data['buyerName']);
+    late double remainingQuantity;
 
     await _db.transaction(() async {
       final item = await (_db.select(_db.inventoryItems)
@@ -175,9 +229,10 @@ class InventoryRepository {
             notes: Value(asStringOrNull(data['notes'])),
           ));
 
+      remainingQuantity = item.quantity - sold;
       await (_db.update(_db.inventoryItems)..where((t) => t.id.equals(itemId)))
           .write(InventoryItemsCompanion(
-        quantity: Value(item.quantity - sold),
+        quantity: Value(remainingQuantity),
       ));
 
       if (data['createFinanceRecord'] != false) {
@@ -194,6 +249,15 @@ class InventoryRepository {
             ));
       }
     });
+
+    // The server has no idea this sale happened (see the class doc comment
+    // — sales stay local until Finance is ported too), so its cached
+    // quantity is now stale. Push the new quantity so the next getItems()
+    // pull-down doesn't stomp this decrement back to the pre-sale value.
+    // Best-effort: the sale itself already committed locally either way.
+    try {
+      await updateItem(itemId, {'quantity': remainingQuantity});
+    } catch (_) {}
   }
 
   double _quantityKg(String unit, double quantity, double? unitWeight) {

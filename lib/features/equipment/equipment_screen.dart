@@ -2,68 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
-import '../../models/equipment_item.dart';
-import '../../models/overhead.dart';
-import '../../shared/filters/entity_filter_bar.dart';
+import '../../models/equipment.dart';
 import '../../shared/utils/formatters.dart';
-import '../../shared/widgets/farmio_error_banner.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import 'equipment_detail_screen.dart';
 import 'equipment_provider.dart';
 
-class EquipmentScreen extends ConsumerStatefulWidget {
+class EquipmentScreen extends ConsumerWidget {
   final bool embedded;
   const EquipmentScreen({super.key, this.embedded = false});
 
   @override
-  ConsumerState<EquipmentScreen> createState() => _EquipmentScreenState();
-}
-
-class _EquipmentScreenState extends ConsumerState<EquipmentScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final equipment = ref.watch(equipmentProvider);
-
-    final subTabs = TabBar(
-      controller: _tabController,
-      labelColor: FarmioColors.primary,
-      unselectedLabelColor: FarmioColors.textMuted,
-      indicatorColor: FarmioColors.primary,
-      tabs: const [
-        Tab(text: 'Equipment'),
-        Tab(text: 'Fuel & service'),
-      ],
-    );
 
     return Scaffold(
       backgroundColor: context.colors.background,
-      appBar: widget.embedded
-          ? PreferredSize(
-              preferredSize: const Size.fromHeight(kTextTabBarHeight),
-              child: Material(
-                color: context.colors.background,
-                child: subTabs,
-              ),
-            )
+      appBar: embedded
+          ? null
           : AppBar(
               title: const Text('Equipment',
                   style: TextStyle(fontWeight: FontWeight.w800)),
-              bottom: subTabs,
               actions: [
                 IconButton(
                   icon: const Icon(Icons.refresh),
@@ -71,15 +30,10 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen>
                 ),
               ],
             ),
-      floatingActionButton: AnimatedBuilder(
-        animation: _tabController,
-        builder: (context, _) => FloatingActionButton.extended(
-          onPressed: () => _tabController.index == 0
-              ? context.push('/equipment/new')
-              : _showCostForm(context),
-          icon: const Icon(Icons.add),
-          label: Text(_tabController.index == 0 ? 'Add equipment' : 'Add cost'),
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/equipment/new'),
+        icon: const Icon(Icons.add),
+        label: const Text('Add equipment'),
       ),
       body: equipment.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -87,55 +41,15 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen>
           message: error.toString(),
           onRetry: () => ref.invalidate(equipmentProvider),
         ),
-        data: (data) => TabBarView(
-          controller: _tabController,
-          children: [
-            _EquipmentList(items: data.equipment, allCosts: data.costs),
-            _CostsList(costs: data.costs, onDelete: (cost) => _confirmDeleteCost(context, cost)),
-          ],
-        ),
+        data: (items) => _EquipmentList(items: items),
       ),
     );
-  }
-
-  Future<void> _showCostForm(BuildContext context) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const EquipmentCostForm(),
-    );
-  }
-
-  Future<void> _confirmDeleteCost(BuildContext context, OverheadExpense cost) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete cost'),
-        content: Text('Delete "${cost.description}"? This cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete', style: TextStyle(color: FarmioColors.danger)),
-          ),
-        ],
-      ),
-    );
-    if (ok == true) {
-      await ref.read(equipmentRepositoryProvider).deleteCost(cost.id);
-      ref.invalidate(equipmentProvider);
-    }
   }
 }
 
 class _EquipmentList extends StatelessWidget {
-  final List<EquipmentItem> items;
-  final List<OverheadExpense> allCosts;
-  const _EquipmentList({required this.items, required this.allCosts});
+  final List<EquipmentModel> items;
+  const _EquipmentList({required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -157,19 +71,13 @@ class _EquipmentList extends StatelessWidget {
         if (index == 0) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _EquipmentSummary(items: items, allCosts: allCosts),
+            child: _EquipmentSummary(items: items),
           );
         }
         final item = items[index - 1];
         return InkWell(
           borderRadius: BorderRadius.circular(14),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  EquipmentDetailScreen(item: item, allCosts: allCosts),
-            ),
-          ),
+          onTap: () => context.push('/equipment/${item.id}'),
           child: Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(14),
@@ -180,7 +88,7 @@ class _EquipmentList extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.precision_manufacturing_outlined,
+                Icon(_categoryIcon(item.category),
                     color: FarmioColors.warning),
                 const SizedBox(width: 12),
                 Expanded(
@@ -190,15 +98,15 @@ class _EquipmentList extends StatelessWidget {
                       Text(item.name,
                           style:
                               const TextStyle(fontWeight: FontWeight.w800)),
-                      if (item.notes?.isNotEmpty == true)
-                        Text(item.notes!,
-                            style: const TextStyle(
-                                fontSize: 12, color: FarmioColors.textMuted)),
+                      Text(
+                          '${equipmentCategoryLabel(item.category)}'
+                          '${item.logCount > 0 ? ' · ${item.logCount} log${item.logCount == 1 ? '' : 's'}' : ''}',
+                          style: const TextStyle(
+                              fontSize: 12, color: FarmioColors.textMuted)),
                     ],
                   ),
                 ),
-                Text('${item.quantity.toStringAsFixed(0)} ${item.unit}',
-                    style: const TextStyle(fontWeight: FontWeight.w700)),
+                _StatusChip(status: item.status),
                 const SizedBox(width: 6),
                 const Icon(Icons.chevron_right_rounded,
                     size: 18, color: FarmioColors.textMuted),
@@ -209,269 +117,59 @@ class _EquipmentList extends StatelessWidget {
       },
     );
   }
+
+  IconData _categoryIcon(String category) => switch (category) {
+        'tractor' => Icons.agriculture_outlined,
+        'irrigation' => Icons.water_drop_outlined,
+        'tool' => Icons.build_outlined,
+        'vehicle' => Icons.local_shipping_outlined,
+        _ => Icons.precision_manufacturing_outlined,
+      };
 }
 
-class _EquipmentSummary extends StatelessWidget {
-  final List<EquipmentItem> items;
-  final List<OverheadExpense> allCosts;
-  const _EquipmentSummary({required this.items, required this.allCosts});
+class _StatusChip extends StatelessWidget {
+  final String status;
+  const _StatusChip({required this.status});
 
   @override
   Widget build(BuildContext context) {
-    final totalCost = allCosts.fold(0.0, (s, c) => s + c.amount);
-    final maintenanceCost = allCosts
-        .where((c) => c.category == 'Maintenance')
-        .fold(0.0, (s, c) => s + c.amount);
+    final color = switch (status) {
+      'under_repair' => FarmioColors.warning,
+      'retired' => FarmioColors.textMuted,
+      _ => FarmioColors.success,
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(equipmentStatusLabel(status),
+          style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+    );
+  }
+}
+
+class _EquipmentSummary extends StatelessWidget {
+  final List<EquipmentModel> items;
+  const _EquipmentSummary({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    final active = items.where((e) => e.status == 'active').length;
+    final maintenanceCost = items.fold(0.0, (s, e) => s + e.maintenanceCost);
 
     return FarmioSummaryBar(
       stats: [
         FarmioSummaryStat(label: 'Items', value: '${items.length}'),
-        FarmioSummaryStat(
-            label: 'Fuel & service', value: Fmt.mwk(totalCost)),
+        FarmioSummaryStat(label: 'Active', value: '$active'),
         FarmioSummaryStat(
           label: 'Maintenance',
           value: Fmt.mwk(maintenanceCost),
           color: Colors.orangeAccent,
         ),
       ],
-    );
-  }
-}
-
-class _CostsList extends StatefulWidget {
-  final List<OverheadExpense> costs;
-  final ValueChanged<OverheadExpense> onDelete;
-  const _CostsList({required this.costs, required this.onDelete});
-
-  @override
-  State<_CostsList> createState() => _CostsListState();
-}
-
-class _CostsListState extends State<_CostsList> {
-  String _categoryFilter = 'All';
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.costs.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: Text(
-            'No fuel or service costs recorded yet.',
-            style: TextStyle(color: FarmioColors.textMuted),
-          ),
-        ),
-      );
-    }
-
-    final categories = {...widget.costs.map((c) => c.category)}.toList();
-    final filtered = _categoryFilter == 'All'
-        ? widget.costs
-        : widget.costs.where((c) => c.category == _categoryFilter).toList();
-
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
-      itemCount: filtered.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return EntityFilterBar(
-            dimensions: [
-              FilterDimension(
-                label: 'Category',
-                icon: Icons.category_outlined,
-                value: _categoryFilter,
-                options: categories,
-                onSelected: (v) => setState(() => _categoryFilter = v),
-              ),
-            ],
-          );
-        }
-        if (filtered.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: Text(
-                'No costs match this filter',
-                style: TextStyle(color: FarmioColors.textMuted),
-              ),
-            ),
-          );
-        }
-        final cost = filtered[index - 1];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: context.colors.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: context.colors.border),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(cost.description,
-                        style: const TextStyle(fontWeight: FontWeight.w800)),
-                    Text(cost.category,
-                        style: const TextStyle(
-                            fontSize: 12, color: FarmioColors.textMuted)),
-                  ],
-                ),
-              ),
-              Text(Fmt.mwk(cost.amount),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: FarmioColors.danger)),
-              IconButton(
-                tooltip: 'Delete cost',
-                icon: const Icon(Icons.delete_outline,
-                    size: 18, color: FarmioColors.textMuted),
-                onPressed: () => widget.onDelete(cost),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class EquipmentCostForm extends ConsumerStatefulWidget {
-  final String? initialDescription;
-  const EquipmentCostForm({super.key, this.initialDescription});
-
-  @override
-  ConsumerState<EquipmentCostForm> createState() => _EquipmentCostFormState();
-}
-
-class _EquipmentCostFormState extends ConsumerState<EquipmentCostForm> {
-  late final _descCtrl =
-      TextEditingController(text: widget.initialDescription ?? '');
-  final _amountCtrl = TextEditingController();
-  String _category = 'Machinery';
-  DateTime _date = DateTime.now();
-  bool _saving = false;
-  String? _error;
-
-  final _categories = const ['Machinery', 'Fuel', 'Maintenance'];
-
-  @override
-  void dispose() {
-    _descCtrl.dispose();
-    _amountCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) setState(() => _date = picked);
-  }
-
-  Future<void> _save() async {
-    if (_descCtrl.text.trim().isEmpty || _amountCtrl.text.trim().isEmpty) {
-      setState(() => _error = 'Description and amount are required.');
-      return;
-    }
-    setState(() {
-      _saving = true;
-      _error = null;
-    });
-
-    try {
-      await ref.read(equipmentRepositoryProvider).addCost({
-        'description': _descCtrl.text.trim(),
-        'category': _category,
-        'amount': _amountCtrl.text.trim(),
-        'date': _date.toIso8601String(),
-      });
-      ref.invalidate(equipmentProvider);
-      if (mounted) Navigator.pop(context);
-    } catch (e) {
-      setState(() => _error = 'Could not save cost: $e');
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottom),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: context.colors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text('Add fuel / service cost',
-                  style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w900)),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _descCtrl,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _category,
-                decoration: const InputDecoration(labelText: 'Category'),
-                items: _categories
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (v) => setState(() => _category = v ?? _category),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _amountCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Amount'),
-              ),
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: _pickDate,
-                child: InputDecorator(
-                  decoration: const InputDecoration(labelText: 'Date'),
-                  child: Text(
-                      '${_date.day}/${_date.month}/${_date.year}'),
-                ),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                FarmioErrorBanner(message: _error!),
-              ],
-              const SizedBox(height: 18),
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _saving ? null : _save,
-                  child: _saving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2),
-                        )
-                      : const Text('Save cost'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

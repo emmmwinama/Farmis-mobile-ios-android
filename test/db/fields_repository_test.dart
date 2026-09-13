@@ -3,14 +3,17 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:farmio_mobile/core/db/app_database.dart';
 import 'package:farmio_mobile/features/fields/fields_repository.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
   late FieldsRepository repo;
+  late FakeRestResource fieldsApi;
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
-    repo = FieldsRepository(db);
+    fieldsApi = FakeRestResource('/api/mobile/fields');
+    repo = FieldsRepository(db, fakeApiDio([fieldsApi]));
   });
 
   tearDown(() async => db.close());
@@ -187,7 +190,8 @@ void main() {
     expect(fields.first.crops, isEmpty);
   });
 
-  test('updateField patches only provided fields', () async {
+  test('updateField patches only provided fields, merging with the current row',
+      () async {
     final field = await repo.createField({
       'name': 'West Field',
       'totalArea': '2',
@@ -200,6 +204,7 @@ void main() {
     final fields = await repo.getFields();
     expect(fields.first.name, 'Renamed Field');
     expect(fields.first.soilType, 'Loam'); // untouched
+    expect(fields.first.totalArea, 2); // untouched
   });
 
   test('deleteField removes the row', () async {

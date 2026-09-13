@@ -412,6 +412,34 @@ class AnimalSaleRecords extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('EquipmentRow')
+class Equipment extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get category => text()(); // tractor|irrigation|tool|vehicle|other
+  TextColumn get status => text().withDefault(const Constant('active'))(); // active|under_repair|retired
+  DateTimeColumn get acquisitionDate => dateTime().nullable()();
+  RealColumn get acquisitionCost => real().nullable()();
+  TextColumn get notes => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('EquipmentMaintenanceLogRow')
+class EquipmentMaintenanceLogs extends Table {
+  TextColumn get id => text()();
+  TextColumn get equipmentId => text()();
+  DateTimeColumn get date => dateTime()();
+  TextColumn get description => text()();
+  RealColumn get cost => real().withDefault(const Constant(0))();
+  RealColumn get hoursUsed => real().nullable()();
+  TextColumn get notes => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(tables: [
   FarmProfile,
   Fields,
@@ -439,6 +467,8 @@ class AnimalSaleRecords extends Table {
   AnimalWeightRecords,
   AnimalExpenseRecords,
   AnimalSaleRecords,
+  Equipment,
+  EquipmentMaintenanceLogs,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection()) {
@@ -455,7 +485,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -481,6 +511,10 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 3) {
             await m.addColumn(notifications, notifications.dismissed);
+          }
+          if (from < 4) {
+            await m.createTable(equipment);
+            await m.createTable(equipmentMaintenanceLogs);
           }
         },
       );

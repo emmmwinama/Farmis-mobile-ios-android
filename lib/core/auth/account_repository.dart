@@ -1,101 +1,51 @@
 import 'package:dio/dio.dart';
 import 'account_models.dart';
 
-typedef AuthResult = ({String token, Account account});
+typedef AuthResult = ({String accessToken, String refreshToken, AccountUser user});
 
+/// Talks to Ulimi's mobile auth endpoints (`/api/mobile/login|refresh|logout`
+/// — see `docs/MOBILE-API.md` in the Ulimi-app repo). There is deliberately
+/// no register/Google-sign-in/password-reset here: none of those exist on
+/// the backend yet. An account is created on the web app; this app only
+/// signs in to one that already exists.
 class AccountRepository {
   final Dio _dio;
   const AccountRepository(this._dio);
 
-  Future<AuthResult> login({required String email, required String password}) async {
+  Future<AuthResult> login({
+    required String email,
+    required String password,
+    String device = '',
+  }) async {
     final res = await _dio.post('/api/mobile/login', data: {
       'email': email,
       'password': password,
+      'device': device,
     });
     return _authResult(res.data as Map<String, dynamic>);
   }
 
-  /// Signs in with a Google ID token obtained on-device via
-  /// [GoogleAuthService] — the backend verifies it, and creates the account
-  /// automatically on first use, so there's no separate "register with
-  /// Google" call needed.
-  Future<AuthResult> loginWithGoogle(String idToken) async {
-    final res = await _dio.post('/api/mobile/login-google', data: {'idToken': idToken});
+  Future<AuthResult> refresh(String refreshToken) async {
+    final res = await _dio.post('/api/mobile/refresh', data: {'refresh_token': refreshToken});
     return _authResult(res.data as Map<String, dynamic>);
   }
 
-  Future<AuthResult> register({
-    required String name,
-    required String email,
-    required String password,
-    String? farmName,
-  }) async {
-    final res = await _dio.post('/api/mobile/register', data: {
-      'name': name,
-      'email': email,
-      'password': password,
-      if (farmName != null && farmName.trim().isNotEmpty) 'farmName': farmName.trim(),
+  Future<void> logout(String? refreshToken) async {
+    await _dio.post('/api/mobile/logout', data: {
+      if (refreshToken != null) 'refresh_token': refreshToken,
     });
-    return _authResult(res.data as Map<String, dynamic>);
   }
 
   AuthResult _authResult(Map<String, dynamic> data) {
-    final token = data['token'] as String?;
-    if (token == null || token.isEmpty) {
+    final accessToken = data['access_token'] as String?;
+    final refreshToken = data['refresh_token'] as String?;
+    if (accessToken == null || accessToken.isEmpty || refreshToken == null || refreshToken.isEmpty) {
       throw DioException(requestOptions: RequestOptions(), error: 'No session token returned');
     }
-    return (token: token, account: Account.fromJson(data));
-  }
-
-  /// Requests a one-time reset code by email. Always succeeds server-side
-  /// regardless of whether the email is registered (avoids leaking which
-  /// emails have accounts) — no return value to act on beyond "it was sent."
-  Future<void> requestPasswordReset(String email) async {
-    await _dio.post('/api/mobile/forgot-password', data: {'email': email});
-  }
-
-  Future<void> resetPassword({
-    required String email,
-    required String code,
-    required String newPassword,
-  }) async {
-    await _dio.post('/api/mobile/reset-password', data: {
-      'email': email,
-      'code': code,
-      'newPassword': newPassword,
-    });
-  }
-
-  Future<Account> fetchProfile() async {
-    final res = await _dio.get('/api/mobile/profile');
-    return Account.fromJson(res.data as Map<String, dynamic>);
-  }
-
-  /// Pushes the full local export up to the cloud. Returns the row counts the
-  /// backend accepted, keyed by table name.
-  Future<Map<String, int>> backup(Map<String, dynamic> exportJson) async {
-    final res = await _dio.post('/api/mobile/backup', data: exportJson);
-    final counts = (res.data as Map<String, dynamic>)['counts'] as Map<String, dynamic>? ?? {};
-    return counts.map((k, v) => MapEntry(k, (v as num).toInt()));
-  }
-
-  /// Pulls the farm's latest cloud backup down — used to restore onto a new
-  /// device. Returns the same JSON shape the local export/import already uses.
-  Future<Map<String, dynamic>> restore() async {
-    final res = await _dio.get('/api/mobile/backup');
-    return res.data as Map<String, dynamic>;
-  }
-
-  /// Starts a PayPal checkout for [plan] ("monthly" or "lifetime") and
-  /// returns the approval URL to open in a browser. The subscription itself
-  /// only activates once PayPal's webhook confirms payment server-side —
-  /// this call just kicks off that flow, it doesn't grant anything by itself.
-  Future<Uri> startCheckout(String plan) async {
-    final res = await _dio.post('/api/mobile/paypal/checkout', data: {'plan': plan});
-    final approveUrl = (res.data as Map<String, dynamic>)['approveUrl'] as String?;
-    if (approveUrl == null || approveUrl.isEmpty) {
-      throw DioException(requestOptions: RequestOptions(), error: 'No approval link returned');
-    }
-    return Uri.parse(approveUrl);
+    return (
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      user: AccountUser.fromJson(data['user'] as Map<String, dynamic>),
+    );
   }
 }

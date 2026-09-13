@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/filters/report_record_filters.dart';
+import '../../shared/widgets/farmio_error_banner.dart';
+import 'records_provider.dart';
 
-class RecordsScreen extends StatefulWidget {
+class RecordsScreen extends ConsumerStatefulWidget {
   const RecordsScreen({super.key});
 
   @override
-  State<RecordsScreen> createState() => _RecordsScreenState();
+  ConsumerState<RecordsScreen> createState() => _RecordsScreenState();
 }
 
-class _RecordsScreenState extends State<RecordsScreen> {
+class _RecordsScreenState extends ConsumerState<RecordsScreen> {
   String _selectedPack = 'loan';
   ReportRecordFilters _filters = const ReportRecordFilters();
   final Set<String> _sections = {
@@ -23,6 +27,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
   @override
   Widget build(BuildContext context) {
     final selected = _packs.firstWhere((pack) => pack.key == _selectedPack);
+    final records = ref.watch(recordsDataProvider);
 
     return Scaffold(
       backgroundColor: context.colors.background,
@@ -31,94 +36,74 @@ class _RecordsScreenState extends State<RecordsScreen> {
         foregroundColor: context.colors.textPrimary,
         shape: const Border(),
         title: const Text('Records'),
-        actions: [
-          IconButton(
-            tooltip: 'Preview',
-            icon: const Icon(Icons.visibility_outlined),
-            onPressed: () {},
-          ),
-        ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 96),
-        children: [
-          _RecordsHero(pack: selected),
-          ReportRecordFilterBar(
-            value: _filters,
-            crops: _recordCrops,
-            seasons: _recordSeasons,
-            fields: _recordFields,
-            onChanged: (filters) => setState(() => _filters = filters),
+      body: records.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: FarmioErrorBanner(message: 'Could not load your farm records: $e'),
           ),
-          const SizedBox(height: 18),
-          const _SectionHeader(
-            eyebrow: 'Document type',
-            title: 'Choose an evidence pack',
-            subtitle: 'Records are export-ready bundles for people outside the farm.',
-          ),
-          const SizedBox(height: 12),
-          ..._packs.map((pack) => _RecordPackTile(
-                pack: pack,
-                selected: _selectedPack == pack.key,
-                onTap: () => setState(() => _selectedPack = pack.key),
-              )),
-          const SizedBox(height: 18),
-          const _SectionHeader(
-            eyebrow: 'Contents',
-            title: 'Sections to include',
-            subtitle: 'Turn sections on or off before generating the final file.',
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: _exportSections
-                .map((section) => _SectionToggle(
-                      section: section,
-                      selected: _sections.contains(section.key),
-                      onTap: () => setState(() {
-                        if (_sections.contains(section.key)) {
-                          _sections.remove(section.key);
-                        } else {
-                          _sections.add(section.key);
-                        }
-                      }),
-                    ))
-                .toList(),
-          ),
-          const SizedBox(height: 22),
-          _ExportPanel(
-            pack: _selectedPack,
-            sections: _sections.toList(),
-            filters: _filters,
-          ),
-        ],
+        ),
+        data: (data) => ListView(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 96),
+          children: [
+            _RecordsHero(pack: selected),
+            ReportRecordFilterBar(
+              value: _filters,
+              crops: data.crops,
+              seasons: data.seasons,
+              fields: data.fieldNames,
+              onChanged: (filters) => setState(() => _filters = filters),
+            ),
+            const SizedBox(height: 18),
+            const _SectionHeader(
+              eyebrow: 'Document type',
+              title: 'Choose an evidence pack',
+              subtitle: 'Records are export-ready bundles for people outside the farm.',
+            ),
+            const SizedBox(height: 12),
+            ..._packs.map((pack) => _RecordPackTile(
+                  pack: pack,
+                  selected: _selectedPack == pack.key,
+                  onTap: () => setState(() => _selectedPack = pack.key),
+                )),
+            const SizedBox(height: 18),
+            const _SectionHeader(
+              eyebrow: 'Contents',
+              title: 'Sections to include',
+              subtitle: 'Turn sections on or off before generating the final file.',
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: _exportSections
+                  .map((section) => _SectionToggle(
+                        section: section,
+                        selected: _sections.contains(section.key),
+                        onTap: () => setState(() {
+                          if (_sections.contains(section.key)) {
+                            _sections.remove(section.key);
+                          } else {
+                            _sections.add(section.key);
+                          }
+                        }),
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(height: 22),
+            _ExportPanel(
+              pack: _selectedPack,
+              sections: _sections,
+              filters: _filters,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
-
-const _recordCrops = [
-  'Maize',
-  'Soya',
-  'Groundnuts',
-  'Tobacco',
-  'Beans',
-];
-
-const _recordSeasons = [
-  '2026',
-  '2025/2026',
-  '2025',
-  '2024/2025',
-];
-
-const _recordFields = [
-  'North field',
-  'River block',
-  'Demo plot',
-  'Home field',
-];
 
 class _RecordsHero extends StatelessWidget {
   final _Pack pack;
@@ -501,9 +486,9 @@ class _SectionToggle extends StatelessWidget {
   }
 }
 
-class _ExportPanel extends StatelessWidget {
+class _ExportPanel extends ConsumerStatefulWidget {
   final String pack;
-  final List<String> sections;
+  final Set<String> sections;
   final ReportRecordFilters filters;
 
   const _ExportPanel({
@@ -513,14 +498,34 @@ class _ExportPanel extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final params = [
-      'type=$pack',
-      ...sections.map((section) => 'section=$section'),
-      ...filters.toQuery().entries.map((entry) =>
-          '${entry.key}=${Uri.encodeComponent('${entry.value}')}'),
-    ].join('&');
+  ConsumerState<_ExportPanel> createState() => _ExportPanelState();
+}
 
+class _ExportPanelState extends ConsumerState<_ExportPanel> {
+  bool _exporting = false;
+  String? _error;
+
+  Future<void> _export(bool asPdf) async {
+    if (widget.sections.isEmpty) {
+      setState(() => _error = 'Select at least one section to include.');
+      return;
+    }
+    setState(() { _exporting = true; _error = null; });
+    try {
+      final repo = ref.read(recordsRepositoryProvider);
+      final path = asPdf
+          ? await repo.exportPdf(pack: widget.pack, filters: widget.filters, sections: widget.sections)
+          : await repo.exportCsv(pack: widget.pack, filters: widget.filters, sections: widget.sections);
+      await Share.shareXFiles([XFile(path)], text: 'Farmio ${widget.pack} records');
+    } catch (e) {
+      setState(() => _error = 'Could not generate that file. Try again.');
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -540,31 +545,30 @@ class _ExportPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Direct mobile download needs the web export route to accept mobile JWT authentication.',
-            style: TextStyle(
+          Text(
+            'Built on-device from ${widget.filters.summary}. Nothing leaves this phone until you share it.',
+            style: const TextStyle(
               color: FarmioColors.textSecond,
               fontSize: 12,
               height: 1.35,
             ),
           ),
-          const SizedBox(height: 14),
-          SelectableText(
-            '/api/export/records?$params&format=pdf',
-            style: const TextStyle(
-              color: FarmioColors.info,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+          if (_error != null) ...[
+            const SizedBox(height: 12),
+            FarmioErrorBanner(message: _error!),
+          ],
           const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  icon: _exporting
+                      ? const SizedBox(
+                          width: 16, height: 16,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Icon(Icons.picture_as_pdf_outlined),
                   label: const Text('PDF'),
-                  onPressed: () {},
+                  onPressed: _exporting ? null : () => _export(true),
                 ),
               ),
               const SizedBox(width: 10),
@@ -572,7 +576,7 @@ class _ExportPanel extends StatelessWidget {
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.table_chart_outlined),
                   label: const Text('CSV'),
-                  onPressed: () {},
+                  onPressed: _exporting ? null : () => _export(false),
                 ),
               ),
             ],

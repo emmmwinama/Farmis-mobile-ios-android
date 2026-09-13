@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:farmio_mobile/core/db/app_database.dart';
 import 'package:farmio_mobile/features/field_map/field_map_repository.dart';
 import 'package:farmio_mobile/features/fields/fields_repository.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
@@ -11,8 +12,8 @@ void main() {
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
-    repo = FieldMapRepository(db);
-    fields = FieldsRepository(db);
+    fields = FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')]));
+    repo = FieldMapRepository(db, fields);
   });
 
   tearDown(() async => db.close());

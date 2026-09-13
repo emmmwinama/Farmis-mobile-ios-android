@@ -3,27 +3,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:farmio_mobile/core/auth/account_models.dart';
-import 'package:farmio_mobile/core/auth/account_provider.dart';
+import 'package:farmio_mobile/core/api/api_client.dart';
 import 'package:farmio_mobile/core/db/app_database.dart';
 import 'package:farmio_mobile/core/db/database_provider.dart';
 import 'package:farmio_mobile/core/limits/free_tier_limits.dart';
 import 'package:farmio_mobile/features/fields/fields_repository.dart';
 import 'package:farmio_mobile/features/fields/fields_screen.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
+  late FieldsRepository fieldsRepo;
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
+    fieldsRepo = FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')]));
   });
 
   tearDown(() async => db.close());
 
   Future<void> seedFields(int count) async {
-    final repo = FieldsRepository(db);
     for (var i = 0; i < count; i++) {
-      await repo.createField({
+      await fieldsRepo.createField({
         'name': 'Field $i',
         'totalArea': 4.0,
         'cultivatableArea': 3.5,
@@ -47,7 +48,11 @@ void main() {
       ],
     );
     return ProviderScope(
-      overrides: [databaseProvider.overrideWithValue(db), ...overrides],
+      overrides: [
+        databaseProvider.overrideWithValue(db),
+        apiClientProvider.overrideWithValue(fakeApiDio([FakeRestResource('/api/mobile/fields')])),
+        ...overrides,
+      ],
       child: MaterialApp.router(routerConfig: router),
     );
   }
@@ -71,32 +76,6 @@ void main() {
     await seedFields(FreeTierLimits.maxFields - 1);
 
     await tester.pumpWidget(wrap(overrides: []));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
-
-    expect(find.text('New field form'), findsOneWidget);
-    expect(find.text("You've reached your Free plan limit"), findsNothing);
-  });
-
-  testWidgets('a paid account is never blocked, even past the free field limit', (tester) async {
-    await seedFields(FreeTierLimits.maxFields + 3);
-
-    final premiumAccount = Account(
-      user: const AccountUser(id: 'u1', name: 'Jane', email: 'jane@example.com'),
-      farm: const AccountFarm(id: 'f1', name: 'Jane Farm'),
-      subscription: const AccountSubscription(status: 'active', tierName: 'Mobile Monthly'),
-    );
-
-    await tester.pumpWidget(wrap(overrides: [
-      accountProvider.overrideWith((ref) {
-        final notifier = AccountNotifier(ref);
-        // ignore: invalid_use_of_protected_member
-        notifier.state = AccountState(hydrated: true, account: premiumAccount);
-        return notifier;
-      }),
-    ]));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byType(FloatingActionButton));
