@@ -2,9 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'field_map_repository.dart';
 import '../../core/db/database_provider.dart';
 import '../../models/field_boundary.dart';
+import '../fields/fields_provider.dart';
 
 final fieldMapRepositoryProvider = Provider<FieldMapRepository>(
-  (ref) => FieldMapRepository(ref.read(databaseProvider)),
+  (ref) => FieldMapRepository(ref.read(databaseProvider), ref.read(fieldsRepositoryProvider)),
 );
 
 final fieldMapProvider = FutureProvider.autoDispose<FieldMapData>((ref) {

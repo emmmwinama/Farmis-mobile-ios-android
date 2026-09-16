@@ -6,6 +6,7 @@ import 'package:farmio_mobile/features/fields/fields_repository.dart';
 import 'package:farmio_mobile/features/crops/crops_repository.dart';
 import 'package:farmio_mobile/features/finance/finance_repository.dart';
 import 'package:farmio_mobile/features/yields/yields_repository.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
@@ -18,10 +19,10 @@ void main() {
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
     repo = SeasonsRepository(db);
-    fields = FieldsRepository(db);
-    crops = CropsRepository(db);
+    fields = FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')]));
+    crops = CropsRepository(db, fakeApiDio([fakeCropsResource()]));
     finance = FinanceRepository(db);
-    yields = YieldsRepository(db);
+    yields = YieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/yields')]));
   });
 
   tearDown(() async => db.close());

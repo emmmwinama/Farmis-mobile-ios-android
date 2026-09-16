@@ -2,31 +2,53 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/equipment.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'equipment_provider.dart';
 
 class EquipmentFormScreen extends ConsumerStatefulWidget {
-  const EquipmentFormScreen({super.key});
+  final EquipmentModel? existing;
+  const EquipmentFormScreen({super.key, this.existing});
 
   @override
   ConsumerState<EquipmentFormScreen> createState() => _EquipmentFormScreenState();
 }
 
 class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
-  final _nameCtrl = TextEditingController();
-  final _unitCtrl = TextEditingController(text: 'unit');
-  final _quantityCtrl = TextEditingController(text: '1');
-  final _notesCtrl = TextEditingController();
+  late final _nameCtrl = TextEditingController(text: widget.existing?.name);
+  late final _costCtrl = TextEditingController(
+      text: widget.existing?.acquisitionCost?.toString());
+  late final _notesCtrl = TextEditingController(text: widget.existing?.notes);
+  late String _category = widget.existing?.category ?? 'tractor';
+  late String _status = widget.existing?.status ?? 'active';
+  DateTime? _acquisitionDate;
   bool _saving = false;
   String? _error;
+
+  bool get _isEditing => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _acquisitionDate = widget.existing?.acquisitionDate;
+  }
 
   @override
   void dispose() {
     _nameCtrl.dispose();
-    _unitCtrl.dispose();
-    _quantityCtrl.dispose();
+    _costCtrl.dispose();
     _notesCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _acquisitionDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) setState(() => _acquisitionDate = picked);
   }
 
   Future<void> _save() async {
@@ -39,15 +61,22 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
       _error = null;
     });
 
+    final data = {
+      'name': _nameCtrl.text.trim(),
+      'category': _category,
+      'status': _status,
+      'acquisitionDate': _acquisitionDate?.toIso8601String(),
+      'acquisitionCost': _costCtrl.text.trim(),
+      'notes': _notesCtrl.text.trim(),
+    };
+
     try {
-      await ref.read(equipmentRepositoryProvider).addEquipment({
-        'name': _nameCtrl.text.trim(),
-        'unit': _unitCtrl.text.trim().isEmpty ? 'unit' : _unitCtrl.text.trim(),
-        'quantity': _quantityCtrl.text.trim().isEmpty
-            ? 1
-            : num.tryParse(_quantityCtrl.text.trim()) ?? 1,
-        'notes': _notesCtrl.text.trim(),
-      });
+      final existing = widget.existing;
+      if (existing != null) {
+        await ref.read(equipmentRepositoryProvider).updateEquipment(existing.id, data);
+      } else {
+        await ref.read(equipmentRepositoryProvider).addEquipment(data);
+      }
       ref.invalidate(equipmentProvider);
       if (mounted) context.pop();
     } catch (e) {
@@ -62,8 +91,8 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('Add equipment',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(_isEditing ? 'Edit equipment' : 'Add equipment',
+            style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -78,17 +107,52 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _quantityCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Quantity'),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _category,
+                    decoration: const InputDecoration(labelText: 'Category'),
+                    items: kEquipmentCategories
+                        .map((c) => DropdownMenuItem(
+                            value: c, child: Text(equipmentCategoryLabel(c))))
+                        .toList(),
+                    onChanged: (v) => setState(() => _category = v ?? _category),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _status,
+                    decoration: const InputDecoration(labelText: 'Status'),
+                    items: kEquipmentStatuses
+                        .map((s) => DropdownMenuItem(
+                            value: s, child: Text(equipmentStatusLabel(s))))
+                        .toList(),
+                    onChanged: (v) => setState(() => _status = v ?? _status),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: _pickDate,
+                    child: InputDecorator(
+                      decoration:
+                          const InputDecoration(labelText: 'Acquired on (optional)'),
+                      child: Text(_acquisitionDate != null
+                          ? '${_acquisitionDate!.day}/${_acquisitionDate!.month}/${_acquisitionDate!.year}'
+                          : 'Not set'),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
-                    controller: _unitCtrl,
-                    decoration: const InputDecoration(labelText: 'Unit'),
+                    controller: _costCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration:
+                        const InputDecoration(labelText: 'Cost (optional)'),
                   ),
                 ),
               ],
@@ -114,7 +178,7 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2),
                       )
-                    : const Text('Save equipment'),
+                    : Text(_isEditing ? 'Save changes' : 'Save equipment'),
               ),
             ),
           ],

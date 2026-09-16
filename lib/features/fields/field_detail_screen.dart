@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/field.dart';
 import '../../models/field_detail.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_card.dart';
@@ -26,6 +27,28 @@ class FieldDetailScreen extends ConsumerWidget {
             icon: const Icon(Icons.gps_fixed_outlined),
             tooltip: 'Boundary & zones',
             onPressed: () => context.push('/fields/$fieldId/boundary'),
+          ),
+          detail.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (f) => IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit field',
+              onPressed: () => context.push('/fields/new', extra: FieldModel(
+                id: f.id,
+                name: f.name,
+                totalArea: f.totalArea,
+                cultivatableArea: f.cultivatableArea,
+                soilType: f.soilType,
+                locationLat: f.locationLat,
+                locationLng: f.locationLng,
+                notes: f.notes,
+                createdAt: f.createdAt,
+                allocatedArea: f.allocatedArea,
+                cropCount: f.crops.length,
+                crops: const [],
+              )),
+            ),
           ),
         ],
       ),

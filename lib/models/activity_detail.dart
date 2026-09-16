@@ -30,6 +30,7 @@ class ActivityInput {
 
 class ActivityLabour {
   final String id;
+  final String employeeId;
   final String employeeName;
   final double hoursWorked;
   final double daysWorked;
@@ -37,6 +38,7 @@ class ActivityLabour {
 
   const ActivityLabour({
     required this.id,
+    required this.employeeId,
     required this.employeeName,
     required this.hoursWorked,
     required this.daysWorked,
@@ -45,6 +47,7 @@ class ActivityLabour {
 
   factory ActivityLabour.fromJson(Map<String, dynamic> json) => ActivityLabour(
     id:           json['id']           as String,
+    employeeId:   json['employeeId']   as String,
     employeeName: json['employeeName'] as String,
     hoursWorked:  (json['hoursWorked'] as num).toDouble(),
     daysWorked:   (json['daysWorked']  as num).toDouble(),

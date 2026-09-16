@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/inventory_item.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'inventory_provider.dart';
 
 class InventoryItemFormScreen extends ConsumerStatefulWidget {
-  const InventoryItemFormScreen({super.key});
+  final InventoryItem? existing;
+  const InventoryItemFormScreen({super.key, this.existing});
 
   @override
   ConsumerState<InventoryItemFormScreen> createState() =>
@@ -15,13 +17,15 @@ class InventoryItemFormScreen extends ConsumerStatefulWidget {
 
 class _InventoryItemFormScreenState
     extends ConsumerState<InventoryItemFormScreen> {
-  final _nameCtrl = TextEditingController();
-  final _categoryCtrl = TextEditingController();
-  final _unitCtrl = TextEditingController(text: 'kg');
-  final _quantityCtrl = TextEditingController();
-  final _costCtrl = TextEditingController();
+  late final _nameCtrl = TextEditingController(text: widget.existing?.name);
+  late final _categoryCtrl = TextEditingController(text: widget.existing?.category);
+  late final _unitCtrl = TextEditingController(text: widget.existing?.unit ?? 'kg');
+  late final _quantityCtrl = TextEditingController(text: widget.existing?.quantity.toString());
+  late final _costCtrl = TextEditingController(text: widget.existing?.acquisitionUnitCost?.toString());
   bool _saving = false;
   String? _error;
+
+  bool get _isEditing => widget.existing != null;
 
   @override
   void dispose() {
@@ -45,16 +49,23 @@ class _InventoryItemFormScreenState
       _error = null;
     });
 
+    final data = {
+      'name': _nameCtrl.text.trim(),
+      'category': _categoryCtrl.text.trim(),
+      'unit': _unitCtrl.text.trim().isEmpty ? 'kg' : _unitCtrl.text.trim(),
+      'quantity': num.tryParse(_quantityCtrl.text.trim()) ?? 0,
+      'acquisitionUnitCost': _costCtrl.text.trim().isEmpty
+          ? null
+          : num.tryParse(_costCtrl.text.trim()),
+    };
+
     try {
-      await ref.read(inventoryRepositoryProvider).createItem({
-        'name': _nameCtrl.text.trim(),
-        'category': _categoryCtrl.text.trim(),
-        'unit': _unitCtrl.text.trim().isEmpty ? 'kg' : _unitCtrl.text.trim(),
-        'quantity': num.tryParse(_quantityCtrl.text.trim()) ?? 0,
-        'acquisitionUnitCost': _costCtrl.text.trim().isEmpty
-            ? null
-            : num.tryParse(_costCtrl.text.trim()),
-      });
+      final existing = widget.existing;
+      if (existing != null) {
+        await ref.read(inventoryRepositoryProvider).updateItem(existing.id, data);
+      } else {
+        await ref.read(inventoryRepositoryProvider).createItem(data);
+      }
       ref.invalidate(inventoryItemsProvider);
       if (mounted) context.pop();
     } catch (e) {
@@ -69,8 +80,8 @@ class _InventoryItemFormScreenState
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('Add stock',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(_isEditing ? 'Edit stock' : 'Add stock',
+            style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -128,7 +139,7 @@ class _InventoryItemFormScreenState
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2),
                       )
-                    : const Text('Save item'),
+                    : Text(_isEditing ? 'Save changes' : 'Save item'),
               ),
             ),
           ],

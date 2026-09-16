@@ -8,6 +8,7 @@ class SecureStorage {
   static const _storage = FlutterSecureStorage();
 
   static const _keyToken = 'auth_token';
+  static const _keyRefreshToken = 'auth_refresh_token';
   static const _keyUserId = 'user_id';
   static const _keyFarmId = 'farm_id';
   static const _keyProfile = 'profile_json';
@@ -59,11 +60,18 @@ class SecureStorage {
     return digest.toString();
   }
 
-  // Token
+  // Access/refresh token pair — the access token is a short-lived JWT sent as
+  // `Authorization: Bearer`, the refresh token a long-lived, single-use
+  // opaque string exchanged at /api/mobile/refresh (rotates on every use, so
+  // only ever the *latest* one is kept).
   static Future<void> saveToken(String token) =>
       _storage.write(key: _keyToken, value: token);
   static Future<String?> getToken() => _storage.read(key: _keyToken);
   static Future<void> clearToken() => _storage.delete(key: _keyToken);
+
+  static Future<void> saveRefreshToken(String token) =>
+      _storage.write(key: _keyRefreshToken, value: token);
+  static Future<String?> getRefreshToken() => _storage.read(key: _keyRefreshToken);
 
   // User / Farm IDs
   static Future<void> saveUserId(String id) =>
@@ -75,15 +83,16 @@ class SecureStorage {
   static Future<String?> getFarmId() => _storage.read(key: _keyFarmId);
   static Future<void> clearFarmId() => _storage.delete(key: _keyFarmId);
 
-  static Future<void> saveProfileJson(String json) =>
-      _storage.write(key: _keyProfile, value: json);
-  static Future<String?> getProfileJson() => _storage.read(key: _keyProfile);
+  static Future<void> saveUserEmail(String email) =>
+      _storage.write(key: _keyProfile, value: email);
+  static Future<String?> getUserEmail() => _storage.read(key: _keyProfile);
 
   // Delete only authentication-owned keys. Other secure-storage users, such
   // as the offline sync queue, must survive logout and token expiry.
   static Future<void> clearAuth() async {
     await Future.wait([
       _storage.delete(key: _keyToken),
+      _storage.delete(key: _keyRefreshToken),
       _storage.delete(key: _keyUserId),
       _storage.delete(key: _keyFarmId),
       _storage.delete(key: _keyProfile),

@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import '../../core/db/app_database.dart';
 import '../../core/db/db_utils.dart';
 import '../../models/field_boundary.dart';
+import '../fields/fields_repository.dart';
 
 /// Extracts the first ring's `[lng, lat]` pairs from a GeoJSON Feature or
 /// bare Polygon geometry, mirroring the backend's `polygonCoords()`.
@@ -46,9 +47,10 @@ double _calcAreaHa(List<List<double>> coordinates) {
 }
 
 class FieldMapRepository {
-  FieldMapRepository(this._db);
+  FieldMapRepository(this._db, this._fields);
 
   final AppDatabase _db;
+  final FieldsRepository _fields;
 
   Future<FieldMapData> getFieldMap() async {
     final profile = await _db.select(_db.farmProfile).getSingleOrNull();
@@ -248,12 +250,14 @@ class FieldMapRepository {
 
     if (updateFieldArea && areaHa > 0) {
       final rounded = double.parse(areaHa.toStringAsFixed(4));
-      await (_db.update(_db.fields)..where((t) => t.id.equals(fieldId))).write(
-        FieldsCompanion(
-          totalArea: Value(rounded),
-          cultivatableArea: Value(rounded),
-        ),
-      );
+      // Goes through FieldsRepository (not a direct local write) so the
+      // change also reaches the server — fields are online-required now,
+      // and a local-only write here would get silently reverted the next
+      // time FieldsRepository pulls the (stale) server copy back down.
+      await _fields.updateField(fieldId, {
+        'totalArea': rounded,
+        'cultivatableArea': rounded,
+      });
     }
 
     final row = await (_db.select(_db.fieldBoundaries)

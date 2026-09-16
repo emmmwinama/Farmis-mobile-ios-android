@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/activity_detail.dart';
 import '../../models/crop_field.dart';
 import '../../models/employee.dart';
 import '../../shared/agronomy/crop_timeline_catalog.dart';
@@ -12,7 +13,8 @@ import '../crops/crops_provider.dart';
 import 'activities_provider.dart';
 
 class ActivityFormScreen extends ConsumerStatefulWidget {
-  const ActivityFormScreen({super.key});
+  final ActivityDetail? existing;
+  const ActivityFormScreen({super.key, this.existing});
 
   @override
   ConsumerState<ActivityFormScreen> createState() =>
@@ -33,6 +35,8 @@ class _ActivityFormScreenState
   bool      _saving       = false;
   String?   _error;
 
+  bool get _isEditing => widget.existing != null;
+
   // Inputs list
   final List<Map<String, TextEditingController>> _inputs = [];
 
@@ -41,6 +45,42 @@ class _ActivityFormScreenState
 
   // Other costs list
   final List<Map<String, TextEditingController>> _otherCosts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing;
+    if (existing == null) return;
+
+    _fieldId = existing.fieldId;
+    _cropFieldId = existing.cropFieldId;
+    _activityType = existing.activityType;
+    _date = existing.date;
+    _notesCtrl.text = existing.notes ?? '';
+
+    for (final i in existing.inputs) {
+      _inputs.add({
+        'name':     TextEditingController(text: i.inputName),
+        'category': TextEditingController(text: i.category),
+        'quantity': TextEditingController(text: i.quantity.toString()),
+        'unit':     TextEditingController(text: i.unit),
+        'unitCost': TextEditingController(text: i.unitCost.toString()),
+      });
+    }
+    for (final l in existing.labourRecords) {
+      final entry = _LabourEntry()..employeeId = l.employeeId;
+      entry.hoursCtrl.text = l.hoursWorked.toString();
+      entry.daysCtrl.text = l.daysWorked.toString();
+      entry.costCtrl.text = l.totalCost.toString();
+      _labour.add(entry);
+    }
+    for (final o in existing.otherCosts) {
+      _otherCosts.add({
+        'description': TextEditingController(text: o.description),
+        'amount':      TextEditingController(text: o.amount.toString()),
+      });
+    }
+  }
 
   static const _casualWorkerValue = '__casual_worker__';
 
@@ -133,37 +173,46 @@ class _ActivityFormScreenState
 
     setState(() { _saving = true; _error = null; });
 
+    final data = {
+      'fieldId':      _fieldId,
+      'cropFieldId':  _cropFieldId,
+      'activityType': activityType,
+      'date':         _date.toIso8601String(),
+      'notes':        _notesCtrl.text.trim(),
+      'responsibleEmployeeId': _responsibleEmployeeId != null &&
+              _responsibleEmployeeId != _casualWorkerValue
+          ? _responsibleEmployeeId
+          : null,
+      'responsiblePersonName':
+          responsiblePersonName.isNotEmpty ? responsiblePersonName : null,
+      'inputs': _inputs.map((i) => {
+        'inputName': i['name']!.text.trim(),
+        'category':  i['category']!.text.trim(),
+        'quantity':  i['quantity']!.text.trim(),
+        'unit':      i['unit']!.text.trim(),
+        'unitCost':  i['unitCost']!.text.trim(),
+      }).where((i) => i['inputName']!.isNotEmpty).toList(),
+      'labour': _labour.map((l) => {
+        'employeeId':  l.employeeId,
+        'hoursWorked': l.hoursCtrl.text.trim(),
+        'daysWorked':  l.daysCtrl.text.trim(),
+        'totalCost':   l.costCtrl.text.trim(),
+      }).where((l) => l['employeeId'] != null).toList(),
+      'otherCosts': _otherCosts.map((o) => {
+        'description': o['description']!.text.trim(),
+        'amount':      o['amount']!.text.trim(),
+      }).where((o) => o['description']!.isNotEmpty).toList(),
+    };
+
     try {
-      await ref.read(activitiesRepositoryProvider).createActivity({
-        'fieldId':      _fieldId,
-        'cropFieldId':  _cropFieldId,
-        'activityType': activityType,
-        'date':         _date.toIso8601String(),
-        'notes':        _notesCtrl.text.trim(),
-        'responsibleEmployeeId': _responsibleEmployeeId != null &&
-                _responsibleEmployeeId != _casualWorkerValue
-            ? _responsibleEmployeeId
-            : null,
-        'responsiblePersonName':
-            responsiblePersonName.isNotEmpty ? responsiblePersonName : null,
-        'inputs': _inputs.map((i) => {
-          'inputName': i['name']!.text.trim(),
-          'category':  i['category']!.text.trim(),
-          'quantity':  i['quantity']!.text.trim(),
-          'unit':      i['unit']!.text.trim(),
-          'unitCost':  i['unitCost']!.text.trim(),
-        }).where((i) => i['inputName']!.isNotEmpty).toList(),
-        'labour': _labour.map((l) => {
-          'employeeId':  l.employeeId,
-          'hoursWorked': l.hoursCtrl.text.trim(),
-          'daysWorked':  l.daysCtrl.text.trim(),
-          'totalCost':   l.costCtrl.text.trim(),
-        }).where((l) => l['employeeId'] != null).toList(),
-        'otherCosts': _otherCosts.map((o) => {
-          'description': o['description']!.text.trim(),
-          'amount':      o['amount']!.text.trim(),
-        }).where((o) => o['description']!.isNotEmpty).toList(),
-      });
+      final existing = widget.existing;
+      if (existing != null) {
+        await ref.read(activitiesRepositoryProvider).updateActivity(existing.id, data);
+        ref.invalidate(activityDetailProvider(existing.id));
+      } else {
+        await ref.read(activitiesRepositoryProvider).createActivity(data);
+      }
+      ref.invalidate(activitiesDataProvider);
       if (mounted) context.pop();
     } catch (e) {
       setState(() => _error = 'Failed to save activity: $e');
@@ -195,13 +244,16 @@ class _ActivityFormScreenState
     final crops  = ref.watch(cropsProvider);
     final employees = ref.watch(employeesProvider);
     final cropList = crops.valueOrNull ?? const <CropFieldModel>[];
-    final activityTypes = _activityTypesForSelectedCrop(cropList);
+    final activityTypes = {
+      ..._activityTypesForSelectedCrop(cropList),
+      if (_isEditing) _activityType,
+    }.toList();
 
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('Add activity',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(_isEditing ? 'Edit activity' : 'Add activity',
+            style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -538,7 +590,7 @@ class _ActivityFormScreenState
                   child:  CircularProgressIndicator(
                       color: Colors.white, strokeWidth: 2),
                 )
-                    : const Text('Save activity'),
+                    : Text(_isEditing ? 'Save changes' : 'Save activity'),
               ),
             ),
             const SizedBox(height: 20),

@@ -8,6 +8,7 @@ import 'package:farmio_mobile/features/activities/activities_repository.dart';
 import 'package:farmio_mobile/features/fields/fields_repository.dart';
 import 'package:farmio_mobile/features/finance/finance_repository.dart';
 import 'package:farmio_mobile/features/finance/finance_screen.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
@@ -26,7 +27,7 @@ void main() {
   testWidgets(
       'Summary tab folds field-activity labour/input costs into total expenses',
       (tester) async {
-    final field = await FieldsRepository(db).createField({
+    final field = await FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')])).createField({
       'name': 'North block',
       'totalArea': '5',
       'cultivatableArea': '4',

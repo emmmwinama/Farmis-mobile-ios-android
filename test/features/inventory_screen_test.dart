@@ -1,29 +1,37 @@
+import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:farmio_mobile/core/api/api_client.dart';
 import 'package:farmio_mobile/core/db/app_database.dart';
 import 'package:farmio_mobile/core/db/database_provider.dart';
 import 'package:farmio_mobile/features/inventory/inventory_repository.dart';
 import 'package:farmio_mobile/features/inventory/inventory_screen.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
+  late Dio fakeDio;
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
+    fakeDio = fakeApiDio([FakeRestResource('/api/mobile/inventory')]);
   });
 
   tearDown(() async => db.close());
 
   Widget wrap() => ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(db)],
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          apiClientProvider.overrideWithValue(fakeDio),
+        ],
         child: const MaterialApp(home: InventoryScreen()),
       );
 
   testWidgets('selecting a category filter hides items from other categories',
       (tester) async {
-    final repo = InventoryRepository(db);
+    final repo = InventoryRepository(db, fakeDio);
     await repo.createItem({
       'name': 'Maize bags',
       'category': 'Grain',

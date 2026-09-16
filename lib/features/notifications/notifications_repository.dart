@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import '../../core/db/app_database.dart';
 import '../../core/db/db_utils.dart';
@@ -9,9 +10,9 @@ import '../../models/crop_timeline.dart';
 import '../../shared/agronomy/crop_timeline_catalog.dart';
 
 class NotificationsRepository {
-  NotificationsRepository(this._db, {DailyReminderService? reminders})
-      : _crops = CropsRepository(_db),
-        _inventory = InventoryRepository(_db),
+  NotificationsRepository(this._db, Dio dio, {DailyReminderService? reminders})
+      : _crops = CropsRepository(_db, dio),
+        _inventory = InventoryRepository(_db, dio),
         _reminders = reminders ?? DailyReminderService();
 
   final AppDatabase _db;
@@ -98,7 +99,7 @@ class NotificationsRepository {
     // alerts — getCrops(archived: 'false') only excludes literal 'Archived',
     // which misses crops already marked 'Harvested' (still shown in crop
     // lists, but done needing attention).
-    final crops = (await _crops.getCrops(archived: 'false'))
+    final crops = (await _crops.getCropsLocalOnly(archived: 'false'))
         .where((c) => c.status == 'Active');
     for (final crop in crops) {
       final detail = await _crops.getCrop(crop.id);
@@ -191,7 +192,7 @@ class NotificationsRepository {
       await (_db.delete(_db.notifications)..where((t) => t.id.isIn(staleIds))).go();
     }
 
-    final items = await _inventory.getItems();
+    final items = await _inventory.getItemsLocalOnly();
     for (final item in items) {
       final totalSold =
           item.sales.fold<double>(0, (s, sale) => s + sale.quantitySold);

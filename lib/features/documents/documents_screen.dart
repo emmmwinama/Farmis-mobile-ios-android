@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/farm_document.dart';
 import '../../shared/filters/entity_filter_bar.dart';
@@ -204,6 +205,15 @@ class _DocumentSheet extends ConsumerWidget {
                     style: TextStyle(fontSize: 13, color: context.colors.textSecond)),
               ],
               const SizedBox(height: 18),
+              SizedBox(
+                height: 52,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('Open / share'),
+                  onPressed: () => Share.shareXFiles([XFile(doc.url)], text: doc.name),
+                ),
+              ),
+              const SizedBox(height: 10),
               SizedBox(
                 height: 52,
                 child: OutlinedButton.icon(

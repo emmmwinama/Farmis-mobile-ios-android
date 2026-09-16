@@ -21,6 +21,13 @@ class AnimalDetailScreen extends ConsumerWidget {
         title: const Text('Animal detail',
             style: TextStyle(fontWeight: FontWeight.w800)),
         actions: [
+          animal.whenOrNull(
+            data: (data) => IconButton(
+              tooltip: 'Edit animal',
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => context.push('/animals/new', extra: data),
+            ),
+          ) ?? const SizedBox(),
           IconButton(
             tooltip: 'Delete animal',
             icon: const Icon(Icons.delete_outline),
@@ -323,13 +330,17 @@ class _RecordSection extends ConsumerWidget {
                             style:
                                 const TextStyle(fontWeight: FontWeight.w800)),
                       ],
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        tooltip: 'Delete record',
-                        icon: const Icon(Icons.close,
-                            size: 16, color: FarmioColors.textMuted),
-                        onPressed: () => _confirmDeleteRecord(context, ref, row.id),
-                      ),
+                      // Sales are permanent once recorded (the server has
+                      // no delete-sale endpoint), so no delete affordance.
+                      if (recordType != 'sale')
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          tooltip: 'Delete record',
+                          icon: const Icon(Icons.close,
+                              size: 16, color: FarmioColors.textMuted),
+                          onPressed: () =>
+                              _confirmDeleteRecord(context, ref, row.id),
+                        ),
                     ],
                   ),
                 )),
@@ -358,7 +369,9 @@ class _RecordSection extends ConsumerWidget {
       ),
     );
     if (ok == true) {
-      await ref.read(livestockRepositoryProvider).deleteRecord(recordType, recordId);
+      await ref
+          .read(livestockRepositoryProvider)
+          .deleteRecord(recordType, animalId, recordId);
       ref.invalidate(animalDetailProvider(animalId));
     }
   }

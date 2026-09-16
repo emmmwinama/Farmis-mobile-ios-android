@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:farmio_mobile/core/db/app_database.dart';
 import 'package:farmio_mobile/features/crops/crops_repository.dart';
 import 'package:farmio_mobile/features/fields/fields_repository.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
@@ -12,13 +13,13 @@ void main() {
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
-    repo = CropsRepository(db);
-    fields = FieldsRepository(db);
+    repo = CropsRepository(db, fakeApiDio([fakeCropsResource()]));
+    fields = FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')]));
   });
 
   tearDown(() async => db.close());
 
-  Future<String> _seedField() async =>
+  Future<String> seedField() async =>
       (await fields.createField({
         'name': 'North Field',
         'totalArea': '10',
@@ -29,7 +30,7 @@ void main() {
 
   test('createCropType then createCrop then getCrops reflects it', () async {
     final cropType = await repo.createCropType('Maize');
-    final fieldId = await _seedField();
+    final fieldId = await seedField();
 
     final crop = await repo.createCrop({
       'cropTypeId': cropType.id,
@@ -49,9 +50,9 @@ void main() {
     expect(crops.first.status, 'Active');
   });
 
-  test('getCrops filters by archived status', () async {
+  test('getCrops filters by archived status, independent of status', () async {
     final cropType = await repo.createCropType('Beans');
-    final fieldId = await _seedField();
+    final fieldId = await seedField();
     final crop = await repo.createCrop({
       'cropTypeId': cropType.id,
       'fieldId': fieldId,
@@ -70,7 +71,9 @@ void main() {
     expect(await repo.getCrops(archived: 'false'), isEmpty);
     final archived = await repo.getCrops(archived: 'true');
     expect(archived, hasLength(1));
-    expect(archived.first.status, 'Archived');
+    // Archiving is a separate flag from status — the server's status enum
+    // has no "Archived" value at all (Active/Harvested/Failed/Terminated).
+    expect(archived.first.status, 'Active');
 
     await repo.restoreCrop(crop.id);
     final restored = await repo.getCrops(archived: 'false');
@@ -80,7 +83,7 @@ void main() {
 
   test('markHarvested sets status without archiving — stays in the non-archived list', () async {
     final cropType = await repo.createCropType('Beans');
-    final fieldId = await _seedField();
+    final fieldId = await seedField();
     final crop = await repo.createCrop({
       'cropTypeId': cropType.id,
       'fieldId': fieldId,
@@ -101,7 +104,7 @@ void main() {
 
   test('getCrop(id) computes costs from activity children', () async {
     final cropType = await repo.createCropType('Tobacco');
-    final fieldId = await _seedField();
+    final fieldId = await seedField();
     final crop = await repo.createCrop({
       'cropTypeId': cropType.id,
       'fieldId': fieldId,
@@ -151,9 +154,9 @@ void main() {
     expect(detail.activities.first.totalCost, 15000);
   });
 
-  test('deleteCrop removes the row', () async {
+  test('updateCrop patches only provided fields, merging with the current row', () async {
     final cropType = await repo.createCropType('Rice');
-    final fieldId = await _seedField();
+    final fieldId = await seedField();
     final crop = await repo.createCrop({
       'cropTypeId': cropType.id,
       'fieldId': fieldId,
@@ -164,8 +167,11 @@ void main() {
       'expectedHarvestDate': DateTime(2026, 4, 1).toIso8601String(),
     });
 
-    await repo.deleteCrop(crop.id);
+    await repo.updateCrop(crop.id, {'variety': 'NERICA'});
 
-    expect(await repo.getCrops(), isEmpty);
+    final crops = await repo.getCrops();
+    expect(crops.first.variety, 'NERICA');
+    expect(crops.first.areaPlanted, 1); // untouched
+    expect(crops.first.cropTypeName, 'Rice'); // untouched
   });
 }

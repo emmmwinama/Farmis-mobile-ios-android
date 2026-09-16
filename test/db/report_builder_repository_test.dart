@@ -11,6 +11,7 @@ import 'package:farmio_mobile/features/crops/crops_repository.dart';
 import 'package:farmio_mobile/features/finance/finance_repository.dart';
 import 'package:farmio_mobile/features/reports/reports_repository.dart';
 import 'package:farmio_mobile/shared/filters/report_record_filters.dart';
+import '../support/fake_mobile_api.dart';
 
 class _FakePathProvider extends PathProviderPlatform {
   _FakePathProvider(this.dir);
@@ -33,8 +34,8 @@ void main() {
     PathProviderPlatform.instance = _FakePathProvider(tempDir);
     db = AppDatabase(NativeDatabase.memory());
     repo = ReportBuilderRepository(db);
-    fields = FieldsRepository(db);
-    crops = CropsRepository(db);
+    fields = FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')]));
+    crops = CropsRepository(db, fakeApiDio([fakeCropsResource()]));
     finance = FinanceRepository(db);
   });
 

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:farmio_mobile/core/db/app_database.dart';
 import 'package:farmio_mobile/features/inventory/inventory_repository.dart';
 import 'package:farmio_mobile/features/finance/finance_repository.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
@@ -11,7 +12,7 @@ void main() {
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
-    repo = InventoryRepository(db);
+    repo = InventoryRepository(db, fakeApiDio([FakeRestResource('/api/mobile/inventory')]));
     finance = FinanceRepository(db);
   });
 

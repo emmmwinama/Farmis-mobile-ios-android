@@ -1,18 +1,23 @@
+import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:farmio_mobile/core/api/api_client.dart';
 import 'package:farmio_mobile/core/db/app_database.dart';
 import 'package:farmio_mobile/core/db/database_provider.dart';
 import 'package:farmio_mobile/features/fields/fields_repository.dart';
 import 'package:farmio_mobile/features/fields/fields_screen.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
+  late Dio fakeDio;
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
+    fakeDio = fakeApiDio([FakeRestResource('/api/mobile/fields')]);
   });
 
   tearDown(() async => db.close());
@@ -36,7 +41,10 @@ void main() {
       ],
     );
     return ProviderScope(
-      overrides: [databaseProvider.overrideWithValue(db)],
+      overrides: [
+        databaseProvider.overrideWithValue(db),
+        apiClientProvider.overrideWithValue(fakeDio),
+      ],
       child: MaterialApp.router(routerConfig: router),
     );
   }
@@ -44,7 +52,7 @@ void main() {
   testWidgets(
       'confirming delete from the popup menu removes the field without crashing the shell navigator',
       (tester) async {
-    await FieldsRepository(db).createField({
+    await FieldsRepository(db, fakeDio).createField({
       'name': 'North block',
       'totalArea': 4.0,
       'cultivatableArea': 3.5,

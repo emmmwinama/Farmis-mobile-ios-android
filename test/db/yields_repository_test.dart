@@ -4,6 +4,7 @@ import 'package:farmio_mobile/core/db/app_database.dart';
 import 'package:farmio_mobile/features/yields/yields_repository.dart';
 import 'package:farmio_mobile/features/fields/fields_repository.dart';
 import 'package:farmio_mobile/features/crops/crops_repository.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
@@ -13,9 +14,9 @@ void main() {
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
-    repo = YieldsRepository(db);
-    fields = FieldsRepository(db);
-    crops = CropsRepository(db);
+    repo = YieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/yields')]));
+    fields = FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')]));
+    crops = CropsRepository(db, fakeApiDio([fakeCropsResource()]));
   });
 
   tearDown(() async => db.close());
@@ -105,6 +106,24 @@ void main() {
     final filtered = await repo.getYields(cropFieldId: cropA);
     expect(filtered.yields, hasLength(1));
     expect(filtered.yields.first.cropFieldId, cropA);
+  });
+
+  test('updateYield patches only provided fields, merging with the current row',
+      () async {
+    final cropFieldId = await _seedCrop();
+    await repo.createYield({
+      'cropFieldId': cropFieldId,
+      'harvestDate': DateTime(2026, 5, 1).toIso8601String(),
+      'quantity': '100',
+      'unit': 'kg',
+    });
+    final id = (await repo.getYields()).yields.first.id;
+
+    await repo.updateYield(id, {'quantity': '150'});
+
+    final data = await repo.getYields();
+    expect(data.yields.first.quantity, 150);
+    expect(data.yields.first.unit, 'kg'); // untouched
   });
 
   test('deleteYield removes the row', () async {

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import '../../core/db/app_database.dart';
 import '../../core/db/db_utils.dart';
@@ -14,12 +15,19 @@ double _toKg(double quantity, String unit, double? unitWeight) {
   return quantity;
 }
 
+/// Harvest yields live on Ulimi's mobile API now (`/api/mobile/yields`) —
+/// same write-through pattern as FieldsRepository. Storage/drying/loss
+/// records stay local-only for now — the app has no screen for them yet
+/// (see YieldFormScreen's "storage" note), so there's nothing to port.
 class YieldsRepository {
-  YieldsRepository(this._db);
+  YieldsRepository(this._db, this._dio);
 
   final AppDatabase _db;
+  final Dio _dio;
 
   Future<YieldsData> getYields({String? cropFieldId}) async {
+    await _pullFromApi();
+
     final query = _db.select(_db.harvestYields)
       ..orderBy([(t) => OrderingTerm.desc(t.harvestDate)]);
     if (cropFieldId != null) {
@@ -82,20 +90,69 @@ class YieldsRepository {
     });
   }
 
-  Future<void> createYield(Map<String, dynamic> data) async {
-    await _db.into(_db.harvestYields).insert(HarvestYieldsCompanion.insert(
-          id: newId(),
-          cropFieldId: data['cropFieldId'] as String,
-          harvestDate: DateTime.parse(data['harvestDate'] as String),
-          quantity: asDouble(data['quantity']),
-          unit: data['unit'] as String,
-          createdAt: DateTime.now(),
-          unitWeight: Value(asDoubleOrNull(data['unitWeight'])),
-          notes: Value(asStringOrNull(data['notes'])),
+  Future<void> _pullFromApi() async {
+    try {
+      final res = await _dio.get('/api/mobile/yields');
+      final rows = ((res.data as Map)['data'] as List).cast<Map<String, dynamic>>();
+      for (final row in rows) {
+        await _upsertFromApi(row);
+      }
+    } catch (_) {
+      // Offline or unreachable — fall back to whatever's cached locally.
+    }
+  }
+
+  Future<void> _upsertFromApi(Map<String, dynamic> row) async {
+    await _db.into(_db.harvestYields).insertOnConflictUpdate(HarvestYieldsCompanion.insert(
+          id: row['id'] as String,
+          cropFieldId: row['crop_field_id'] as String,
+          harvestDate: DateTime.parse(row['harvest_date'] as String),
+          quantity: asDouble(row['quantity']),
+          unit: row['unit'] as String,
+          createdAt:
+              DateTime.tryParse(row['created_at']?.toString() ?? '') ?? DateTime.now(),
+          unitWeight: Value(asDoubleOrNull(row['unit_weight'])),
+          notes: Value(asStringOrNull(row['notes'])),
         ));
   }
 
+  Map<String, dynamic> _apiBody(Map<String, dynamic> data) => {
+        'crop_field_id': data['cropFieldId'],
+        'harvest_date': (data['harvestDate'] as String).split('T').first,
+        'quantity': asDouble(data['quantity']),
+        'unit': data['unit'],
+        'unit_weight': asDoubleOrNull(data['unitWeight']),
+        'notes': asStringOrNull(data['notes']),
+      };
+
+  Future<void> createYield(Map<String, dynamic> data) async {
+    final res = await _dio.post('/api/mobile/yields', data: _apiBody(data));
+    await _upsertFromApi((res.data as Map)['data'] as Map<String, dynamic>);
+  }
+
+  /// The API's `PUT` requires the full object (crop_field_id included, even
+  /// though it can't actually be changed after creation — the server just
+  /// ignores it there), so this merges onto the current local row first.
+  Future<void> updateYield(String id, Map<String, dynamic> data) async {
+    final current =
+        await (_db.select(_db.harvestYields)..where((t) => t.id.equals(id))).getSingle();
+    final merged = {
+      'cropFieldId': current.cropFieldId,
+      'harvestDate': data.containsKey('harvestDate')
+          ? data['harvestDate']
+          : current.harvestDate.toIso8601String(),
+      'quantity': data.containsKey('quantity') ? data['quantity'] : current.quantity,
+      'unit': data.containsKey('unit') ? data['unit'] : current.unit,
+      'unitWeight': data.containsKey('unitWeight') ? data['unitWeight'] : current.unitWeight,
+      'notes': data.containsKey('notes') ? data['notes'] : current.notes,
+    };
+
+    final res = await _dio.put('/api/mobile/yields/$id', data: _apiBody(merged));
+    await _upsertFromApi((res.data as Map)['data'] as Map<String, dynamic>);
+  }
+
   Future<void> deleteYield(String id) async {
+    await _dio.post('/api/mobile/yields/$id/delete');
     await (_db.delete(_db.harvestYields)..where((t) => t.id.equals(id))).go();
   }
 }

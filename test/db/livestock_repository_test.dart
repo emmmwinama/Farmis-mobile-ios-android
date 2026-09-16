@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:farmio_mobile/core/db/app_database.dart';
 import 'package:farmio_mobile/features/livestock/livestock_repository.dart';
 import 'package:farmio_mobile/features/finance/finance_repository.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
@@ -11,7 +12,7 @@ void main() {
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
-    repo = LivestockRepository(db);
+    repo = LivestockRepository(db, fakeApiDio(fakeLivestockResources()));
     finance = FinanceRepository(db);
   });
 
@@ -98,7 +99,7 @@ void main() {
     });
     final recordId = (await repo.getAnimal(animalId)).healthRecords.first.id;
 
-    await repo.deleteRecord('health', recordId);
+    await repo.deleteRecord('health', animalId, recordId);
 
     expect((await repo.getAnimal(animalId)).healthRecords, isEmpty);
   });

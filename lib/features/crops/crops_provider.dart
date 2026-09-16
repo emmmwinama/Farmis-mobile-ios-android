@@ -1,12 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'crops_repository.dart';
+import '../../core/api/api_client.dart';
 import '../../core/db/database_provider.dart';
 import '../../models/crop_field.dart';
 import '../../models/crop_detail.dart';
 import '../../models/crop_type.dart';
 
 final cropsRepositoryProvider = Provider<CropsRepository>(
-      (ref) => CropsRepository(ref.read(databaseProvider)),
+      (ref) => CropsRepository(ref.read(databaseProvider), ref.read(apiClientProvider)),
 );
 
 // Filter: 'active', 'archived', 'all'

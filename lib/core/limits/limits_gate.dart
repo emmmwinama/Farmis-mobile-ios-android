@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../auth/account_provider.dart';
 import '../db/app_database.dart';
 import '../db/database_provider.dart';
 import 'free_tier_limits.dart';
@@ -26,7 +25,13 @@ extension on LimitResource {
       };
 }
 
-bool _isPremium(WidgetRef ref) => ref.read(accountProvider).account?.subscription?.isPaid ?? false;
+// Subscription status isn't available from login/farm-context — only from
+// the dashboard endpoint, which isn't wired into accountProvider yet — so
+// this defaults everyone to free-tier limits until that's ported. The real
+// backend also enforces these same five resources' limits server-side
+// (see docs/MOBILE-API.md, SubscriptionLimit), so this local gate becomes
+// a nicer-than-a-403 pre-check once those repositories talk to the API.
+bool _isPremium(WidgetRef ref) => false;
 
 Future<int> _count(AppDatabase db, LimitResource resource) async {
   switch (resource) {

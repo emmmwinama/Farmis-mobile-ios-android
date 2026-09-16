@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/auth/account_provider.dart';
 import 'core/auth/pin_provider.dart';
 import 'core/notifications/daily_reminder_provider.dart';
 import 'core/onboarding/onboarding_provider.dart';
@@ -30,6 +31,7 @@ class AgriVaultApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(accountHydrationProvider);
     ref.watch(pinHydrationProvider);
     ref.watch(onboardingHydrationProvider);
     ref.watch(themeModeHydrationProvider);

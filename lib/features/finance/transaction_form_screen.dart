@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/transaction.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'finance_provider.dart';
 
 class TransactionFormScreen extends ConsumerStatefulWidget {
-  const TransactionFormScreen({super.key});
+  final TransactionModel? existing;
+  const TransactionFormScreen({super.key, this.existing});
 
   @override
   ConsumerState<TransactionFormScreen> createState() =>
@@ -15,15 +17,17 @@ class TransactionFormScreen extends ConsumerStatefulWidget {
 
 class _TransactionFormScreenState
     extends ConsumerState<TransactionFormScreen> {
-  final _descCtrl   = TextEditingController();
-  final _amountCtrl = TextEditingController();
-  final _seasonCtrl = TextEditingController();
+  late final _descCtrl   = TextEditingController(text: widget.existing?.description);
+  late final _amountCtrl = TextEditingController(text: widget.existing?.amount.toString());
+  late final _seasonCtrl = TextEditingController(text: widget.existing?.season);
 
-  String   _type     = 'Income';
-  String   _category = 'Crop sales';
-  DateTime _date     = DateTime.now();
+  late String   _type     = widget.existing?.type ?? 'Income';
+  late String   _category = widget.existing?.category ?? 'Crop sales';
+  late DateTime _date     = widget.existing?.date ?? DateTime.now();
   bool     _saving   = false;
   String?  _error;
+
+  bool get _isEditing => widget.existing != null;
 
   final _incomeCategories  = [
     'Crop sales', 'Livestock sales', 'Grant', 'Loan', 'Other income',
@@ -33,8 +37,10 @@ class _TransactionFormScreenState
     'Maintenance', 'Loan repayment', 'Other expense',
   ];
 
-  List<String> get _categories =>
-      _type == 'Income' ? _incomeCategories : _expenseCategories;
+  List<String> get _categories => {
+        ...(_type == 'Income' ? _incomeCategories : _expenseCategories),
+        if (_isEditing && _type == widget.existing!.type) widget.existing!.category,
+      }.toList();
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -55,19 +61,24 @@ class _TransactionFormScreenState
 
     setState(() { _saving = true; _error = null; });
 
+    final data = {
+      'type':        _type,
+      'category':    _category,
+      'amount':      _amountCtrl.text.trim(),
+      'date':        _date.toIso8601String(),
+      'description': _descCtrl.text.trim(),
+      'season':      _seasonCtrl.text.trim().isEmpty
+          ? null
+          : _seasonCtrl.text.trim(),
+    };
+
     try {
-      await ref
-          .read(financeRepositoryProvider)
-          .createTransaction({
-        'type':        _type,
-        'category':    _category,
-        'amount':      _amountCtrl.text.trim(),
-        'date':        _date.toIso8601String(),
-        'description': _descCtrl.text.trim(),
-        'season':      _seasonCtrl.text.trim().isEmpty
-            ? null
-            : _seasonCtrl.text.trim(),
-      });
+      final existing = widget.existing;
+      if (existing != null) {
+        await ref.read(financeRepositoryProvider).updateTransaction(existing.id, data);
+      } else {
+        await ref.read(financeRepositoryProvider).createTransaction(data);
+      }
       if (mounted) context.pop();
     } catch (e) {
       setState(() => _error = 'Failed to save: $e');
@@ -89,8 +100,8 @@ class _TransactionFormScreenState
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('Add transaction',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(_isEditing ? 'Edit transaction' : 'Add transaction',
+            style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -206,7 +217,7 @@ class _TransactionFormScreenState
                   child:  CircularProgressIndicator(
                       color: Colors.white, strokeWidth: 2),
                 )
-                    : const Text('Save transaction'),
+                    : Text(_isEditing ? 'Save changes' : 'Save transaction'),
               ),
             ),
           ],

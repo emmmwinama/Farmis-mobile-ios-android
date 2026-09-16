@@ -1,40 +1,49 @@
-import 'dart:convert';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/profile/farm_profile_provider.dart';
 import '../api/api_client.dart';
+import '../onboarding/onboarding_provider.dart';
 import 'account_models.dart';
 import 'account_repository.dart';
+import 'farm_context_models.dart';
+import 'farm_context_repository.dart';
 import 'secure_storage.dart';
 
 final accountRepositoryProvider = Provider<AccountRepository>(
   (ref) => AccountRepository(ref.watch(apiClientProvider)),
 );
 
+final farmContextRepositoryProvider = Provider<FarmContextRepository>(
+  (ref) => FarmContextRepository(ref.watch(apiClientProvider)),
+);
+
 class AccountState {
   final bool hydrated;
-  final Account? account;
+  final AccountUser? user;
+  final FarmContext? farmContext;
 
-  const AccountState({required this.hydrated, required this.account});
-  const AccountState.initial() : hydrated = false, account = null;
+  const AccountState({required this.hydrated, required this.user, required this.farmContext});
+  const AccountState.initial() : hydrated = false, user = null, farmContext = null;
 
-  bool get isLoggedIn => account != null;
+  bool get isLoggedIn => user != null;
 
-  AccountState copyWith({bool? hydrated, Account? account}) => AccountState(
+  AccountState copyWith({bool? hydrated, AccountUser? user, FarmContext? farmContext}) => AccountState(
         hydrated: hydrated ?? this.hydrated,
-        account: account,
+        user: user ?? this.user,
+        farmContext: farmContext ?? this.farmContext,
       );
 }
 
-/// Tracks the signed-in account, if any. Signing in is entirely optional —
-/// unlike [pinProvider] this never gates navigation; it only unlocks the
-/// cloud backup/restore actions surfaced from the Profile screen.
+/// Tracks the signed-in Ulimi account and its active farm. Unlike
+/// [pinProvider] (a local device lock), this gates every screen — see the
+/// router's redirect — because every data screen in the app now reads from
+/// Ulimi's mobile API, which requires a signed-in session.
 final accountProvider = StateNotifierProvider<AccountNotifier, AccountState>(
   (ref) => AccountNotifier(ref),
 );
 
-/// Resolves the cached account (if any) before the Profile screen first
-/// renders, mirroring [pinHydrationProvider]'s cold-start role.
+/// Resolves the cached session (if any) before the router's first redirect
+/// decision, mirroring [pinHydrationProvider]'s cold-start role.
 final accountHydrationProvider = FutureProvider<void>((ref) async {
   await ref.read(accountProvider.notifier).hydrate();
 });
@@ -44,18 +53,30 @@ class AccountNotifier extends StateNotifier<AccountState> {
   AccountNotifier(this._ref) : super(const AccountState.initial());
 
   Future<void> hydrate() async {
-    final cached = await SecureStorage.getProfileJson();
     final loggedIn = await SecureStorage.isLoggedIn();
-    if (loggedIn && cached != null && cached.isNotEmpty) {
-      try {
-        state = AccountState(
-          hydrated: true,
-          account: Account.fromJson(jsonDecode(cached) as Map<String, dynamic>),
-        );
-      } catch (_) {
-        state = state.copyWith(hydrated: true);
-      }
-    } else {
+    if (!loggedIn) {
+      state = state.copyWith(hydrated: true);
+      return;
+    }
+    final userId = await SecureStorage.getUserId();
+    final email = await SecureStorage.getUserEmail();
+    // The access token survives app restarts in secure storage; re-fetching
+    // farm context (rather than caching it) keeps role/farm membership
+    // always current, and doubles as an early check that the session is
+    // still valid before the user sees a stale, signed-in-looking screen.
+    try {
+      final farmContext = await _ref.read(farmContextRepositoryProvider).fetch();
+      await SecureStorage.saveFarmId(farmContext.activeFarmId);
+      state = AccountState(
+        hydrated: true,
+        user: AccountUser(id: userId ?? '', name: null, email: email ?? ''),
+        farmContext: farmContext,
+      );
+    } catch (_) {
+      // Couldn't reach the server (offline) or the session is dead — either
+      // way, fall back to "signed out" rather than showing a farm-context-less
+      // signed-in state the rest of the app can't actually use.
+      await SecureStorage.clearAuth();
       state = state.copyWith(hydrated: true);
     }
   }
@@ -65,42 +86,44 @@ class AccountNotifier extends StateNotifier<AccountState> {
     await _applyAuthResult(result);
   }
 
-  Future<void> loginWithGoogle(String idToken) async {
-    final result = await _ref.read(accountRepositoryProvider).loginWithGoogle(idToken);
-    await _applyAuthResult(result);
-  }
-
-  Future<void> register({
-    required String name,
-    required String email,
-    required String password,
-    String? farmName,
-  }) async {
-    final result = await _ref
-        .read(accountRepositoryProvider)
-        .register(name: name, email: email, password: password, farmName: farmName);
-    await _applyAuthResult(result);
-  }
-
   Future<void> _applyAuthResult(AuthResult result) async {
-    await SecureStorage.saveToken(result.token);
-    await SecureStorage.saveUserId(result.account.user.id);
-    if (result.account.farm != null) await SecureStorage.saveFarmId(result.account.farm!.id);
-    await SecureStorage.saveProfileJson(jsonEncode(result.account.toJson()));
-    state = state.copyWith(hydrated: true, account: result.account);
+    await SecureStorage.saveToken(result.accessToken);
+    await SecureStorage.saveRefreshToken(result.refreshToken);
+    await SecureStorage.saveUserId(result.user.id);
+    await SecureStorage.saveUserEmail(result.user.email);
+
+    final farmContext = await _ref.read(farmContextRepositoryProvider).fetch();
+    await SecureStorage.saveFarmId(farmContext.activeFarmId);
+
+    // Skip the local onboarding form entirely for a signed-in user — the
+    // farm identity now comes from the server, not a manually-typed profile.
+    final activeFarm = farmContext.activeFarm;
+    if (activeFarm != null) {
+      await _ref.read(farmProfileRepositoryProvider).saveProfile(
+            name: activeFarm.name,
+            location: activeFarm.location ?? '',
+          );
+      _ref.read(onboardingProvider.notifier).markComplete();
+    }
+
+    state = AccountState(hydrated: true, user: result.user, farmContext: farmContext);
   }
 
-  /// Re-fetches plan/farm info from the server — call after a purchase, or
-  /// whenever the Profile screen wants a fresh read rather than the cache.
-  Future<void> refresh() async {
-    if (!state.isLoggedIn) return;
-    final account = await _ref.read(accountRepositoryProvider).fetchProfile();
-    await SecureStorage.saveProfileJson(jsonEncode(account.toJson()));
-    state = state.copyWith(hydrated: true, account: account);
+  Future<void> switchFarm(String farmId) async {
+    await SecureStorage.saveFarmId(farmId);
+    final farmContext = await _ref.read(farmContextRepositoryProvider).fetch();
+    state = state.copyWith(farmContext: farmContext);
   }
 
   Future<void> logout() async {
+    final refreshToken = await SecureStorage.getRefreshToken();
+    try {
+      await _ref.read(accountRepositoryProvider).logout(refreshToken);
+    } catch (_) {
+      // Best-effort server-side revoke — clearing the local session below is
+      // what actually signs the device out either way.
+    }
     await SecureStorage.clearAuth();
-    state = const AccountState(hydrated: true, account: null);
+    state = const AccountState(hydrated: true, user: null, farmContext: null);
   }
 }

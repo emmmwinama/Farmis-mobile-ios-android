@@ -1,8 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:farmio_mobile/core/api/api_client.dart';
 import 'package:farmio_mobile/core/db/app_database.dart';
 import 'package:farmio_mobile/core/db/database_provider.dart';
 import 'package:farmio_mobile/core/limits/free_tier_limits.dart';
@@ -10,9 +12,11 @@ import 'package:farmio_mobile/features/crops/crop_form_screen.dart';
 import 'package:farmio_mobile/features/crops/crops_repository.dart';
 import 'package:farmio_mobile/features/fields/fields_repository.dart';
 import 'package:farmio_mobile/models/crop_type.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
+  late Dio fakeDio;
   late String fieldId;
   late CropType cropType;
 
@@ -20,14 +24,15 @@ void main() {
 
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
-    final field = await FieldsRepository(db).createField({
+    fakeDio = fakeApiDio([FakeRestResource('/api/mobile/fields'), fakeCropsResource()]);
+    final field = await FieldsRepository(db, fakeDio).createField({
       'name': 'North block',
       'totalArea': 10.0,
       'cultivatableArea': 9.0,
       'soilType': 'Loam',
     });
     fieldId = field.id;
-    cropType = await CropsRepository(db).createCropType('Maize');
+    cropType = await CropsRepository(db, fakeDio).createCropType('Maize');
   });
 
   tearDown(() async => db.close());
@@ -38,7 +43,10 @@ void main() {
       routes: [GoRoute(path: '/crops/new', builder: (_, __) => const CropFormScreen())],
     );
     return ProviderScope(
-      overrides: [databaseProvider.overrideWithValue(db)],
+      overrides: [
+        databaseProvider.overrideWithValue(db),
+        apiClientProvider.overrideWithValue(fakeDio),
+      ],
       child: MaterialApp.router(routerConfig: router),
     );
   }
@@ -77,7 +85,7 @@ void main() {
   testWidgets('saving is blocked with an upgrade sheet once the season hits the free crop limit',
       (tester) async {
     for (var i = 0; i < FreeTierLimits.maxCropFieldsPerSeason; i++) {
-      await CropsRepository(db).createCrop({
+      await CropsRepository(db, fakeDio).createCrop({
         'fieldId': fieldId,
         'cropTypeId': cropType.id,
         'variety': 'Existing $i',
@@ -96,7 +104,7 @@ void main() {
     expect(find.text("You've reached your Free plan limit"), findsOneWidget);
     expect(find.byType(CropFormScreen), findsOneWidget);
 
-    final crops = await CropsRepository(db).getCrops(archived: 'false');
+    final crops = await CropsRepository(db, fakeDio).getCrops(archived: 'false');
     expect(crops.where((c) => c.season == season).length, FreeTierLimits.maxCropFieldsPerSeason);
   });
 
@@ -108,7 +116,7 @@ void main() {
 
     expect(find.text("You've reached your Free plan limit"), findsNothing);
 
-    final crops = await CropsRepository(db).getCrops(archived: 'false');
+    final crops = await CropsRepository(db, fakeDio).getCrops(archived: 'false');
     expect(crops.where((c) => c.season == season).length, 1);
   });
 }

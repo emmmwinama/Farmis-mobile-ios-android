@@ -8,6 +8,7 @@ import 'package:farmio_mobile/features/activities/activities_repository.dart';
 import 'package:farmio_mobile/features/yields/yields_repository.dart';
 import 'package:farmio_mobile/features/inventory/inventory_repository.dart';
 import 'package:farmio_mobile/features/finance/finance_repository.dart';
+import '../support/fake_mobile_api.dart';
 
 void main() {
   late AppDatabase db;
@@ -22,11 +23,11 @@ void main() {
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
     repo = ComplianceRepository(db);
-    fields = FieldsRepository(db);
-    crops = CropsRepository(db);
+    fields = FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')]));
+    crops = CropsRepository(db, fakeApiDio([fakeCropsResource()]));
     activities = ActivitiesRepository(db);
-    yields = YieldsRepository(db);
-    inventory = InventoryRepository(db);
+    yields = YieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/yields')]));
+    inventory = InventoryRepository(db, fakeApiDio([FakeRestResource('/api/mobile/inventory')]));
     finance = FinanceRepository(db);
   });
 

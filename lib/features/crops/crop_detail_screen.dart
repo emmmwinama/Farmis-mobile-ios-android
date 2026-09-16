@@ -47,8 +47,20 @@ class CropDetailScreen extends ConsumerWidget {
                       .restoreCrop(cropId);
                   if (context.mounted) context.pop();
                 }
+                if (v == 'edit') {
+                  final existing = await ref.read(cropsRepositoryProvider).getCropField(cropId);
+                  if (context.mounted) context.push('/crops/new', extra: existing);
+                }
               },
               itemBuilder: (_) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(children: [
+                    Icon(Icons.edit_outlined, size: 18),
+                    SizedBox(width: 8),
+                    Text('Edit crop'),
+                  ]),
+                ),
                 if (crop.isActive)
                   const PopupMenuItem(
                     value: 'harvested',

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +11,15 @@ import '../features/dashboard/dashboard_screen.dart';
 import '../features/fields/fields_screen.dart';
 import '../features/fields/field_detail_screen.dart';
 import '../features/fields/field_form_screen.dart';
+import '../models/activity_detail.dart';
+import '../models/crop_field.dart';
+import '../models/employee.dart';
+import '../models/equipment.dart';
+import '../models/field.dart';
+import '../models/inventory_item.dart';
+import '../models/livestock.dart';
+import '../models/overhead.dart';
+import '../models/transaction.dart';
 import '../features/field_map/field_map_screen.dart';
 import '../features/field_map/field_boundary_editor_screen.dart';
 import '../features/crops/crops_screen.dart';
@@ -39,6 +47,7 @@ import '../features/money/money_screen.dart';
 import '../features/seasons/seasons_screen.dart';
 import '../features/equipment/equipment_screen.dart';
 import '../features/equipment/equipment_form_screen.dart';
+import '../features/equipment/equipment_detail_screen.dart';
 import '../features/weather/weather_screen.dart';
 import '../features/notifications/notifications_screen.dart';
 import '../features/livestock/livestock_screen.dart';
@@ -53,21 +62,20 @@ import '../features/compliance/traceability_screen.dart';
 import '../features/compliance/credit_score_screen.dart';
 import '../features/report_builder/report_builder_screen.dart';
 import '../shared/widgets/agri_vault_shell.dart';
+import 'auth/account_provider.dart';
 import 'auth/pin_provider.dart';
 import 'auth/secure_storage.dart';
 import 'onboarding/onboarding_provider.dart';
 
-/// Notifies go_router to re-run [redirect] whenever [pinProvider] or
-/// [onboardingProvider] changes, so completing onboarding or entering the
-/// correct PIN immediately re-evaluates routing instead of only on the
-/// next manual navigation.
+/// Notifies go_router to re-run [redirect] whenever [accountProvider],
+/// [pinProvider] or [onboardingProvider] changes, so signing in, completing
+/// onboarding, or entering the correct PIN immediately re-evaluates routing
+/// instead of only on the next manual navigation.
 class _AuthRefreshNotifier extends ChangeNotifier {
   _AuthRefreshNotifier(Ref ref) {
+    ref.listen(accountProvider, (_, __) => notifyListeners());
     ref.listen(pinProvider, (_, __) => notifyListeners());
-    ref.listen(onboardingProvider, (prev, next) {
-      debugPrint('ONBOARDING_DEBUG: onboardingProvider changed $prev -> $next');
-      notifyListeners();
-    });
+    ref.listen(onboardingProvider, (_, __) => notifyListeners());
   }
 }
 
@@ -79,19 +87,26 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/dashboard',
     refreshListenable: refreshNotifier,
     redirect: (context, state) async {
+      final isLoggedIn = ref.read(accountProvider).isLoggedIn;
+      final onLogin = state.matchedLocation == '/login';
+      // No mobile register/password-reset endpoints exist — these are
+      // informational screens reachable from /login while signed out, not
+      // part of the gate below.
+      final onAuthInfo = state.matchedLocation == '/register' ||
+          state.matchedLocation == '/forgot-password';
+      if (!isLoggedIn) return (onLogin || onAuthInfo) ? null : '/login';
+
       final hasProfile = ref.read(onboardingProvider);
       final hasPin = await SecureStorage.hasPin();
       final isUnlocked = ref.read(pinProvider).isUnlocked;
       final onOnboarding = state.matchedLocation == '/onboarding';
       final onSetup  = state.matchedLocation == '/pin-setup';
       final onUnlock = state.matchedLocation == '/pin-unlock';
-      debugPrint('ONBOARDING_DEBUG: redirect eval loc=${state.matchedLocation} '
-          'hasProfile=$hasProfile hasPin=$hasPin isUnlocked=$isUnlocked');
 
       if (!hasProfile) return onOnboarding ? null : '/onboarding';
       if (!hasPin) return onSetup ? null : '/pin-setup';
       if (!isUnlocked) return onUnlock ? null : '/pin-unlock';
-      if (onOnboarding || onSetup || onUnlock) return '/dashboard';
+      if (onLogin || onAuthInfo || onOnboarding || onSetup || onUnlock) return '/dashboard';
       return null;
     },
     routes: [
@@ -107,9 +122,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         path:    '/pin-unlock',
         builder: (_, __) => const PinUnlockScreen(),
       ),
-      // Account sign-in is optional and layered on top of the PIN-gated
-      // local flow — reached only via the Profile screen's "Account & Sync"
-      // section, never part of the redirect chain above.
+      // Signing in is mandatory (see the redirect above) — every data screen
+      // reads from Ulimi's mobile API, which requires a session. The PIN
+      // lock still gates on top of that, as a fast local re-unlock.
       GoRoute(
         path:    '/login',
         builder: (_, __) => const LoginScreen(),
@@ -132,7 +147,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Navigator.push before this migration to go_router paths.
       GoRoute(
         path:    '/fields/new',
-        builder: (_, __) => const FieldFormScreen(),
+        builder: (_, state) => FieldFormScreen(existing: state.extra as FieldModel?),
       ),
       GoRoute(
         path:    '/fields/:id',
@@ -146,7 +161,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path:    '/crops/new',
-        builder: (_, __) => const CropFormScreen(),
+        builder: (_, state) => CropFormScreen(existing: state.extra as CropFieldModel?),
       ),
       GoRoute(
         path:    '/crops/:id',
@@ -161,7 +176,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path:    '/activities/new',
-        builder: (_, __) => const ActivityFormScreen(),
+        builder: (_, state) => ActivityFormScreen(existing: state.extra as ActivityDetail?),
       ),
       GoRoute(
         path:    '/activities/:id',
@@ -170,15 +185,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path:    '/finance/new-transaction',
-        builder: (_, __) => const TransactionFormScreen(),
+        builder: (_, state) => TransactionFormScreen(existing: state.extra as TransactionModel?),
       ),
       GoRoute(
         path:    '/finance/new-overhead',
-        builder: (_, __) => const OverheadFormScreen(),
+        builder: (_, state) => OverheadFormScreen(existing: state.extra as OverheadExpense?),
       ),
       GoRoute(
         path:    '/animals/new',
-        builder: (_, __) => const AnimalFormScreen(),
+        builder: (_, state) => AnimalFormScreen(existing: state.extra as Animal?),
       ),
       GoRoute(
         path:    '/animals/:id',
@@ -191,15 +206,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path:    '/inventory/new',
-        builder: (_, __) => const InventoryItemFormScreen(),
+        builder: (_, state) => InventoryItemFormScreen(existing: state.extra as InventoryItem?),
       ),
       GoRoute(
         path:    '/employees/new',
-        builder: (_, __) => const EmployeeFormScreen(),
+        builder: (_, state) => EmployeeFormScreen(existing: state.extra as EmployeeModel?),
       ),
       GoRoute(
         path:    '/equipment/new',
-        builder: (_, __) => const EquipmentFormScreen(),
+        builder: (_, state) => EquipmentFormScreen(existing: state.extra as EquipmentModel?),
+      ),
+      GoRoute(
+        path:    '/equipment/:id',
+        builder: (_, state) =>
+            EquipmentDetailScreen(equipmentId: state.pathParameters['id']!),
       ),
       GoRoute(
         path:    '/seasons/compare',
