@@ -67,13 +67,13 @@ class _SeasonsScreenState extends ConsumerState<SeasonsScreen> {
         ),
         data: (data) {
           if (data.seasons.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: Text(
                   'No seasons found yet. Seasons are derived from crop records.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: FarmioColors.textMuted),
+                  style: TextStyle(color: context.colors.textMuted),
                 ),
               ),
             );
@@ -154,7 +154,7 @@ class _SeasonCard extends StatelessWidget {
           color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: selected ? FarmioColors.primary : FarmioColors.border,
+            color: selected ? FarmioColors.primary : context.colors.border,
             width: selected ? 2 : 1,
           ),
         ),
@@ -165,10 +165,10 @@ class _SeasonCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(season.season,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 16,
-                        color: FarmioColors.textPrimary,
+                        color: context.colors.textPrimary,
                       )),
                 ),
                 if (selected)
@@ -179,8 +179,8 @@ class _SeasonCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               '${season.cropCount} crops · ${season.totalArea.toStringAsFixed(2)} ha · ${season.fields.length} fields',
-              style: const TextStyle(
-                  fontSize: 12, color: FarmioColors.textMuted),
+              style: TextStyle(
+                  fontSize: 12, color: context.colors.textMuted),
             ),
             const SizedBox(height: 12),
             Row(
@@ -223,11 +223,11 @@ class _Metric extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 13,
-                color: color ?? FarmioColors.textPrimary,
+                color: color ?? context.colors.textPrimary,
               )),
           Text(label,
-              style: const TextStyle(
-                  fontSize: 11, color: FarmioColors.textMuted)),
+              style: TextStyle(
+                  fontSize: 11, color: context.colors.textMuted)),
         ],
       ),
     );
@@ -264,8 +264,8 @@ class SeasonCompareScreen extends ConsumerWidget {
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontWeight: FontWeight.w900)),
                 ),
-                const Icon(Icons.compare_arrows_outlined,
-                    color: FarmioColors.textMuted),
+                Icon(Icons.compare_arrows_outlined,
+                    color: context.colors.textMuted),
                 Expanded(
                   child: Text(data.seasonB.season,
                       textAlign: TextAlign.center,
@@ -331,14 +331,14 @@ class _OverallVerdict extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.balance_outlined,
-                color: FarmioColors.textMuted, size: 20),
+            Icon(Icons.balance_outlined,
+                color: context.colors.textMuted, size: 20),
             const SizedBox(width: 10),
-            const Expanded(
+            Expanded(
               child: Text('Both seasons performed about the same overall.',
                   style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: FarmioColors.textMuted)),
+                      color: context.colors.textMuted)),
             ),
           ],
         ),
@@ -367,8 +367,8 @@ class _OverallVerdict extends StatelessWidget {
                         color: FarmioColors.success)),
                 const SizedBox(height: 2),
                 Text(verdict.reason,
-                    style: const TextStyle(
-                        fontSize: 12, color: FarmioColors.textMuted)),
+                    style: TextStyle(
+                        fontSize: 12, color: context.colors.textMuted)),
               ],
             ),
           ),
@@ -434,7 +434,7 @@ class _DeltaRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final improved = delta.improved;
     final color = improved == null
-        ? FarmioColors.textMuted
+        ? context.colors.textMuted
         : improved
             ? FarmioColors.success
             : FarmioColors.danger;
@@ -451,10 +451,10 @@ class _DeltaRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: FarmioColors.textMuted)),
+                  color: context.colors.textMuted)),
           const SizedBox(height: 6),
           Row(
             children: [
@@ -503,14 +503,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load seasons',
+            Text('Could not load seasons',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

@@ -274,9 +274,9 @@ class _RecordSection extends ConsumerWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(title,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: FarmioColors.textPrimary)),
+                        color: context.colors.textPrimary)),
               ),
               TextButton.icon(
                 onPressed: () => showModalBottomSheet<void>(
@@ -297,8 +297,8 @@ class _RecordSection extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(top: 4, bottom: 4),
               child: Text('No $title records yet.',
-                  style: const TextStyle(
-                      fontSize: 12, color: FarmioColors.textMuted)),
+                  style: TextStyle(
+                      fontSize: 12, color: context.colors.textMuted)),
             )
           else
             ...rows.map((row) => Padding(
@@ -315,15 +315,15 @@ class _RecordSection extends ConsumerWidget {
                                     fontSize: 13)),
                             if (row.detail.isNotEmpty)
                               Text(row.detail,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 12,
-                                      color: FarmioColors.textMuted)),
+                                      color: context.colors.textMuted)),
                           ],
                         ),
                       ),
                       Text(row.meta,
-                          style: const TextStyle(
-                              fontSize: 11, color: FarmioColors.textMuted)),
+                          style: TextStyle(
+                              fontSize: 11, color: context.colors.textMuted)),
                       if (row.value.isNotEmpty) ...[
                         const SizedBox(width: 8),
                         Text(row.value,
@@ -336,8 +336,8 @@ class _RecordSection extends ConsumerWidget {
                         IconButton(
                           visualDensity: VisualDensity.compact,
                           tooltip: 'Delete record',
-                          icon: const Icon(Icons.close,
-                              size: 16, color: FarmioColors.textMuted),
+                          icon: Icon(Icons.close,
+                              size: 16, color: context.colors.textMuted),
                           onPressed: () =>
                               _confirmDeleteRecord(context, ref, row.id),
                         ),

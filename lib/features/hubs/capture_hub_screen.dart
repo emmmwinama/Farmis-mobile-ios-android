@@ -193,7 +193,7 @@ class _ActionCard extends ConsumerWidget {
                   const Spacer(),
                   Icon(
                     locked ? Icons.lock_outline : Icons.chevron_right_rounded,
-                    color: locked ? FarmioColors.textMuted : color,
+                    color: locked ? context.colors.textMuted : color,
                     size: 20,
                   ),
                 ],
@@ -203,8 +203,8 @@ class _ActionCard extends ConsumerWidget {
                 title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: FarmioColors.textPrimary,
+                style: TextStyle(
+                  color: context.colors.textPrimary,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -214,18 +214,18 @@ class _ActionCard extends ConsumerWidget {
                   body,
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: FarmioColors.textMuted,
+                  style: TextStyle(
+                    color: context.colors.textMuted,
                     fontSize: 12,
                     height: 1.3,
                   ),
                 ),
               ),
               if (locked)
-                const Text(
+                Text(
                   'Endpoint needed',
                   style: TextStyle(
-                    color: FarmioColors.textMuted,
+                    color: context.colors.textMuted,
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),

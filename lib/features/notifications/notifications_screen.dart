@@ -36,12 +36,12 @@ class NotificationsScreen extends ConsumerWidget {
         ),
         data: (data) {
           if (data.notifications.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: Text(
                   'No notifications yet.',
-                  style: TextStyle(color: FarmioColors.textMuted),
+                  style: TextStyle(color: context.colors.textMuted),
                 ),
               ),
             );
@@ -163,14 +163,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load notifications',
+            Text('Could not load notifications',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

@@ -57,11 +57,11 @@ class EquipmentDetailScreen extends ConsumerWidget {
           children: [
             _HeaderCard(item: data),
             const SizedBox(height: 16),
-            const Text('Maintenance logs',
+            Text('Maintenance logs',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: FarmioColors.textPrimary,
+                  color: context.colors.textPrimary,
                 )),
             const SizedBox(height: 12),
             logs.when(
@@ -75,17 +75,17 @@ class EquipmentDetailScreen extends ConsumerWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: FarmioColors.surface,
+                        color: context.colors.surface,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: FarmioColors.border),
+                        border: Border.all(color: context.colors.border),
                       ),
-                      child: const Column(
+                      child: Column(
                         children: [
                           Icon(Icons.build_outlined,
-                              size: 36, color: FarmioColors.textMuted),
+                              size: 36, color: context.colors.textMuted),
                           SizedBox(height: 8),
                           Text('No logs recorded for this equipment yet',
-                              style: TextStyle(color: FarmioColors.textMuted)),
+                              style: TextStyle(color: context.colors.textMuted)),
                         ],
                       ),
                     )
@@ -166,9 +166,9 @@ class _HeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: FarmioColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,16 +191,16 @@ class _HeaderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(item.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w900,
-                          color: FarmioColors.textPrimary,
+                          color: context.colors.textPrimary,
                         )),
                     Text(
                         '${equipmentCategoryLabel(item.category)} · ${equipmentStatusLabel(item.status)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: FarmioColors.textMuted,
+                          color: context.colors.textMuted,
                         )),
                   ],
                 ),
@@ -214,32 +214,32 @@ class _HeaderCard extends StatelessWidget {
           ),
           if (item.acquisitionDate != null || item.acquisitionCost != null) ...[
             const SizedBox(height: 12),
-            const Divider(color: FarmioColors.border, height: 1),
+            Divider(color: context.colors.border, height: 1),
             const SizedBox(height: 12),
             Row(
               children: [
                 if (item.acquisitionDate != null)
                   Text('Acquired ${Fmt.date(item.acquisitionDate!)}',
-                      style: const TextStyle(
-                          fontSize: 12, color: FarmioColors.textSecond)),
+                      style: TextStyle(
+                          fontSize: 12, color: context.colors.textSecond)),
                 if (item.acquisitionDate != null && item.acquisitionCost != null)
-                  const Text('  ·  ',
-                      style: TextStyle(color: FarmioColors.textMuted)),
+                  Text('  ·  ',
+                      style: TextStyle(color: context.colors.textMuted)),
                 if (item.acquisitionCost != null)
                   Text('Cost ${Fmt.mwk(item.acquisitionCost!)}',
-                      style: const TextStyle(
-                          fontSize: 12, color: FarmioColors.textSecond)),
+                      style: TextStyle(
+                          fontSize: 12, color: context.colors.textSecond)),
               ],
             ),
           ],
           if (item.notes?.isNotEmpty == true) ...[
             const SizedBox(height: 12),
-            const Divider(color: FarmioColors.border, height: 1),
+            Divider(color: context.colors.border, height: 1),
             const SizedBox(height: 12),
             Text(item.notes!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: FarmioColors.textSecond,
+                  color: context.colors.textSecond,
                 )),
           ],
         ],
@@ -259,9 +259,9 @@ class _LogRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: FarmioColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         children: [
@@ -273,8 +273,8 @@ class _LogRow extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w800)),
                 Text(
                     '${Fmt.date(log.date)}${log.hoursUsed != null ? ' · ${log.hoursUsed} hrs' : ''}',
-                    style: const TextStyle(
-                        fontSize: 12, color: FarmioColors.textMuted)),
+                    style: TextStyle(
+                        fontSize: 12, color: context.colors.textMuted)),
               ],
             ),
           ),
@@ -284,8 +284,8 @@ class _LogRow extends StatelessWidget {
                     fontWeight: FontWeight.w800, color: FarmioColors.danger)),
           IconButton(
             tooltip: 'Delete log',
-            icon: const Icon(Icons.delete_outline,
-                size: 18, color: FarmioColors.textMuted),
+            icon: Icon(Icons.delete_outline,
+                size: 18, color: context.colors.textMuted),
             onPressed: onDelete,
           ),
         ],

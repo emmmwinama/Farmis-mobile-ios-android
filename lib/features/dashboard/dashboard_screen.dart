@@ -422,14 +422,14 @@ class _NeedsAttentionRow extends StatelessWidget {
     }
   }
 
-  Color get _color {
+  Color _color(BuildContext context) {
     switch (item.type) {
       case 'harvest_due':
         return FarmioColors.success;
       case 'low_inventory':
         return FarmioColors.warning;
       case 'no_activity':
-        return FarmioColors.textMuted;
+        return context.colors.textMuted;
       default:
         return FarmioColors.danger;
     }
@@ -456,10 +456,10 @@ class _NeedsAttentionRow extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: _color.withValues(alpha: 0.12),
+                  color: _color(context).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(_icon, color: _color, size: 19),
+                child: Icon(_icon, color: _color(context), size: 19),
               ),
               const SizedBox(width: 12),
               Expanded(

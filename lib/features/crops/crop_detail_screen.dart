@@ -129,7 +129,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
     final isDueSoon = crop.isDueSoon;
 
     Color accentColor = FarmioColors.primary;
-    if (!crop.isActive) accentColor = FarmioColors.textMuted;
+    if (!crop.isActive) accentColor = context.colors.textMuted;
     if (isOverdue)       accentColor = FarmioColors.danger;
     if (isDueSoon)       accentColor = FarmioColors.warning;
 
@@ -167,13 +167,13 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('${crop.cropTypeName} - ${crop.variety}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18, fontWeight: FontWeight.w800,
-                        color: FarmioColors.textPrimary,
+                        color: context.colors.textPrimary,
                       )),
                   Text('${crop.fieldName} - ${crop.season}',
-                      style: const TextStyle(
-                        fontSize: 13, color: FarmioColors.textMuted,
+                      style: TextStyle(
+                        fontSize: 13, color: context.colors.textMuted,
                       )),
                 ],
               )),
@@ -194,7 +194,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
               ),
             ]),
             const SizedBox(height: 16),
-            const Divider(color: FarmioColors.border),
+            Divider(color: context.colors.border),
             const SizedBox(height: 16),
 
             Row(children: [
@@ -211,9 +211,9 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Growth progress',
+                  Text('Growth progress',
                       style: TextStyle(
-                        fontSize: 12, color: FarmioColors.textMuted,
+                        fontSize: 12, color: context.colors.textMuted,
                       )),
                   Text(
                     isOverdue
@@ -234,7 +234,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
                 child: LinearProgressIndicator(
                   value:           progressValue,
                   minHeight:       8,
-                  backgroundColor: FarmioColors.border,
+                  backgroundColor: context.colors.border,
                   valueColor: AlwaysStoppedAnimation<Color>(accentColor),
                 ),
               ),
@@ -249,10 +249,10 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
         FarmioCard(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Cost breakdown',
+            Text('Cost breakdown',
                 style: TextStyle(
                   fontSize: 14, fontWeight: FontWeight.w800,
-                  color: FarmioColors.textPrimary,
+                  color: context.colors.textPrimary,
                 )),
             const SizedBox(height: 12),
             _CostRow(label: 'Inputs',    value: crop.costs.inputs,
@@ -261,7 +261,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
                 icon: Icons.people_outline),
             _CostRow(label: 'Other',     value: crop.costs.other,
                 icon: Icons.more_horiz),
-            const Divider(color: FarmioColors.border),
+            Divider(color: context.colors.border),
             _CostRow(label: 'Total',     value: crop.costs.total,
                 icon: Icons.account_balance_outlined,
                 isBold: true),
@@ -272,11 +272,11 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
         // Yields
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text('Harvests recorded',
                   style: TextStyle(
                     fontSize: 16, fontWeight: FontWeight.w800,
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                   )),
             ),
             TextButton.icon(
@@ -329,11 +329,11 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
           ),
 
         if (crop.yields.isEmpty)
-          FarmioCard(child: const Center(
+          FarmioCard(child: Center(
             child: Padding(
               padding: EdgeInsets.all(12),
               child: Text('No harvests recorded yet',
-                  style: TextStyle(color: FarmioColors.textMuted)),
+                  style: TextStyle(color: context.colors.textMuted)),
             ),
           ))
         else ...[
@@ -344,10 +344,10 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
           FarmioCard(child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total yield',
+              Text('Total yield',
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                   )),
               Text(Fmt.kg(crop.totalYieldKg),
                   style: const TextStyle(
@@ -362,19 +362,19 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
         const SizedBox(height: 16),
 
         // Activities
-        const Text('Activities',
+        Text('Activities',
             style: TextStyle(
               fontSize: 16, fontWeight: FontWeight.w800,
-              color: FarmioColors.textPrimary,
+              color: context.colors.textPrimary,
             )),
         const SizedBox(height: 10),
 
         if (crop.activities.isEmpty)
-          FarmioCard(child: const Center(
+          FarmioCard(child: Center(
             child: Padding(
               padding: EdgeInsets.all(12),
               child: Text('No activities recorded',
-                  style: TextStyle(color: FarmioColors.textMuted)),
+                  style: TextStyle(color: context.colors.textMuted)),
             ),
           ))
         else
@@ -442,14 +442,14 @@ class _TimelineRecommendationCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: const [
+            Row(children: [
               Icon(Icons.verified_outlined, color: FarmioColors.success),
               SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'All expected crop timeline activities are recorded.',
                   style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -509,8 +509,8 @@ class _TimelineRecommendationCard extends StatelessWidget {
                         fontSize: 12,
                       )),
                   Text(next.step.title,
-                      style: const TextStyle(
-                        color: FarmioColors.textPrimary,
+                      style: TextStyle(
+                        color: context.colors.textPrimary,
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                       )),
@@ -518,16 +518,16 @@ class _TimelineRecommendationCard extends StatelessWidget {
               ),
             ),
             Text(Fmt.dateShort(next.dueDate),
-                style: const TextStyle(
-                  color: FarmioColors.textMuted,
+                style: TextStyle(
+                  color: context.colors.textMuted,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 )),
           ]),
           const SizedBox(height: 10),
           Text(next.step.recommendation,
-              style: const TextStyle(
-                color: FarmioColors.textSecond,
+              style: TextStyle(
+                color: context.colors.textSecond,
                 height: 1.35,
               )),
           const SizedBox(height: 12),
@@ -556,28 +556,28 @@ class _CropTimelineCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Expanded(
+            Expanded(
               child: Text('Crop activity timeline',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                   )),
             ),
             Text('${plan.completedCount}/${plan.entries.length} done',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: FarmioColors.textMuted,
+                  color: context.colors.textMuted,
                 )),
           ]),
           const SizedBox(height: 4),
           Text(
             '${plan.sourceLabel}. Timings are general and should be adjusted for local advice, variety and weather.',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               height: 1.35,
-              color: FarmioColors.textMuted,
+              color: context.colors.textMuted,
             ),
           ),
           const SizedBox(height: 14),
@@ -609,7 +609,7 @@ class _TimelineStepRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _statusColor(entry.status);
+    final color = _statusColor(context, entry.status);
     final icon = _statusIcon(entry.status);
     final label = _statusLabel(entry);
 
@@ -638,8 +638,8 @@ class _TimelineStepRow extends StatelessWidget {
                   Row(children: [
                     Expanded(
                       child: Text(entry.step.title,
-                          style: const TextStyle(
-                            color: FarmioColors.textPrimary,
+                          style: TextStyle(
+                            color: context.colors.textPrimary,
                             fontWeight: FontWeight.w800,
                             fontSize: 13,
                           )),
@@ -656,8 +656,8 @@ class _TimelineStepRow extends StatelessWidget {
                     entry.completedDate == null
                         ? 'Due ${Fmt.dateShort(entry.dueDate)}'
                         : 'Recorded ${Fmt.dateShort(entry.completedDate!)}',
-                    style: const TextStyle(
-                      color: FarmioColors.textMuted,
+                    style: TextStyle(
+                      color: context.colors.textMuted,
                       fontSize: 11,
                     ),
                   ),
@@ -665,15 +665,15 @@ class _TimelineStepRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            const Icon(Icons.chevron_right,
-                size: 18, color: FarmioColors.textMuted),
+            Icon(Icons.chevron_right,
+                size: 18, color: context.colors.textMuted),
           ],
         ),
       ),
     );
   }
 
-  static Color _statusColor(CropTimelineStatus status) {
+  static Color _statusColor(BuildContext context, CropTimelineStatus status) {
     switch (status) {
       case CropTimelineStatus.done:
         return FarmioColors.success;
@@ -682,7 +682,7 @@ class _TimelineStepRow extends StatelessWidget {
       case CropTimelineStatus.due:
         return FarmioColors.warning;
       case CropTimelineStatus.upcoming:
-        return FarmioColors.textMuted;
+        return context.colors.textMuted;
     }
   }
 
@@ -717,7 +717,7 @@ void _showTimelineEntryDetails(
   BuildContext context,
   CropTimelineEntry entry,
 ) {
-  final color = _TimelineStepRow._statusColor(entry.status);
+  final color = _TimelineStepRow._statusColor(context, entry.status);
   final status = _TimelineStepRow._statusLabel(entry);
 
   showModalBottomSheet<void>(
@@ -739,7 +739,7 @@ void _showTimelineEntryDetails(
                 width: 42,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: FarmioColors.border,
+                  color: context.colors.border,
                   borderRadius: BorderRadius.circular(999),
                 ),
               ),
@@ -770,8 +770,8 @@ void _showTimelineEntryDetails(
                           fontWeight: FontWeight.w800,
                         )),
                     Text(entry.step.title,
-                        style: const TextStyle(
-                          color: FarmioColors.textPrimary,
+                        style: TextStyle(
+                          color: context.colors.textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
                         )),
@@ -799,22 +799,22 @@ void _showTimelineEntryDetails(
                 value: Fmt.date(entry.completedDate!),
               ),
             const SizedBox(height: 14),
-            const Text('Recommendation',
+            Text('Recommendation',
                 style: TextStyle(
-                  color: FarmioColors.textPrimary,
+                  color: context.colors.textPrimary,
                   fontWeight: FontWeight.w800,
                 )),
             const SizedBox(height: 6),
             Text(entry.step.recommendation,
-                style: const TextStyle(
-                  color: FarmioColors.textSecond,
+                style: TextStyle(
+                  color: context.colors.textSecond,
                   height: 1.4,
                 )),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'This is guidance only. Adjust for local extension advice, variety, rainfall, irrigation and field conditions.',
               style: TextStyle(
-                color: FarmioColors.textMuted,
+                color: context.colors.textMuted,
                 fontSize: 12,
                 height: 1.35,
               ),
@@ -852,23 +852,23 @@ void _showRecommendedActivities(
                 width: 42,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: FarmioColors.border,
+                  color: context.colors.border,
                   borderRadius: BorderRadius.circular(999),
                 ),
               ),
             ),
             const SizedBox(height: 18),
-            const Text('Recommended activities',
+            Text('Recommended activities',
                 style: TextStyle(
-                  color: FarmioColors.textPrimary,
+                  color: context.colors.textPrimary,
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
                 )),
             const SizedBox(height: 4),
             Text(
               '${plan.sourceLabel}. Tap an item for details.',
-              style: const TextStyle(
-                color: FarmioColors.textMuted,
+              style: TextStyle(
+                color: context.colors.textMuted,
                 height: 1.35,
               ),
             ),
@@ -889,7 +889,7 @@ class _RecommendedActivitySheetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _TimelineStepRow._statusColor(entry.status);
+    final color = _TimelineStepRow._statusColor(context, entry.status);
     final status = _TimelineStepRow._statusLabel(entry);
 
     return Padding(
@@ -900,9 +900,9 @@ class _RecommendedActivitySheetRow extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: FarmioColors.background,
+            color: context.colors.background,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: FarmioColors.border),
+            border: Border.all(color: context.colors.border),
           ),
           child: Row(children: [
             Icon(_TimelineStepRow._statusIcon(entry.status),
@@ -913,14 +913,14 @@ class _RecommendedActivitySheetRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(entry.step.title,
-                      style: const TextStyle(
-                        color: FarmioColors.textPrimary,
+                      style: TextStyle(
+                        color: context.colors.textPrimary,
                         fontWeight: FontWeight.w800,
                       )),
                   Text(
                     '${entry.step.activityType} - due ${Fmt.dateShort(entry.dueDate)}',
-                    style: const TextStyle(
-                      color: FarmioColors.textMuted,
+                    style: TextStyle(
+                      color: context.colors.textMuted,
                       fontSize: 12,
                     ),
                   ),
@@ -958,16 +958,16 @@ class _DetailLine extends StatelessWidget {
           SizedBox(
             width: 118,
             child: Text(label,
-                style: const TextStyle(
-                  color: FarmioColors.textMuted,
+                style: TextStyle(
+                  color: context.colors.textMuted,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 )),
           ),
           Expanded(
             child: Text(value,
-                style: const TextStyle(
-                  color: FarmioColors.textPrimary,
+                style: TextStyle(
+                  color: context.colors.textPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 )),
@@ -996,7 +996,7 @@ class _CostRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(children: [
-        Icon(icon, size: 16, color: FarmioColors.textMuted),
+        Icon(icon, size: 16, color: context.colors.textMuted),
         const SizedBox(width: 8),
         Expanded(
           child: Text(label,
@@ -1005,7 +1005,7 @@ class _CostRow extends StatelessWidget {
                 fontWeight: isBold
                     ? FontWeight.w800
                     : FontWeight.w500,
-                color: FarmioColors.textPrimary,
+                color: context.colors.textPrimary,
               )),
         ),
         Text(Fmt.mwk(value),
@@ -1016,7 +1016,7 @@ class _CostRow extends StatelessWidget {
                   : FontWeight.w600,
               color: isBold
                   ? FarmioColors.primary
-                  : FarmioColors.textPrimary,
+                  : context.colors.textPrimary,
             )),
       ]),
     );
@@ -1072,19 +1072,19 @@ class _YieldTile extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('${y.quantity} ${y.unit}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14, fontWeight: FontWeight.w700,
-                  color: FarmioColors.textPrimary,
+                  color: context.colors.textPrimary,
                 )),
             Text(Fmt.kg(y.totalKg),
-                style: const TextStyle(
-                  fontSize: 12, color: FarmioColors.textMuted,
+                style: TextStyle(
+                  fontSize: 12, color: context.colors.textMuted,
                 )),
           ],
         )),
         Text(Fmt.dateShort(y.harvestDate),
-            style: const TextStyle(
-              fontSize: 11, color: FarmioColors.textMuted,
+            style: TextStyle(
+              fontSize: 11, color: context.colors.textMuted,
             )),
         IconButton(
           onPressed: () => _confirmDelete(context, ref),
@@ -1121,21 +1121,21 @@ class _ActivityTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(a.activityType,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13, fontWeight: FontWeight.w700,
-                  color: FarmioColors.textPrimary,
+                  color: context.colors.textPrimary,
                 )),
             Text(Fmt.date(a.date),
-                style: const TextStyle(
-                  fontSize: 12, color: FarmioColors.textMuted,
+                style: TextStyle(
+                  fontSize: 12, color: context.colors.textMuted,
                 )),
           ],
         )),
         if (a.totalCost > 0)
           Text(Fmt.mwk(a.totalCost),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12, fontWeight: FontWeight.w700,
-                color: FarmioColors.textPrimary,
+                color: context.colors.textPrimary,
               )),
       ]),
     );
@@ -1153,14 +1153,14 @@ class _InfoItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(
-                fontSize: 10, color: FarmioColors.textMuted,
+              style: TextStyle(
+                fontSize: 10, color: context.colors.textMuted,
               )),
           const SizedBox(height: 2),
           Text(value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12, fontWeight: FontWeight.w700,
-                color: FarmioColors.textPrimary,
+                color: context.colors.textPrimary,
               )),
         ],
       ),
@@ -1233,7 +1233,7 @@ class _PriceSuggestionPanel extends StatelessWidget {
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(vertical: 4),
                     filled: true,
-                    fillColor: FarmioColors.surface,
+                    fillColor: context.colors.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide:
@@ -1301,7 +1301,7 @@ class _PriceTile extends StatelessWidget {
       width: 148,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color:        FarmioColors.surface,
+        color:        context.colors.surface,
         borderRadius: BorderRadius.circular(10),
         border:       Border.all(color: FarmioColors.primaryLight),
       ),

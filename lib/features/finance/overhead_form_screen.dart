@@ -113,9 +113,9 @@ class _OverheadFormScreenState
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color:        FarmioColors.background,
+                color:        context.colors.background,
                 borderRadius: BorderRadius.circular(12),
-                border:       Border.all(color: FarmioColors.border),
+                border:       Border.all(color: context.colors.border),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
@@ -148,19 +148,19 @@ class _OverheadFormScreenState
                 padding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 14),
                 decoration: BoxDecoration(
-                  color:        FarmioColors.background,
+                  color:        context.colors.background,
                   borderRadius: BorderRadius.circular(12),
-                  border:       Border.all(color: FarmioColors.border),
+                  border:       Border.all(color: context.colors.border),
                 ),
                 child: Row(children: [
-                  const Icon(Icons.calendar_today_outlined,
-                      size: 16, color: FarmioColors.textMuted),
+                  Icon(Icons.calendar_today_outlined,
+                      size: 16, color: context.colors.textMuted),
                   const SizedBox(width: 10),
                   Text(
                     '${_date.day}/${_date.month}/${_date.year}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color:    FarmioColors.textPrimary,
+                      color:    context.colors.textPrimary,
                     ),
                   ),
                 ]),
@@ -178,7 +178,7 @@ class _OverheadFormScreenState
                 border:       Border.all(color: context.colors.border),
               ),
               child: Row(children: [
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -186,12 +186,12 @@ class _OverheadFormScreenState
                           style: TextStyle(
                             fontSize:   14,
                             fontWeight: FontWeight.w700,
-                            color:      FarmioColors.textPrimary,
+                            color:      context.colors.textPrimary,
                           )),
                       Text('This expense repeats monthly',
                           style: TextStyle(
                             fontSize: 12,
-                            color:    FarmioColors.textMuted,
+                            color:    context.colors.textMuted,
                           )),
                     ],
                   ),

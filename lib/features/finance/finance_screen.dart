@@ -117,7 +117,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
     final subTabs = TabBar(
       controller:          _tabs,
       labelColor:          FarmioColors.primary,
-      unselectedLabelColor: FarmioColors.textMuted,
+      unselectedLabelColor: context.colors.textMuted,
       indicatorColor:      FarmioColors.primary,
       labelStyle: const TextStyle(
           fontWeight: FontWeight.w700, fontSize: 13),
@@ -485,19 +485,19 @@ class _SummaryTab extends ConsumerWidget {
               const SizedBox(height: 20),
 
               // Activity cost breakdown
-              const Text('Activity costs',
+              Text('Activity costs',
                   style: TextStyle(
                     fontSize:   16,
                     fontWeight: FontWeight.w800,
-                    color:      FarmioColors.textPrimary,
+                    color:      context.colors.textPrimary,
                   )),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'Labour, inputs and other costs logged against field '
                 'activities — these never appear as transactions.',
                 style: TextStyle(
                   fontSize: 12,
-                  color:    FarmioColors.textMuted,
+                  color:    context.colors.textMuted,
                 ),
               ),
               const SizedBox(height: 10),
@@ -534,11 +534,11 @@ class _SummaryTab extends ConsumerWidget {
               const SizedBox(height: 20),
 
               // Category breakdown
-              const Text('By category',
+              Text('By category',
                   style: TextStyle(
                     fontSize:   16,
                     fontWeight: FontWeight.w800,
-                    color:      FarmioColors.textPrimary,
+                    color:      context.colors.textPrimary,
                   )),
               const SizedBox(height: 10),
 
@@ -716,10 +716,10 @@ class _TransactionTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(transaction.description,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize:   13,
                     fontWeight: FontWeight.w700,
-                    color:      FarmioColors.textPrimary,
+                    color:      context.colors.textPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis),
@@ -757,9 +757,9 @@ class _TransactionTile extends StatelessWidget {
                 Text(Fmt.dateShort(transaction.date),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color:    FarmioColors.textMuted,
+                      color:    context.colors.textMuted,
                     )),
               ],
             ),
@@ -838,10 +838,10 @@ class _OverheadTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(expense.description,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize:   13,
                     fontWeight: FontWeight.w700,
-                    color:      FarmioColors.textPrimary,
+                    color:      context.colors.textPrimary,
                   )),
               const SizedBox(height: 3),
               Wrap(
@@ -878,9 +878,9 @@ class _OverheadTile extends StatelessWidget {
                 Text(Fmt.dateShort(expense.date),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color:    FarmioColors.textMuted,
+                      color:    context.colors.textMuted,
                     )),
               ],
             ),
@@ -960,10 +960,10 @@ class _CategoryRow extends StatelessWidget {
       child: Row(children: [
         Expanded(
           child: Text(breakdown.category,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize:   13,
                 fontWeight: FontWeight.w700,
-                color:      FarmioColors.textPrimary,
+                color:      context.colors.textPrimary,
               )),
         ),
         Column(
@@ -982,9 +982,9 @@ class _CategoryRow extends StatelessWidget {
             Text(
               'In: ${Fmt.mwk(breakdown.income)}  '
                   'Out: ${Fmt.mwk(breakdown.expense)}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
-                color:    FarmioColors.textMuted,
+                color:    context.colors.textMuted,
               ),
             ),
           ],
@@ -997,15 +997,16 @@ class _CategoryRow extends StatelessWidget {
 // ── Shared helpers ────────────────────────────────────────────────────────────
 class _SmallBadge extends StatelessWidget {
   final String label;
-  final Color  color;
+  final Color? color;
 
   const _SmallBadge({
     required this.label,
-    this.color = FarmioColors.textMuted,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final color = this.color ?? context.colors.textMuted;
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: 7, vertical: 3),
@@ -1057,16 +1058,16 @@ class _EmptyState extends StatelessWidget {
                 size: 56, color: FarmioColors.primary),
             const SizedBox(height: 16),
             Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize:   18,
                   fontWeight: FontWeight.w800,
-                  color:      FarmioColors.textPrimary,
+                  color:      context.colors.textPrimary,
                 )),
             const SizedBox(height: 6),
             Text(hint,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: FarmioColors.textMuted)),
+                style: TextStyle(
+                    color: context.colors.textMuted)),
           ],
         ),
       ),
@@ -1088,11 +1089,11 @@ class _ErrorView extends StatelessWidget {
           const Icon(Icons.error_outline_rounded,
               size: 48, color: FarmioColors.danger),
           const SizedBox(height: 12),
-          const Text('Could not load data',
+          Text('Could not load data',
               style: TextStyle(
                 fontSize:   16,
                 fontWeight: FontWeight.w700,
-                color:      FarmioColors.textPrimary,
+                color:      context.colors.textPrimary,
               )),
           const SizedBox(height: 20),
           ElevatedButton.icon(

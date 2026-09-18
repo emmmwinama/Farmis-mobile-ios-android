@@ -130,10 +130,10 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 14),
                   decoration: BoxDecoration(
-                    color:        FarmioColors.background,
+                    color:        context.colors.background,
                     borderRadius: BorderRadius.circular(12),
                     border:       Border.all(
-                        color: FarmioColors.border),
+                        color: context.colors.border),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
@@ -179,10 +179,10 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14),
                     decoration: BoxDecoration(
-                      color:        FarmioColors.background,
+                      color:        context.colors.background,
                       borderRadius: BorderRadius.circular(12),
                       border:       Border.all(
-                          color: FarmioColors.border),
+                          color: context.colors.border),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
@@ -247,20 +247,20 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 14),
                 decoration: BoxDecoration(
-                  color:        FarmioColors.background,
+                  color:        context.colors.background,
                   borderRadius: BorderRadius.circular(12),
                   border:       Border.all(
-                      color: FarmioColors.border),
+                      color: context.colors.border),
                 ),
                 child: Row(children: [
-                  const Icon(Icons.calendar_today_outlined,
+                  Icon(Icons.calendar_today_outlined,
                       size:  16,
-                      color: FarmioColors.textMuted),
+                      color: context.colors.textMuted),
                   const SizedBox(width: 10),
                   Text(Fmt.date(_harvestDate),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color:    FarmioColors.textPrimary,
+                        color:    context.colors.textPrimary,
                       )),
                 ]),
               ),

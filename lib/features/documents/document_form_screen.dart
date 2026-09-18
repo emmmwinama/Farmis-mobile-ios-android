@@ -171,8 +171,8 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
             if (_pickedName != null) ...[
               const SizedBox(height: 12),
               Text('Selected: $_pickedName',
-                  style: const TextStyle(
-                      fontSize: 12, color: FarmioColors.textMuted)),
+                  style: TextStyle(
+                      fontSize: 12, color: context.colors.textMuted)),
             ],
             const SizedBox(height: 12),
             TextField(

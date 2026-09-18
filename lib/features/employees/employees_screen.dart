@@ -112,22 +112,22 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                   ],
                 ),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'Team capacity',
                   style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 10),
                 if (filtered.isEmpty)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Center(
                       child: Text(
                         'No employees match this filter',
-                        style: TextStyle(color: FarmioColors.textMuted),
+                        style: TextStyle(color: context.colors.textMuted),
                       ),
                     ),
                   )
@@ -269,13 +269,13 @@ class _EmployeeCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(employee.name,
-                    style: const TextStyle(
-                      color: FarmioColors.textPrimary,
+                    style: TextStyle(
+                      color: context.colors.textPrimary,
                       fontWeight: FontWeight.w900,
                     )),
                 const SizedBox(height: 2),
                 Text(employee.role,
-                    style: const TextStyle(color: FarmioColors.textMuted)),
+                    style: TextStyle(color: context.colors.textMuted)),
                 const SizedBox(height: 6),
                 Text(
                   '${Fmt.mwk(employee.payRate)} / ${employee.payRateUnit}',
@@ -376,13 +376,13 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
         padding: EdgeInsets.all(32),
         child: Text(
           'No employees yet. Add workers to build payroll and loan-readiness evidence.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: FarmioColors.textMuted),
+          style: TextStyle(color: context.colors.textMuted),
         ),
       ),
     );
@@ -403,14 +403,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load employees',
+            Text('Could not load employees',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

@@ -51,12 +51,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: Text(
                   'No inventory items yet.',
-                  style: TextStyle(color: FarmioColors.textMuted),
+                  style: TextStyle(color: context.colors.textMuted),
                 ),
               ),
             );
@@ -121,12 +121,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   );
                 }
                 if (filtered.isEmpty) {
-                  return const Padding(
+                  return Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Center(
                       child: Text(
                         'No items match this filter',
-                        style: TextStyle(color: FarmioColors.textMuted),
+                        style: TextStyle(color: context.colors.textMuted),
                       ),
                     ),
                   );
@@ -203,8 +203,8 @@ class _ItemCard extends StatelessWidget {
                             const TextStyle(fontWeight: FontWeight.w900)),
                     Text(
                       '${item.quantity.toStringAsFixed(1)} ${item.unit} · ${item.category}',
-                      style: const TextStyle(
-                          fontSize: 12, color: FarmioColors.textMuted),
+                      style: TextStyle(
+                          fontSize: 12, color: context.colors.textMuted),
                     ),
                   ],
                 ),
@@ -270,11 +270,11 @@ class _ItemCard extends StatelessWidget {
                   label: const Text('Sell'),
                 )
               else
-                const Text('Out of stock',
+                Text('Out of stock',
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: FarmioColors.textMuted)),
+                        color: context.colors.textMuted)),
             ],
           ),
         ],
@@ -368,8 +368,8 @@ class _SellFormState extends ConsumerState<_SellForm> {
                   style: const TextStyle(
                       fontSize: 18, fontWeight: FontWeight.w900)),
               Text('${widget.item.quantity.toStringAsFixed(1)} ${widget.item.unit} available',
-                  style: const TextStyle(
-                      fontSize: 12, color: FarmioColors.textMuted)),
+                  style: TextStyle(
+                      fontSize: 12, color: context.colors.textMuted)),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -447,14 +447,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load inventory',
+            Text('Could not load inventory',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

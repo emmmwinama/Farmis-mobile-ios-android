@@ -119,7 +119,7 @@ class _CropsScreenState extends ConsumerState<CropsScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: FarmioColors.border),
+                      border: Border.all(color: context.colors.border),
                     ),
                     child: Row(
                       children: [
@@ -135,18 +135,18 @@ class _CropsScreenState extends ConsumerState<CropsScreen> {
                                 : 'Filters',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: FarmioColors.textPrimary,
+                              color: context.colors.textPrimary,
                             ),
                           ),
                         ),
                         AnimatedRotation(
                           turns: _showFilters ? 0.5 : 0,
                           duration: const Duration(milliseconds: 200),
-                          child: const Icon(Icons.keyboard_arrow_down_rounded,
-                              size: 18, color: FarmioColors.textMuted),
+                          child: Icon(Icons.keyboard_arrow_down_rounded,
+                              size: 18, color: context.colors.textMuted),
                         ),
                       ],
                     ),
@@ -321,10 +321,10 @@ class _GroupedList extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 10),
               child: Row(children: [
                 Text(season,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize:   15,
                       fontWeight: FontWeight.w800,
-                      color:      FarmioColors.textPrimary,
+                      color:      context.colors.textPrimary,
                     )),
                 const SizedBox(width: 8),
                 Container(
@@ -345,8 +345,8 @@ class _GroupedList extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(Fmt.haShort(area),
-                    style: const TextStyle(
-                      fontSize: 12, color: FarmioColors.textMuted,
+                    style: TextStyle(
+                      fontSize: 12, color: context.colors.textMuted,
                     )),
               ]),
             ),
@@ -417,12 +417,12 @@ class _CropCard extends StatelessWidget {
     required this.onDelete,
   });
 
-  Color get _statusColor {
+  Color _statusColor(BuildContext context) {
     switch (crop.status) {
       case 'Active':    return FarmioColors.success;
       case 'Harvested': return FarmioColors.info;
       case 'Failed':    return FarmioColors.danger;
-      case 'Archived':  return FarmioColors.textMuted;
+      case 'Archived':  return context.colors.textMuted;
       default:
         if (crop.isOverdue)  return FarmioColors.danger;
         if (crop.isDueSoon)  return FarmioColors.warning;
@@ -432,7 +432,7 @@ class _CropCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color      = _statusColor;
+    final color      = _statusColor(context);
     final isArchived = crop.status == 'Archived';
     final days       = crop.daysToHarvest;
 
@@ -496,15 +496,15 @@ class _CropCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('${crop.cropTypeName} · ${crop.variety}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize:   14,
                         fontWeight: FontWeight.w800,
-                        color:      FarmioColors.textPrimary,
+                        color:      context.colors.textPrimary,
                       )),
                   Text(crop.fieldName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color:    FarmioColors.textMuted,
+                        color:    context.colors.textMuted,
                       )),
                 ],
               )),
@@ -581,10 +581,10 @@ class _CropCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Growth',
+                  Text('Growth',
                       style: TextStyle(
                         fontSize: 11,
-                        color:    FarmioColors.textMuted,
+                        color:    context.colors.textMuted,
                       )),
                   Text(
                     crop.isOverdue
@@ -606,7 +606,7 @@ class _CropCard extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value:           progressValue,
                   minHeight:       5,
-                  backgroundColor: FarmioColors.border,
+                  backgroundColor: context.colors.border,
                   valueColor:
                   AlwaysStoppedAnimation<Color>(color),
                 ),
@@ -630,23 +630,23 @@ class _InfoBox extends StatelessWidget {
         padding: const EdgeInsets.symmetric(
             horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color:        FarmioColors.background,
+          color:        context.colors.background,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
-                  color:    FarmioColors.textMuted,
+                  color:    context.colors.textMuted,
                 )),
             const SizedBox(height: 2),
             Text(value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize:   11,
                   fontWeight: FontWeight.w700,
-                  color:      FarmioColors.textPrimary,
+                  color:      context.colors.textPrimary,
                 )),
           ],
         ),
@@ -682,7 +682,7 @@ class _FilterChip extends StatelessWidget {
           border: Border.all(
             color: selected
                 ? FarmioColors.primary
-                : FarmioColors.border,
+                : context.colors.border,
           ),
         ),
         child: Text(label,
@@ -691,7 +691,7 @@ class _FilterChip extends StatelessWidget {
               fontWeight: FontWeight.w700,
               color: selected
                   ? Colors.white
-                  : FarmioColors.textMuted,
+                  : context.colors.textMuted,
             )),
       ),
     );
@@ -767,13 +767,13 @@ class _GroupToggle extends StatelessWidget {
           border: Border.all(
             color: active
                 ? FarmioColors.primary
-                : FarmioColors.border,
+                : context.colors.border,
           ),
         ),
         child: Icon(
           Icons.view_agenda_outlined,
           size:  18,
-          color: active ? Colors.white : FarmioColors.textMuted,
+          color: active ? Colors.white : context.colors.textMuted,
         ),
       ),
     );
@@ -809,7 +809,7 @@ class _EmptyState extends StatelessWidget {
         padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Icon(Icons.grass_outlined,
                 size: 48, color: FarmioColors.primary),
             SizedBox(height: 16),
@@ -817,12 +817,12 @@ class _EmptyState extends StatelessWidget {
                 style: TextStyle(
                   fontSize:   16,
                   fontWeight: FontWeight.w800,
-                  color:      FarmioColors.textPrimary,
+                  color:      context.colors.textPrimary,
                 )),
             SizedBox(height: 6),
             Text('Try adjusting your season, status or field filter',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
           ],
         ),
       ),
@@ -844,11 +844,11 @@ class _ErrorView extends StatelessWidget {
           const Icon(Icons.error_outline_rounded,
               size: 48, color: FarmioColors.danger),
           const SizedBox(height: 12),
-          const Text('Could not load crops',
+          Text('Could not load crops',
               style: TextStyle(
                 fontSize:   16,
                 fontWeight: FontWeight.w700,
-                color:      FarmioColors.textPrimary,
+                color:      context.colors.textPrimary,
               )),
           const SizedBox(height: 20),
           ElevatedButton.icon(

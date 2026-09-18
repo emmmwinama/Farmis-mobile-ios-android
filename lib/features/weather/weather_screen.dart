@@ -36,10 +36,10 @@ class WeatherScreen extends ConsumerWidget {
             children: [
               if (data.current != null) _CurrentCard(data: data),
               const SizedBox(height: 16),
-              const Text('7-day forecast',
+              Text('7-day forecast',
                   style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: FarmioColors.textPrimary)),
+                      color: context.colors.textPrimary)),
               const SizedBox(height: 8),
               SizedBox(
                 height: 130,
@@ -52,10 +52,10 @@ class WeatherScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('Field guidance',
+              Text('Field guidance',
                   style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: FarmioColors.textPrimary)),
+                      color: context.colors.textPrimary)),
               const SizedBox(height: 8),
               ...data.guidance.map((tip) => Container(
                     margin: const EdgeInsets.only(bottom: 8),
@@ -179,9 +179,9 @@ class _DayCard extends StatelessWidget {
       width: 84,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: FarmioColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -217,14 +217,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load weather',
+            Text('Could not load weather',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

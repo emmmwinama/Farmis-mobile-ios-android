@@ -82,10 +82,10 @@ class _ReportBuilderScreenState extends ConsumerState<ReportBuilderScreen> {
         data: (report) => ListView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
           children: [
-            const Text('Select sections to export',
+            Text('Select sections to export',
                 style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    color: FarmioColors.textPrimary)),
+                    color: context.colors.textPrimary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -126,18 +126,18 @@ class _ReportBuilderScreenState extends ConsumerState<ReportBuilderScreen> {
             ),
             const SizedBox(height: 24),
             if (report.cropProfitability.isNotEmpty) ...[
-              const Text('Crop profitability',
+              Text('Crop profitability',
                   style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: FarmioColors.textPrimary)),
+                      color: context.colors.textPrimary)),
               const SizedBox(height: 8),
               ...report.cropProfitability.map((row) => Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: FarmioColors.surface,
+                      color: context.colors.surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: FarmioColors.border),
+                      border: Border.all(color: context.colors.border),
                     ),
                     child: Row(
                       children: [
@@ -149,9 +149,9 @@ class _ReportBuilderScreenState extends ConsumerState<ReportBuilderScreen> {
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w800)),
                               Text('${row.fieldName} · ${row.season}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 12,
-                                      color: FarmioColors.textMuted)),
+                                      color: context.colors.textMuted)),
                             ],
                           ),
                         ),
@@ -187,14 +187,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load report builder',
+            Text('Could not load report builder',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

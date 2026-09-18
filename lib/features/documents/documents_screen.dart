@@ -48,13 +48,13 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: Text(
                   'No evidence uploaded yet. Add receipts, field photos, certificates and other documents.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: FarmioColors.textMuted),
+                  style: TextStyle(color: context.colors.textMuted),
                 ),
               ),
             );
@@ -85,10 +85,10 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                 ),
                 Expanded(
                   child: filtered.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Text(
                             'No documents match this filter',
-                            style: TextStyle(color: FarmioColors.textMuted),
+                            style: TextStyle(color: context.colors.textMuted),
                           ),
                         )
                       : GridView.builder(
@@ -138,9 +138,9 @@ class _DocumentCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
-          color: FarmioColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: FarmioColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -157,8 +157,8 @@ class _DocumentCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
                   Text(documentTypeLabel(doc.type),
-                      style: const TextStyle(
-                          fontSize: 11, color: FarmioColors.textMuted)),
+                      style: TextStyle(
+                          fontSize: 11, color: context.colors.textMuted)),
                 ],
               ),
             ),
@@ -268,8 +268,8 @@ class _Thumbnail extends StatelessWidget {
       return Container(
         color: FarmioColors.slate100,
         alignment: Alignment.center,
-        child: const Icon(Icons.insert_drive_file_outlined,
-            size: 36, color: FarmioColors.textMuted),
+        child: Icon(Icons.insert_drive_file_outlined,
+            size: 36, color: context.colors.textMuted),
       );
     }
 
@@ -280,8 +280,8 @@ class _Thumbnail extends StatelessWidget {
       errorBuilder: (_, __, ___) => Container(
         color: FarmioColors.slate100,
         alignment: Alignment.center,
-        child: const Icon(Icons.broken_image_outlined,
-            size: 36, color: FarmioColors.textMuted),
+        child: Icon(Icons.broken_image_outlined,
+            size: 36, color: context.colors.textMuted),
       ),
     );
   }
@@ -301,14 +301,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load documents',
+            Text('Could not load documents',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

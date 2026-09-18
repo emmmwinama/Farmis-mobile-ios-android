@@ -40,18 +40,18 @@ class CreditScoreScreen extends ConsumerWidget {
             children: [
               _ScoreCard(data: data),
               const SizedBox(height: 16),
-              const Text('Readiness checks',
+              Text('Readiness checks',
                   style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: FarmioColors.textPrimary)),
+                      color: context.colors.textPrimary)),
               const SizedBox(height: 8),
               ...data.checks.map((item) => Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: FarmioColors.surface,
+                      color: context.colors.surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: FarmioColors.border),
+                      border: Border.all(color: context.colors.border),
                     ),
                     child: Row(
                       children: [
@@ -61,7 +61,7 @@ class CreditScoreScreen extends ConsumerWidget {
                               : Icons.radio_button_unchecked,
                           color: item.passed
                               ? FarmioColors.success
-                              : FarmioColors.textMuted,
+                              : context.colors.textMuted,
                           size: 20,
                         ),
                         const SizedBox(width: 10),
@@ -74,17 +74,17 @@ class CreditScoreScreen extends ConsumerWidget {
                     ),
                   )),
               const SizedBox(height: 16),
-              const Text('Summary',
+              Text('Summary',
                   style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: FarmioColors.textPrimary)),
+                      color: context.colors.textPrimary)),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: FarmioColors.surface,
+                  color: context.colors.surface,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: FarmioColors.border),
+                  border: Border.all(color: context.colors.border),
                 ),
                 child: Wrap(
                   spacing: 20,
@@ -181,7 +181,7 @@ class _SummaryItem extends StatelessWidget {
         Text(value,
             style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
         Text(label,
-            style: const TextStyle(fontSize: 11, color: FarmioColors.textMuted)),
+            style: TextStyle(fontSize: 11, color: context.colors.textMuted)),
       ],
     );
   }
@@ -201,14 +201,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load credit readiness',
+            Text('Could not load credit readiness',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

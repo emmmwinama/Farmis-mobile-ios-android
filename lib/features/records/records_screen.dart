@@ -117,7 +117,7 @@ class _RecordsHero extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: FarmioColors.softBorder),
+        border: Border.all(color: context.colors.softBorder),
         boxShadow: [
           BoxShadow(
             color: FarmioColors.slate900.withValues(alpha: 0.08),
@@ -148,10 +148,10 @@ class _RecordsHero extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Farm evidence, ready to share.',
             style: TextStyle(
-              color: FarmioColors.textPrimary,
+              color: context.colors.textPrimary,
               fontSize: 25,
               height: 1.05,
               fontWeight: FontWeight.w900,
@@ -161,7 +161,7 @@ class _RecordsHero extends StatelessWidget {
           Text(
             pack.description,
             style: TextStyle(
-              color: FarmioColors.textSecond,
+              color: context.colors.textSecond,
               fontSize: 13,
               height: 1.4,
             ),
@@ -200,8 +200,8 @@ class _SectionHeader extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           title,
-          style: const TextStyle(
-            color: FarmioColors.textPrimary,
+          style: TextStyle(
+            color: context.colors.textPrimary,
             fontSize: 17,
             fontWeight: FontWeight.w900,
           ),
@@ -209,8 +209,8 @@ class _SectionHeader extends StatelessWidget {
         const SizedBox(height: 3),
         Text(
           subtitle,
-          style: const TextStyle(
-            color: FarmioColors.textSecond,
+          style: TextStyle(
+            color: context.colors.textSecond,
             fontSize: 12,
             height: 1.35,
           ),
@@ -347,7 +347,7 @@ class _RecordPackTile extends StatelessWidget {
               border: Border.all(
                 color: selected
                     ? pack.color
-                    : FarmioColors.softBorder,
+                    : context.colors.softBorder,
                 width: selected ? 1.8 : 1,
               ),
               boxShadow: [
@@ -375,15 +375,15 @@ class _RecordPackTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(pack.title,
-                          style: const TextStyle(
-                            color: FarmioColors.textPrimary,
+                          style: TextStyle(
+                            color: context.colors.textPrimary,
                             fontWeight: FontWeight.w900,
                             fontSize: 14,
                           )),
                       const SizedBox(height: 4),
                       Text(pack.description,
-                          style: const TextStyle(
-                            color: FarmioColors.textSecond,
+                          style: TextStyle(
+                            color: context.colors.textSecond,
                             fontSize: 12,
                             height: 1.28,
                           )),
@@ -438,7 +438,7 @@ class _SectionToggle extends StatelessWidget {
               border: Border.all(
                 color: selected
                     ? FarmioColors.info
-                    : FarmioColors.softBorder,
+                    : context.colors.softBorder,
               ),
             ),
             child: Column(
@@ -449,7 +449,7 @@ class _SectionToggle extends StatelessWidget {
                     Icon(section.icon,
                         color: selected
                             ? FarmioColors.info
-                            : FarmioColors.textMuted,
+                            : context.colors.textMuted,
                         size: 20),
                     const Spacer(),
                     Icon(
@@ -465,15 +465,15 @@ class _SectionToggle extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 Text(section.label,
-                    style: const TextStyle(
-                      color: FarmioColors.textPrimary,
+                    style: TextStyle(
+                      color: context.colors.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w900,
                     )),
                 const SizedBox(height: 4),
                 Text(section.description,
-                    style: const TextStyle(
-                      color: FarmioColors.textSecond,
+                    style: TextStyle(
+                      color: context.colors.textSecond,
                       fontSize: 11,
                       height: 1.25,
                     )),
@@ -531,15 +531,15 @@ class _ExportPanelState extends ConsumerState<_ExportPanel> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: FarmioColors.softBorder),
+        border: Border.all(color: context.colors.softBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Generate document',
             style: TextStyle(
-              color: FarmioColors.textPrimary,
+              color: context.colors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w900,
             ),
@@ -547,8 +547,8 @@ class _ExportPanelState extends ConsumerState<_ExportPanel> {
           const SizedBox(height: 6),
           Text(
             'Built on-device from ${widget.filters.summary}. Nothing leaves this phone until you share it.',
-            style: const TextStyle(
-              color: FarmioColors.textSecond,
+            style: TextStyle(
+              color: context.colors.textSecond,
               fontSize: 12,
               height: 1.35,
             ),
@@ -599,7 +599,7 @@ class _DarkPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: FarmioColors.primaryBg,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: FarmioColors.softBorder),
+        border: Border.all(color: context.colors.softBorder),
       ),
       child: Text(
         label,

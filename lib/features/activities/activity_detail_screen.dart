@@ -104,24 +104,24 @@ class _DetailContent extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(activity.activityType,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize:   18,
                     fontWeight: FontWeight.w800,
-                    color:      FarmioColors.textPrimary,
+                    color:      context.colors.textPrimary,
                   )),
               Text(activity.fieldName +
                   (activity.cropName != null
                       ? ' · ${activity.cropName}'
                       : ''),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color:    FarmioColors.textMuted,
+                    color:    context.colors.textMuted,
                   )),
               const SizedBox(height: 4),
               Text(Fmt.date(activity.date),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize:   12,
-                    color:      FarmioColors.textMuted,
+                    color:      context.colors.textMuted,
                     fontWeight: FontWeight.w600,
                   )),
             ],
@@ -134,17 +134,17 @@ class _DetailContent extends StatelessWidget {
           FarmioCard(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Notes',
+              Text('Notes',
                   style: TextStyle(
                     fontSize:   12,
                     fontWeight: FontWeight.w700,
-                    color:      FarmioColors.textMuted,
+                    color:      context.colors.textMuted,
                   )),
               const SizedBox(height: 6),
               Text(activity.notes!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color:    FarmioColors.textPrimary,
+                    color:    context.colors.textPrimary,
                   )),
             ],
           )),
@@ -156,11 +156,11 @@ class _DetailContent extends StatelessWidget {
         FarmioCard(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Cost summary',
+            Text('Cost summary',
                 style: TextStyle(
                   fontSize:   14,
                   fontWeight: FontWeight.w800,
-                  color:      FarmioColors.textPrimary,
+                  color:      context.colors.textPrimary,
                 )),
             const SizedBox(height: 12),
             _CostRow(
@@ -178,7 +178,7 @@ class _DetailContent extends StatelessWidget {
               value: activity.costs.other,
               icon:  Icons.more_horiz,
             ),
-            const Divider(color: FarmioColors.border),
+            Divider(color: context.colors.border),
             _CostRow(
               label:  'Total',
               value:  activity.costs.total,
@@ -264,10 +264,10 @@ class _InputTile extends StatelessWidget {
                 child: Text(input.inputName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize:   13,
                       fontWeight: FontWeight.w700,
-                      color:      FarmioColors.textPrimary,
+                      color:      context.colors.textPrimary,
                     )),
               ),
               const SizedBox(width: 8),
@@ -284,9 +284,9 @@ class _InputTile extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '${input.quantity} ${input.unit} × ${Fmt.mwk(input.unitCost)} · ${input.category}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color:    FarmioColors.textMuted,
+              color:    context.colors.textMuted,
             ),
           ),
         ],
@@ -309,23 +309,23 @@ class _LabourTile extends StatelessWidget {
         border:       Border.all(color: context.colors.border),
       ),
       child: Row(children: [
-        const Icon(Icons.person_outline,
-            size: 20, color: FarmioColors.textMuted),
+        Icon(Icons.person_outline,
+            size: 20, color: context.colors.textMuted),
         const SizedBox(width: 10),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(labour.employeeName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize:   13,
                   fontWeight: FontWeight.w700,
-                  color:      FarmioColors.textPrimary,
+                  color:      context.colors.textPrimary,
                 )),
             Text(
               '${labour.daysWorked} days · ${labour.hoursWorked} hrs',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color:    FarmioColors.textMuted,
+                color:    context.colors.textMuted,
               ),
             ),
           ],
@@ -355,15 +355,15 @@ class _OtherCostTile extends StatelessWidget {
         border:       Border.all(color: context.colors.border),
       ),
       child: Row(children: [
-        const Icon(Icons.receipt_outlined,
-            size: 18, color: FarmioColors.textMuted),
+        Icon(Icons.receipt_outlined,
+            size: 18, color: context.colors.textMuted),
         const SizedBox(width: 10),
         Expanded(
           child: Text(cost.description,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize:   13,
                 fontWeight: FontWeight.w600,
-                color:      FarmioColors.textPrimary,
+                color:      context.colors.textPrimary,
               )),
         ),
         Text(Fmt.mwk(cost.amount),
@@ -388,10 +388,10 @@ class _SectionHeader extends StatelessWidget {
       Icon(icon, size: 16, color: FarmioColors.primary),
       const SizedBox(width: 8),
       Text(title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize:   16,
             fontWeight: FontWeight.w800,
-            color:      FarmioColors.textPrimary,
+            color:      context.colors.textPrimary,
           )),
     ]);
   }
@@ -412,9 +412,9 @@ class _EmptySection extends StatelessWidget {
       ),
       child: Center(
         child: Text(label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color:    FarmioColors.textMuted,
+              color:    context.colors.textMuted,
             )),
       ),
     );
@@ -439,7 +439,7 @@ class _CostRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(children: [
-        Icon(icon, size: 16, color: FarmioColors.textMuted),
+        Icon(icon, size: 16, color: context.colors.textMuted),
         const SizedBox(width: 8),
         Expanded(
           child: Text(label,
@@ -448,7 +448,7 @@ class _CostRow extends StatelessWidget {
                 fontWeight: isBold
                     ? FontWeight.w800
                     : FontWeight.w500,
-                color:      FarmioColors.textPrimary,
+                color:      context.colors.textPrimary,
               )),
         ),
         Text(Fmt.mwk(value),
@@ -459,7 +459,7 @@ class _CostRow extends StatelessWidget {
                   : FontWeight.w600,
               color: isBold
                   ? FarmioColors.primary
-                  : FarmioColors.textPrimary,
+                  : context.colors.textPrimary,
             )),
       ]),
     );

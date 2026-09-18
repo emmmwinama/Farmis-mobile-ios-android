@@ -81,17 +81,17 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
               const BrandMark(size: 72, radius: 20),
               const SizedBox(height: 24),
               Text(title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                   )),
               const SizedBox(height: 6),
               Text(subtitle,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: FarmioColors.textMuted,
+                    color: context.colors.textMuted,
                   )),
               const SizedBox(height: 32),
               PinDots(entered: _entered.length),

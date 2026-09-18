@@ -81,12 +81,12 @@ class _FieldsScreenState extends ConsumerState<FieldsScreen> {
                   );
                 }
                 if (filtered.isEmpty) {
-                  return const Padding(
+                  return Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Center(
                       child: Text(
                         'No fields match this filter',
-                        style: TextStyle(color: FarmioColors.textMuted),
+                        style: TextStyle(color: context.colors.textMuted),
                       ),
                     ),
                   );

@@ -181,19 +181,19 @@ class _TransactionFormScreenState
                 padding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 14),
                 decoration: BoxDecoration(
-                  color:        FarmioColors.background,
+                  color:        context.colors.background,
                   borderRadius: BorderRadius.circular(12),
-                  border:       Border.all(color: FarmioColors.border),
+                  border:       Border.all(color: context.colors.border),
                 ),
                 child: Row(children: [
-                  const Icon(Icons.calendar_today_outlined,
-                      size: 16, color: FarmioColors.textMuted),
+                  Icon(Icons.calendar_today_outlined,
+                      size: 16, color: context.colors.textMuted),
                   const SizedBox(width: 10),
                   Text(
                     '${_date.day}/${_date.month}/${_date.year}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color:    FarmioColors.textPrimary,
+                      color:    context.colors.textPrimary,
                     ),
                   ),
                 ]),
@@ -229,10 +229,10 @@ class _TransactionFormScreenState
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize:   12,
           fontWeight: FontWeight.w700,
-          color:      FarmioColors.textMuted,
+          color:      context.colors.textMuted,
         )),
   );
 
@@ -267,9 +267,9 @@ class _TransactionFormScreenState
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color:        FarmioColors.background,
+          color:        context.colors.background,
           borderRadius: BorderRadius.circular(12),
-          border:       Border.all(color: FarmioColors.border),
+          border:       Border.all(color: context.colors.border),
         ),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
@@ -308,10 +308,10 @@ class _TypeButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? color.withValues(alpha:0.1)
-              : FarmioColors.background,
+              : context.colors.background,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? color : FarmioColors.border,
+            color: selected ? color : context.colors.border,
             width: selected ? 2 : 1,
           ),
         ),
@@ -320,7 +320,7 @@ class _TypeButton extends StatelessWidget {
             style: TextStyle(
               fontSize:   14,
               fontWeight: FontWeight.w700,
-              color:      selected ? color : FarmioColors.textMuted,
+              color:      selected ? color : context.colors.textMuted,
             )),
       ),
     );

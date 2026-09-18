@@ -39,18 +39,18 @@ class FarmioStatusBadge extends StatelessWidget {
   final String status;
   const FarmioStatusBadge({super.key, required this.status});
 
-  Color get _color {
+  Color _color(BuildContext context) {
     switch (status) {
       case 'Active':    return FarmioColors.success;
       case 'Harvested': return FarmioColors.info;
       case 'Failed':    return FarmioColors.danger;
-      case 'Archived':  return FarmioColors.textMuted;
+      case 'Archived':  return context.colors.textMuted;
       default:          return FarmioColors.primary;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FarmioBadge(label: status, color: _color);
+    return FarmioBadge(label: status, color: _color(context));
   }
 }

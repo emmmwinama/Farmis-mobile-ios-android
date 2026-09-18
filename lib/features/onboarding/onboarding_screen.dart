@@ -68,20 +68,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               const SizedBox(height: 24),
               const Center(child: BrandMark(size: 72, radius: 20)),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Welcome to AgriVault',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: FarmioColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 "Let's set up your farm before anything else. This stays on your device.",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: FarmioColors.textMuted),
+                style: TextStyle(fontSize: 14, color: context.colors.textMuted),
               ),
               const SizedBox(height: 32),
               TextField(
@@ -128,10 +128,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 "You'll set a PIN next to lock the app.",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: FarmioColors.textMuted),
+                style: TextStyle(fontSize: 12, color: context.colors.textMuted),
               ),
             ],
           ),

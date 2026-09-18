@@ -226,8 +226,8 @@ class _ZonesStrip extends StatelessWidget {
                     style: const TextStyle(
                         fontWeight: FontWeight.w800, fontSize: 12)),
                 Text(zone.type,
-                    style: const TextStyle(
-                        fontSize: 10, color: FarmioColors.textMuted)),
+                    style: TextStyle(
+                        fontSize: 10, color: context.colors.textMuted)),
               ],
             ),
           );

@@ -65,10 +65,10 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
                         _showAll
                             ? 'Showing all templates'
                             : 'Showing templates for your active crops',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: FarmioColors.textMuted,
+                          color: context.colors.textMuted,
                         ),
                       ),
                     ),
@@ -125,14 +125,14 @@ class _EmptyFilteredState extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(Icons.eco_outlined,
-              size: 40, color: FarmioColors.textMuted),
+          Icon(Icons.eco_outlined,
+              size: 40, color: context.colors.textMuted),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'No templates match your active crops yet.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: FarmioColors.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -229,13 +229,13 @@ class _TemplateCardState extends State<_TemplateCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(template.name,
-                            style: const TextStyle(
-                              color: FarmioColors.textPrimary,
+                            style: TextStyle(
+                              color: context.colors.textPrimary,
                               fontWeight: FontWeight.w900,
                             )),
                         Text('${template.crop} - ${template.season}',
-                            style: const TextStyle(
-                              color: FarmioColors.textMuted,
+                            style: TextStyle(
+                              color: context.colors.textMuted,
                               fontSize: 12,
                             )),
                       ],
@@ -248,8 +248,8 @@ class _TemplateCardState extends State<_TemplateCard> {
               ),
               const SizedBox(height: 12),
               Text(template.description,
-                  style: const TextStyle(
-                    color: FarmioColors.textSecond,
+                  style: TextStyle(
+                    color: context.colors.textSecond,
                     height: 1.35,
                   )),
               if (_expanded) ...[
@@ -301,8 +301,8 @@ class _Section extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: const TextStyle(
-                color: FarmioColors.textPrimary,
+              style: TextStyle(
+                color: context.colors.textPrimary,
                 fontWeight: FontWeight.w900,
                 fontSize: 13,
               )),
@@ -329,21 +329,21 @@ class _DetailLine extends StatelessWidget {
       decoration: BoxDecoration(
         color: FarmioColors.slate50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: const TextStyle(
-                color: FarmioColors.textPrimary,
+              style: TextStyle(
+                color: context.colors.textPrimary,
                 fontWeight: FontWeight.w800,
               )),
           if (body.isNotEmpty) ...[
             const SizedBox(height: 3),
             Text(body,
-                style: const TextStyle(
-                  color: FarmioColors.textMuted,
+                style: TextStyle(
+                  color: context.colors.textMuted,
                   fontSize: 12,
                   height: 1.35,
                 )),
@@ -368,14 +368,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load templates',
+            Text('Could not load templates',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

@@ -53,12 +53,12 @@ class _LivestockScreenState extends ConsumerState<LivestockScreen> {
         ),
         data: (data) {
           if (data.animals.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: Text(
                   'No animals registered yet.',
-                  style: TextStyle(color: FarmioColors.textMuted),
+                  style: TextStyle(color: context.colors.textMuted),
                 ),
               ),
             );
@@ -115,12 +115,12 @@ class _LivestockScreenState extends ConsumerState<LivestockScreen> {
                   );
                 }
                 if (filtered.isEmpty) {
-                  return const Padding(
+                  return Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Center(
                       child: Text(
                         'No animals match this filter',
-                        style: TextStyle(color: FarmioColors.textMuted),
+                        style: TextStyle(color: context.colors.textMuted),
                       ),
                     ),
                   );
@@ -173,8 +173,8 @@ class _AnimalCard extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.w900)),
                   Text(
                     '${animal.livestockTypeName ?? 'Livestock'} · ${animal.sex}${animal.breed != null ? ' · ${animal.breed}' : ''}',
-                    style: const TextStyle(
-                        fontSize: 12, color: FarmioColors.textMuted),
+                    style: TextStyle(
+                        fontSize: 12, color: context.colors.textMuted),
                   ),
                 ],
               ),
@@ -188,11 +188,11 @@ class _AnimalCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(animal.status,
-                    style: const TextStyle(
-                        fontSize: 11, color: FarmioColors.textMuted)),
+                    style: TextStyle(
+                        fontSize: 11, color: context.colors.textMuted)),
               ),
-            const Icon(Icons.chevron_right_rounded,
-                color: FarmioColors.textMuted),
+            Icon(Icons.chevron_right_rounded,
+                color: context.colors.textMuted),
           ],
         ),
       ),
@@ -214,14 +214,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load livestock',
+            Text('Could not load livestock',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

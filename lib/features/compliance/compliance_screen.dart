@@ -71,21 +71,21 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
                 const SizedBox(height: 12),
                 _ComplianceSummaryRow(data: data),
                 const SizedBox(height: 16),
-                const Text('Farm checklist',
+                Text('Farm checklist',
                     style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: FarmioColors.textPrimary)),
+                        color: context.colors.textPrimary)),
                 const SizedBox(height: 8),
                 ...data.checklist.map((item) => _ChecklistTile(item: item)),
                 const SizedBox(height: 16),
-                const Text('Crop lots',
+                Text('Crop lots',
                     style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: FarmioColors.textPrimary)),
+                        color: context.colors.textPrimary)),
                 const SizedBox(height: 8),
                 if (data.lots.isEmpty)
-                  const Text('No crop lots to review yet.',
-                      style: TextStyle(color: FarmioColors.textMuted))
+                  Text('No crop lots to review yet.',
+                      style: TextStyle(color: context.colors.textMuted))
                 else ...[
                   EntityFilterBar(
                     dimensions: [
@@ -120,10 +120,10 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
                     ],
                   ),
                   if (filteredLots.isEmpty)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       child: Text('No crop lots match this filter.',
-                          style: TextStyle(color: FarmioColors.textMuted)),
+                          style: TextStyle(color: context.colors.textMuted)),
                     )
                   else
                     ...filteredLots.map((lot) => _LotTile(
@@ -185,9 +185,9 @@ class _ReadinessGauge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: FarmioColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         children: [
@@ -209,10 +209,10 @@ class _ReadinessGauge extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Text(
               'Audit, buyer and insurance readiness across your farm records.',
-              style: TextStyle(fontSize: 13, color: FarmioColors.textMuted),
+              style: TextStyle(fontSize: 13, color: context.colors.textMuted),
             ),
           ),
         ],
@@ -231,15 +231,15 @@ class _ChecklistTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: FarmioColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         children: [
           Icon(
             item.passed ? Icons.check_circle : Icons.radio_button_unchecked,
-            color: item.passed ? FarmioColors.success : FarmioColors.textMuted,
+            color: item.passed ? FarmioColors.success : context.colors.textMuted,
             size: 20,
           ),
           const SizedBox(width: 10),
@@ -248,8 +248,8 @@ class _ChecklistTile extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
           Text('${item.value}',
-              style: const TextStyle(
-                  fontSize: 12, color: FarmioColors.textMuted)),
+              style: TextStyle(
+                  fontSize: 12, color: context.colors.textMuted)),
         ],
       ),
     );
@@ -266,10 +266,10 @@ class _LotTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: FarmioColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: lot.allDone ? FarmioColors.success : FarmioColors.border,
+          color: lot.allDone ? FarmioColors.success : context.colors.border,
         ),
       ),
       child: InkWell(
@@ -286,8 +286,8 @@ class _LotTile extends StatelessWidget {
                     Text('${lot.cropName} · ${lot.fieldName}',
                         style: const TextStyle(fontWeight: FontWeight.w800)),
                     Text(lot.season,
-                        style: const TextStyle(
-                            fontSize: 12, color: FarmioColors.textMuted)),
+                        style: TextStyle(
+                            fontSize: 12, color: context.colors.textMuted)),
                   ],
                 ),
               ),
@@ -327,14 +327,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load compliance',
+            Text('Could not load compliance',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

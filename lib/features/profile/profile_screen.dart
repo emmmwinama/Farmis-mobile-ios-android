@@ -61,25 +61,25 @@ class ProfileScreen extends ConsumerWidget {
                         if (data?.ownerName?.isNotEmpty == true)
                           Text(
                             data!.ownerName!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: FarmioColors.textMuted,
+                              color: context.colors.textMuted,
                             ),
                           ),
                         Text(
                           data?.name ?? 'My Farm',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
-                            color: FarmioColors.textPrimary,
+                            color: context.colors.textPrimary,
                           ),
                         ),
                         Text(
                           data?.location ?? 'Location not set',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: FarmioColors.textMuted,
+                            color: context.colors.textMuted,
                           ),
                         ),
                       ],
@@ -268,23 +268,23 @@ class _ProfileAction extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: FarmioColors.textPrimary,
+                    style: TextStyle(
+                      color: context.colors.textPrimary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: FarmioColors.textMuted,
+                    style: TextStyle(
+                      color: context.colors.textMuted,
                       fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: FarmioColors.textMuted),
+            Icon(Icons.chevron_right, color: context.colors.textMuted),
           ],
         ),
       ),
@@ -370,9 +370,9 @@ class _FarmProfileFormState extends ConsumerState<_FarmProfileForm> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Farm details',
+                Text('Farm details',
                     style: TextStyle(
-                      color: FarmioColors.textPrimary,
+                      color: context.colors.textPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
                     )),
@@ -419,12 +419,12 @@ class _FarmProfileFormState extends ConsumerState<_FarmProfileForm> {
                     ),
                   ],
                 ),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 6),
                   child: Text(
                     'Latitude/longitude sharpen the weather forecast; otherwise the location name is used.',
                     style: TextStyle(
-                        fontSize: 11, color: FarmioColors.textMuted),
+                        fontSize: 11, color: context.colors.textMuted),
                   ),
                 ),
                 if (_error != null) ...[

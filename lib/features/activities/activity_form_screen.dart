@@ -270,9 +270,9 @@ class _ActivityFormScreenState
               data: (list) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 decoration: BoxDecoration(
-                  color:        FarmioColors.background,
+                  color:        context.colors.background,
                   borderRadius: BorderRadius.circular(12),
-                  border:       Border.all(color: FarmioColors.border),
+                  border:       Border.all(color: context.colors.border),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -308,10 +308,10 @@ class _ActivityFormScreenState
                   padding:
                   const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
-                    color:        FarmioColors.background,
+                    color:        context.colors.background,
                     borderRadius: BorderRadius.circular(12),
                     border:
-                    Border.all(color: FarmioColors.border),
+                    Border.all(color: context.colors.border),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
@@ -349,9 +349,9 @@ class _ActivityFormScreenState
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color:        FarmioColors.background,
+                color:        context.colors.background,
                 borderRadius: BorderRadius.circular(12),
-                border:       Border.all(color: FarmioColors.border),
+                border:       Border.all(color: context.colors.border),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
@@ -391,9 +391,9 @@ class _ActivityFormScreenState
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     decoration: BoxDecoration(
-                      color: FarmioColors.background,
+                      color: context.colors.background,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: FarmioColors.border),
+                      border: Border.all(color: context.colors.border),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
@@ -448,20 +448,20 @@ class _ActivityFormScreenState
                 padding: const EdgeInsets.symmetric(
                     horizontal: 14, vertical: 14),
                 decoration: BoxDecoration(
-                  color:        FarmioColors.background,
+                  color:        context.colors.background,
                   borderRadius: BorderRadius.circular(12),
                   border:
-                  Border.all(color: FarmioColors.border),
+                  Border.all(color: context.colors.border),
                 ),
                 child: Row(children: [
-                  const Icon(Icons.calendar_today_outlined,
-                      size: 16, color: FarmioColors.textMuted),
+                  Icon(Icons.calendar_today_outlined,
+                      size: 16, color: context.colors.textMuted),
                   const SizedBox(width: 10),
                   Text(
                     '${_date.day}/${_date.month}/${_date.year}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color:    FarmioColors.textPrimary,
+                      color:    context.colors.textPrimary,
                     ),
                   ),
                 ]),
@@ -494,11 +494,11 @@ class _ActivityFormScreenState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Inputs',
+                Text('Inputs',
                     style: TextStyle(
                       fontSize:   16,
                       fontWeight: FontWeight.w800,
-                      color:      FarmioColors.textPrimary,
+                      color:      context.colors.textPrimary,
                     )),
                 TextButton.icon(
                   onPressed: _addInput,
@@ -522,11 +522,11 @@ class _ActivityFormScreenState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Labour',
+                Text('Labour',
                     style: TextStyle(
                       fontSize:   16,
                       fontWeight: FontWeight.w800,
-                      color:      FarmioColors.textPrimary,
+                      color:      context.colors.textPrimary,
                     )),
                 TextButton.icon(
                   onPressed: _addLabour,
@@ -552,11 +552,11 @@ class _ActivityFormScreenState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Other costs',
+                Text('Other costs',
                     style: TextStyle(
                       fontSize:   16,
                       fontWeight: FontWeight.w800,
-                      color:      FarmioColors.textPrimary,
+                      color:      context.colors.textPrimary,
                     )),
                 TextButton.icon(
                   onPressed: _addOtherCost,
@@ -603,10 +603,10 @@ class _ActivityFormScreenState
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize:   12,
           fontWeight: FontWeight.w700,
-          color:      FarmioColors.textMuted,
+          color:      context.colors.textMuted,
         )),
   );
 
@@ -683,7 +683,7 @@ class _InputForm extends StatelessWidget {
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Column(
         children: [
@@ -766,7 +766,7 @@ class _LabourForm extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: FarmioColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         children: [
@@ -775,9 +775,9 @@ class _LabourForm extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
-                  color: FarmioColors.background,
+                  color: context.colors.background,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: FarmioColors.border),
+                  border: Border.all(color: context.colors.border),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -786,8 +786,8 @@ class _LabourForm extends StatelessWidget {
                         style: TextStyle(fontSize: 13)),
                     isExpanded: true,
                     isDense: true,
-                    style: const TextStyle(
-                        fontSize: 13, color: FarmioColors.textPrimary),
+                    style: TextStyle(
+                        fontSize: 13, color: context.colors.textPrimary),
                     items: employees
                         .where((e) => e.isActive)
                         .map((e) => DropdownMenuItem(
@@ -856,7 +856,7 @@ class _OtherCostForm extends StatelessWidget {
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Row(children: [
         Expanded(

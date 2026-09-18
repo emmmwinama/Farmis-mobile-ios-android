@@ -26,7 +26,7 @@ class PinDots extends StatelessWidget {
               border: Border.all(
                 color: i < entered
                     ? FarmioColors.primary
-                    : FarmioColors.border,
+                    : context.colors.border,
                 width: 1.5,
               ),
             ),

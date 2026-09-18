@@ -54,12 +54,12 @@ class _EquipmentList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.all(32),
           child: Text(
             'No equipment registered yet.',
-            style: TextStyle(color: FarmioColors.textMuted),
+            style: TextStyle(color: context.colors.textMuted),
           ),
         ),
       );
@@ -101,15 +101,15 @@ class _EquipmentList extends StatelessWidget {
                       Text(
                           '${equipmentCategoryLabel(item.category)}'
                           '${item.logCount > 0 ? ' · ${item.logCount} log${item.logCount == 1 ? '' : 's'}' : ''}',
-                          style: const TextStyle(
-                              fontSize: 12, color: FarmioColors.textMuted)),
+                          style: TextStyle(
+                              fontSize: 12, color: context.colors.textMuted)),
                     ],
                   ),
                 ),
                 _StatusChip(status: item.status),
                 const SizedBox(width: 6),
-                const Icon(Icons.chevron_right_rounded,
-                    size: 18, color: FarmioColors.textMuted),
+                Icon(Icons.chevron_right_rounded,
+                    size: 18, color: context.colors.textMuted),
               ],
             ),
           ),
@@ -135,7 +135,7 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = switch (status) {
       'under_repair' => FarmioColors.warning,
-      'retired' => FarmioColors.textMuted,
+      'retired' => context.colors.textMuted,
       _ => FarmioColors.success,
     };
     return Container(
@@ -188,14 +188,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load equipment',
+            Text('Could not load equipment',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

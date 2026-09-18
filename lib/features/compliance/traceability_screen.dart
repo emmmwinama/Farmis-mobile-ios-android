@@ -32,11 +32,11 @@ class TraceabilityScreen extends ConsumerWidget {
         ),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: Text('No crop lots found yet.',
-                    style: TextStyle(color: FarmioColors.textMuted)),
+                    style: TextStyle(color: context.colors.textMuted)),
               ),
             );
           }
@@ -64,11 +64,11 @@ class _LotCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: FarmioColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color:
-              lot.buyerReady ? FarmioColors.success : FarmioColors.border,
+              lot.buyerReady ? FarmioColors.success : context.colors.border,
         ),
       ),
       child: Column(
@@ -106,8 +106,8 @@ class _LotCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text('${lot.cropName} · ${lot.variety} · ${lot.fieldName} · ${lot.season}',
-              style: const TextStyle(
-                  fontSize: 12, color: FarmioColors.textMuted)),
+              style: TextStyle(
+                  fontSize: 12, color: context.colors.textMuted)),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -138,8 +138,8 @@ class _Stat extends StatelessWidget {
               style: const TextStyle(
                   fontWeight: FontWeight.w800, fontSize: 12)),
           Text(label,
-              style: const TextStyle(
-                  fontSize: 10, color: FarmioColors.textMuted)),
+              style: TextStyle(
+                  fontSize: 10, color: context.colors.textMuted)),
         ],
       ),
     );
@@ -160,14 +160,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load traceability',
+            Text('Could not load traceability',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

@@ -170,15 +170,15 @@ class _Stat extends StatelessWidget {
       child: Column(
         children: [
           Text(value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
-                color: FarmioColors.textPrimary,
+                color: context.colors.textPrimary,
               )),
           Text(label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: FarmioColors.textMuted,
+                color: context.colors.textMuted,
               )),
         ],
       ),
@@ -219,15 +219,15 @@ class _FieldReadinessList extends StatelessWidget {
                   Text(field.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: FarmioColors.textPrimary,
+                        color: context.colors.textPrimary,
                       )),
                   const SizedBox(height: 4),
                   Text('${field.cultivatableArea.toStringAsFixed(2)} ha',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: FarmioColors.textMuted,
+                        color: context.colors.textMuted,
                       )),
                   const Spacer(),
                   Row(
@@ -239,7 +239,7 @@ class _FieldReadinessList extends StatelessWidget {
                         size: 14,
                         color: hasBoundary
                             ? FarmioColors.success
-                            : FarmioColors.textMuted,
+                            : context.colors.textMuted,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -249,7 +249,7 @@ class _FieldReadinessList extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: hasBoundary
                               ? FarmioColors.success
-                              : FarmioColors.textMuted,
+                              : context.colors.textMuted,
                         ),
                       ),
                     ],
@@ -278,14 +278,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Could not load the farm map',
+            Text('Could not load the farm map',
                 style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],

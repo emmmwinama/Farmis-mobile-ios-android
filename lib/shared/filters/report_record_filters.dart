@@ -190,7 +190,7 @@ class _ReportRecordFilterBarState extends State<ReportRecordFilterBar> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: FarmioColors.softBorder),
+        border: Border.all(color: context.colors.softBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,11 +203,11 @@ class _ReportRecordFilterBarState extends State<ReportRecordFilterBar> {
                 const Icon(Icons.tune_rounded,
                     color: FarmioColors.primary, size: 19),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Filters',
                     style: TextStyle(
-                      color: FarmioColors.textPrimary,
+                      color: context.colors.textPrimary,
                       fontSize: 15,
                       fontWeight: FontWeight.w900,
                     ),
@@ -218,8 +218,8 @@ class _ReportRecordFilterBarState extends State<ReportRecordFilterBar> {
                     value.summary,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: FarmioColors.textMuted,
+                    style: TextStyle(
+                      color: context.colors.textMuted,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),
@@ -228,8 +228,8 @@ class _ReportRecordFilterBarState extends State<ReportRecordFilterBar> {
                 AnimatedRotation(
                   turns: _expanded ? 0.5 : 0,
                   duration: const Duration(milliseconds: 200),
-                  child: const Icon(Icons.keyboard_arrow_down_rounded,
-                      size: 20, color: FarmioColors.textMuted),
+                  child: Icon(Icons.keyboard_arrow_down_rounded,
+                      size: 20, color: context.colors.textMuted),
                 ),
               ],
             ),
@@ -344,7 +344,7 @@ class _FilterMenu extends StatelessWidget {
                   value: item,
                   child: Text(
                     item,
-                    style: const TextStyle(color: FarmioColors.textPrimary),
+                    style: TextStyle(color: context.colors.textPrimary),
                   ),
                 ))
             .toList(),
@@ -354,7 +354,7 @@ class _FilterMenu extends StatelessWidget {
           decoration: BoxDecoration(
             color: FarmioColors.slate50,
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: FarmioColors.softBorder),
+            border: Border.all(color: context.colors.softBorder),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -367,16 +367,16 @@ class _FilterMenu extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: FarmioColors.textPrimary,
+                  style: TextStyle(
+                    color: context.colors.textPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
               const SizedBox(width: 6),
-              const Icon(Icons.keyboard_arrow_down_rounded,
-                  size: 16, color: FarmioColors.textMuted),
+              Icon(Icons.keyboard_arrow_down_rounded,
+                  size: 16, color: context.colors.textMuted),
             ],
           ),
         ),

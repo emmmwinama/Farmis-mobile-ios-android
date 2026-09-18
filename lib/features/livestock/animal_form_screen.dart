@@ -27,7 +27,7 @@ class AnimalFormScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(24),
             child: Text('Could not load livestock types: $error',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: FarmioColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
           ),
         ),
         data: (data) => _AnimalFormBody(types: data.types, existing: existing),

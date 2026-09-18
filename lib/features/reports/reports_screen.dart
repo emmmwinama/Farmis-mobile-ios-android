@@ -289,7 +289,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
                 // Tab selector
                 Container(
-                  color: FarmioColors.background,
+                  color: context.colors.background,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
@@ -312,7 +312,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                                 border: Border.all(
                                   color: selected
                                       ? FarmioColors.primary
-                                      : FarmioColors.softBorder,
+                                      : context.colors.softBorder,
                                 ),
                               ),
                               child: Text(_tabLabels[tab]!,
@@ -321,7 +321,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                                     fontWeight: FontWeight.w700,
                                     color: selected
                                         ? Colors.white
-                                        : FarmioColors.textSecond,
+                                        : context.colors.textSecond,
                                   )),
                             ),
                           ),
@@ -542,14 +542,14 @@ class _AnalyticsIntro extends StatelessWidget {
                 color: FarmioColors.primary),
           ),
           const SizedBox(width: 13),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Statistics',
                   style: TextStyle(
-                    color: FarmioColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                   ),
@@ -558,7 +558,7 @@ class _AnalyticsIntro extends StatelessWidget {
                 Text(
                   'Use reports to compare seasons, costs, labour, inputs and yield performance.',
                   style: TextStyle(
-                    color: FarmioColors.textSecond,
+                    color: context.colors.textSecond,
                     fontSize: 12,
                     height: 1.35,
                   ),
@@ -644,14 +644,14 @@ class _ReportExportPanel extends ConsumerWidget {
                     color: FarmioColors.primary, size: 20),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Report export',
                       style: TextStyle(
-                        color: FarmioColors.textPrimary,
+                        color: context.colors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
                       ),
@@ -660,7 +660,7 @@ class _ReportExportPanel extends ConsumerWidget {
                     Text(
                       'Select the report sections to include.',
                       style: TextStyle(
-                        color: FarmioColors.textSecond,
+                        color: context.colors.textSecond,
                         fontSize: 12,
                       ),
                     ),
@@ -691,10 +691,10 @@ class _ReportExportPanel extends ConsumerWidget {
                 side: BorderSide(
                   color: selected
                       ? FarmioColors.primary
-                      : FarmioColors.softBorder,
+                      : context.colors.softBorder,
                 ),
                 labelStyle: TextStyle(
-                  color: selected ? Colors.white : FarmioColors.textSecond,
+                  color: selected ? Colors.white : context.colors.textSecond,
                   fontWeight: FontWeight.w800,
                   fontSize: 12,
                 ),
@@ -888,13 +888,13 @@ class _TableCard extends StatelessWidget {
                 dataRowMinHeight: 42,
                 dataRowMaxHeight: 48,
                 dividerThickness: 0.5,
-                headingTextStyle: const TextStyle(
-                  color: FarmioColors.textMuted,
+                headingTextStyle: TextStyle(
+                  color: context.colors.textMuted,
                   fontSize: 11,
                   fontWeight: FontWeight.w900,
                 ),
-                dataTextStyle: const TextStyle(
-                  color: FarmioColors.textPrimary,
+                dataTextStyle: TextStyle(
+                  color: context.colors.textPrimary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -1228,8 +1228,8 @@ class _YieldEfficiencyChart extends StatelessWidget {
                 gridData: FlGridData(
                   drawVerticalLine: false,
                   horizontalInterval: maxValue <= 0 ? 1 : maxValue / 3,
-                  getDrawingHorizontalLine: (_) => const FlLine(
-                    color: FarmioColors.softBorder,
+                  getDrawingHorizontalLine: (_) => FlLine(
+                    color: context.colors.softBorder,
                     strokeWidth: 1,
                   ),
                 ),
@@ -1293,8 +1293,8 @@ class _SeasonCostChart extends StatelessWidget {
                 gridData: FlGridData(
                   drawVerticalLine: false,
                   horizontalInterval: maxValue <= 0 ? 1 : maxValue / 3,
-                  getDrawingHorizontalLine: (_) => const FlLine(
-                    color: FarmioColors.softBorder,
+                  getDrawingHorizontalLine: (_) => FlLine(
+                    color: context.colors.softBorder,
                     strokeWidth: 1,
                   ),
                 ),
@@ -1470,8 +1470,8 @@ class _LegendDot extends StatelessWidget {
         const SizedBox(width: 5),
         Text(
           label,
-        style: const TextStyle(
-          color: FarmioColors.textSecond,
+        style: TextStyle(
+          color: context.colors.textSecond,
             fontSize: 10,
             fontWeight: FontWeight.w800,
           ),
@@ -1494,14 +1494,14 @@ class _ListMetric extends StatelessWidget {
       decoration: BoxDecoration(
         color: FarmioColors.slate100,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: FarmioColors.softBorder),
+        border: Border.all(color: context.colors.softBorder),
       ),
       child: Text(
         '$label: $value',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          color: FarmioColors.textSecond,
+        style: TextStyle(
+          color: context.colors.textSecond,
           fontSize: 10,
           fontWeight: FontWeight.w800,
         ),
@@ -1521,8 +1521,8 @@ class _ChartEmpty extends StatelessWidget {
       child: Text(
         label,
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: FarmioColors.textMuted,
+        style: TextStyle(
+          color: context.colors.textMuted,
           fontSize: 12,
           fontWeight: FontWeight.w700,
         ),
@@ -1640,7 +1640,7 @@ class _SeasonCard extends StatelessWidget {
                 .toList(),
           ),
           const SizedBox(height: 12),
-          const Divider(color: FarmioColors.border, height: 1),
+          Divider(color: context.colors.border, height: 1),
           const SizedBox(height: 12),
           Row(children: [
             _MetricCol(
@@ -1674,7 +1674,7 @@ class _SeasonCard extends StatelessWidget {
             ),
           ]),
           const SizedBox(height: 12),
-          const Divider(color: FarmioColors.border, height: 1),
+          Divider(color: context.colors.border, height: 1),
           const SizedBox(height: 12),
           Row(children: [
             _MetricCol(
@@ -1797,7 +1797,7 @@ class _CropReportCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value:           pct,
               minHeight:       4,
-              backgroundColor: FarmioColors.border,
+              backgroundColor: context.colors.border,
               valueColor: const AlwaysStoppedAnimation<Color>(
                   FarmioColors.danger),
             ),
@@ -2029,12 +2029,12 @@ class _CropFieldCard extends StatelessWidget {
   final CropFieldDetail item;
   const _CropFieldCard({required this.item});
 
-  Color get _statusColor {
+  Color _statusColor(BuildContext context) {
     switch (item.status) {
       case 'Active':    return FarmioColors.primary;
       case 'Harvested': return FarmioColors.info;
       case 'Failed':    return FarmioColors.danger;
-      default:          return FarmioColors.textMuted;
+      default:          return context.colors.textMuted;
     }
   }
 
@@ -2063,7 +2063,7 @@ class _CropFieldCard extends StatelessWidget {
             )),
             _StatusBadge(
               label: item.status,
-              color: _statusColor,
+              color: _statusColor(context),
             ),
           ]),
           const SizedBox(height: 10),
@@ -2329,7 +2329,7 @@ class _InputCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value:           pct,
               minHeight:       4,
-              backgroundColor: FarmioColors.border,
+              backgroundColor: context.colors.border,
               valueColor: const AlwaysStoppedAnimation<Color>(
                   FarmioColors.primary),
             ),
@@ -2673,15 +2673,15 @@ class _ReportHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize:   16,
                 fontWeight: FontWeight.w800,
-                color:      FarmioColors.textPrimary,
+                color:      context.colors.textPrimary,
               )),
           Text(sub,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color:    FarmioColors.textSecond,
+                color:    context.colors.textSecond,
               )),
         ],
       ),
@@ -2691,24 +2691,25 @@ class _ReportHeader extends StatelessWidget {
 
 class _MetricCol extends StatelessWidget {
   final String label, value;
-  final Color  color;
+  final Color? color;
   const _MetricCol({
     required this.label,
     required this.value,
-    this.color = FarmioColors.textPrimary,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final color = this.color ?? context.colors.textPrimary;
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color:    FarmioColors.textSecond,
+                color:    context.colors.textSecond,
               )),
           const SizedBox(height: 2),
           Text(value,
@@ -2831,10 +2832,10 @@ class _Empty extends StatelessWidget {
             const SizedBox(height: 16),
             Text(label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize:   15,
                   fontWeight: FontWeight.w700,
-                  color:      FarmioColors.textPrimary,
+                  color:      context.colors.textPrimary,
                 )),
           ],
         ),
@@ -2877,18 +2878,18 @@ class _ErrorView extends StatelessWidget {
             const Icon(Icons.error_outline_rounded,
                 color: FarmioColors.danger, size: 48),
             const SizedBox(height: 12),
-            const Text('Could not load report',
+            Text('Could not load report',
                 style: TextStyle(
                   fontSize:   16,
                   fontWeight: FontWeight.w700,
-                  color:      FarmioColors.textPrimary,
+                  color:      context.colors.textPrimary,
                 )),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color:    FarmioColors.textMuted,
+                  color:    context.colors.textMuted,
                 )),
             const SizedBox(height: 20),
             ElevatedButton.icon(

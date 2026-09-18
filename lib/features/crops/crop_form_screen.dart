@@ -286,9 +286,9 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12, fontWeight: FontWeight.w700,
-          color: FarmioColors.textMuted,
+          color: context.colors.textMuted,
         )),
   );
 
@@ -318,18 +318,18 @@ class _DateButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(
             horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color:        FarmioColors.background,
+          color:        context.colors.background,
           borderRadius: BorderRadius.circular(12),
-          border:       Border.all(color: FarmioColors.border),
+          border:       Border.all(color: context.colors.border),
         ),
         child: Row(children: [
-          const Icon(Icons.calendar_today_outlined,
-              size: 14, color: FarmioColors.textMuted),
+          Icon(Icons.calendar_today_outlined,
+              size: 14, color: context.colors.textMuted),
           const SizedBox(width: 8),
           Text(
             '${date.day}/${date.month}/${date.year}',
-            style: const TextStyle(
-              fontSize: 13, color: FarmioColors.textPrimary,
+            style: TextStyle(
+              fontSize: 13, color: context.colors.textPrimary,
             ),
           ),
         ]),

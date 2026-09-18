@@ -125,7 +125,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                       label: const Text('Clear',
                           style: TextStyle(fontSize: 12)),
                       style: TextButton.styleFrom(
-                        foregroundColor: FarmioColors.textMuted,
+                        foregroundColor: context.colors.textMuted,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
                       ),
@@ -157,9 +157,9 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                   child: Text(
                     '${filtered.length} activit${filtered.length != 1 ? "ies" : "y"}'
                         '${_activeFilterCount > 0 ? " (filtered)" : ""}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color:    FarmioColors.textMuted,
+                      color:    context.colors.textMuted,
                     ),
                   ),
                 ),
@@ -306,21 +306,21 @@ class _ActivityCard extends StatelessWidget {
                         child: Text(activity.activityType,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize:   13,
                               fontWeight: FontWeight.w800,
-                              color:      FarmioColors.textPrimary,
+                              color:      context.colors.textPrimary,
                             )),
                       ),
-                      const Text(' — ',
+                      Text(' — ',
                           style: TextStyle(
-                              color: FarmioColors.textMuted,
+                              color: context.colors.textMuted,
                               fontSize: 13)),
                       Expanded(
                         child: Text(activity.fieldName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color:    FarmioColors.textPrimary,
+                              color:    context.colors.textPrimary,
                             ),
                             overflow: TextOverflow.ellipsis),
                       ),
@@ -374,10 +374,10 @@ class _ActivityCard extends StatelessWidget {
                       Text(Fmt.mwk(activity.totalCost),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize:   12,
                             fontWeight: FontWeight.w800,
-                            color:      FarmioColors.textPrimary,
+                            color:      context.colors.textPrimary,
                           )),
                     const SizedBox(height: 4),
                     Row(children: [
@@ -396,7 +396,7 @@ class _ActivityCard extends StatelessWidget {
                             ? Icons.keyboard_arrow_up
                             : Icons.keyboard_arrow_down,
                         size:  18,
-                        color: FarmioColors.textMuted,
+                        color: context.colors.textMuted,
                       ),
                     ]),
                   ],
@@ -408,15 +408,15 @@ class _ActivityCard extends StatelessWidget {
           // Expanded detail section
           if (expanded) ...[
             Container(
-              decoration: const BoxDecoration(
-                color: FarmioColors.background,
+              decoration: BoxDecoration(
+                color: context.colors.background,
                 borderRadius: BorderRadius.vertical(
                     bottom: Radius.circular(16)),
               ),
               child: Column(
                 children: [
-                  const Divider(
-                      height: 1, color: FarmioColors.border),
+                  Divider(
+                      height: 1, color: context.colors.border),
                   Padding(
                     padding: const EdgeInsets.all(14),
                     child: Column(
@@ -488,19 +488,19 @@ class _ActivityCard extends StatelessWidget {
                               crossAxisAlignment:
                               CrossAxisAlignment.start,
                               children: [
-                                const Text('NOTES',
+                                Text('NOTES',
                                     style: TextStyle(
                                       fontSize:   10,
                                       fontWeight: FontWeight.w700,
-                                      color: FarmioColors.textMuted,
+                                      color: context.colors.textMuted,
                                       letterSpacing: 0.8,
                                     )),
                                 const SizedBox(height: 4),
                                 Text(activity.notes!,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       color:
-                                      FarmioColors.textPrimary,
+                                      context.colors.textPrimary,
                                     )),
                               ],
                             ),
@@ -547,17 +547,17 @@ class _SectionLabel extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize:    10,
                 fontWeight:  FontWeight.w700,
-                color:       FarmioColors.textMuted,
+                color:       context.colors.textMuted,
                 letterSpacing: 0.8,
               )),
           Text(Fmt.mwk(total),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize:   10,
                 fontWeight: FontWeight.w700,
-                color:      FarmioColors.textMuted,
+                color:      context.colors.textMuted,
               )),
         ],
       ),
@@ -578,19 +578,19 @@ class _LabourRow extends StatelessWidget {
       decoration: BoxDecoration(
         color:        Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Row(children: [
-        const Icon(Icons.person_outline,
-            size: 14, color: FarmioColors.textMuted),
+        Icon(Icons.person_outline,
+            size: 14, color: context.colors.textMuted),
         const SizedBox(width: 8),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(labour.employeeName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w700,
-                  color: FarmioColors.textPrimary,
+                  color: context.colors.textPrimary,
                 )),
             if (labour.daysWorked > 0 || labour.hoursWorked > 0)
               Text(
@@ -600,16 +600,16 @@ class _LabourRow extends StatelessWidget {
                   if (labour.hoursWorked > 0)
                     '${labour.hoursWorked} hrs',
                 ].join(' · '),
-                style: const TextStyle(
-                  fontSize: 11, color: FarmioColors.textMuted,
+                style: TextStyle(
+                  fontSize: 11, color: context.colors.textMuted,
                 ),
               ),
           ],
         )),
         Text(Fmt.mwk(labour.totalCost),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12, fontWeight: FontWeight.w800,
-              color: FarmioColors.textPrimary,
+              color: context.colors.textPrimary,
             )),
       ]),
     );
@@ -628,32 +628,32 @@ class _InputRow extends StatelessWidget {
       decoration: BoxDecoration(
         color:        Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Row(children: [
-        const Icon(Icons.science_outlined,
-            size: 14, color: FarmioColors.textMuted),
+        Icon(Icons.science_outlined,
+            size: 14, color: context.colors.textMuted),
         const SizedBox(width: 8),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(input.inputName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w700,
-                  color: FarmioColors.textPrimary,
+                  color: context.colors.textPrimary,
                 )),
             Text(
               '${input.quantity} ${input.unit} × ${Fmt.mwk(input.unitCost)}',
-              style: const TextStyle(
-                fontSize: 11, color: FarmioColors.textMuted,
+              style: TextStyle(
+                fontSize: 11, color: context.colors.textMuted,
               ),
             ),
           ],
         )),
         Text(Fmt.mwk(input.totalCost),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12, fontWeight: FontWeight.w800,
-              color: FarmioColors.textPrimary,
+              color: context.colors.textPrimary,
             )),
       ]),
     );
@@ -672,23 +672,23 @@ class _OtherCostRow extends StatelessWidget {
       decoration: BoxDecoration(
         color:        Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Row(children: [
-        const Icon(Icons.receipt_outlined,
-            size: 14, color: FarmioColors.textMuted),
+        Icon(Icons.receipt_outlined,
+            size: 14, color: context.colors.textMuted),
         const SizedBox(width: 8),
         Expanded(
           child: Text(cost.description,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12, fontWeight: FontWeight.w600,
-                color: FarmioColors.textPrimary,
+                color: context.colors.textPrimary,
               )),
         ),
         Text(Fmt.mwk(cost.amount),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12, fontWeight: FontWeight.w800,
-              color: FarmioColors.textPrimary,
+              color: context.colors.textPrimary,
             )),
       ]),
     );
@@ -731,7 +731,7 @@ class _FilterPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color:        Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -810,7 +810,7 @@ class _AnalyticsPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color:        Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: FarmioColors.border),
+        border:       Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -820,9 +820,9 @@ class _AnalyticsPanel extends StatelessWidget {
           const _FilterLabel(label: 'By activity type'),
           const SizedBox(height: 10),
           if (data.byType.isEmpty)
-            const Text('No data yet',
+            Text('No data yet',
                 style: TextStyle(
-                  fontSize: 12, color: FarmioColors.textMuted,
+                  fontSize: 12, color: context.colors.textMuted,
                 ))
           else
             ...data.byType.map((t) => _AnalyticsBar(
@@ -839,9 +839,9 @@ class _AnalyticsPanel extends StatelessWidget {
           const _FilterLabel(label: 'By field'),
           const SizedBox(height: 10),
           if (data.byField.isEmpty)
-            const Text('No data yet',
+            Text('No data yet',
                 style: TextStyle(
-                  fontSize: 12, color: FarmioColors.textMuted,
+                  fontSize: 12, color: context.colors.textMuted,
                 ))
           else
             ...data.byField.map((f) => _AnalyticsBar(
@@ -858,9 +858,9 @@ class _AnalyticsPanel extends StatelessWidget {
           const _FilterLabel(label: 'By season'),
           const SizedBox(height: 10),
           if (data.bySeason.isEmpty)
-            const Text('No season data yet',
+            Text('No season data yet',
                 style: TextStyle(
-                  fontSize: 12, color: FarmioColors.textMuted,
+                  fontSize: 12, color: context.colors.textMuted,
                 ))
           else
             ...data.bySeason.map((s) => Column(
@@ -883,7 +883,7 @@ class _AnalyticsPanel extends StatelessWidget {
                           .map((type) => Icon(
                                 Fmt.activityIconData(type),
                                 size: 16,
-                                color: FarmioColors.textMuted,
+                                color: context.colors.textMuted,
                               ))
                           .toList(),
                     ),
@@ -923,14 +923,14 @@ class _AnalyticsBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color:    FarmioColors.textPrimary,
+                    color:    context.colors.textPrimary,
                   )),
               Text('${count}x — ${Fmt.mwk(cost)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color:    FarmioColors.textMuted,
+                    color:    context.colors.textMuted,
                   )),
             ],
           ),
@@ -940,7 +940,7 @@ class _AnalyticsBar extends StatelessWidget {
             child: LinearProgressIndicator(
               value:           pct,
               minHeight:       5,
-              backgroundColor: FarmioColors.border,
+              backgroundColor: context.colors.border,
               valueColor:      AlwaysStoppedAnimation<Color>(color),
             ),
           ),
@@ -958,10 +958,10 @@ class _FilterLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(label.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize:    10,
           fontWeight:  FontWeight.w700,
-          color:       FarmioColors.textMuted,
+          color:       context.colors.textMuted,
           letterSpacing: 0.8,
         ));
   }
@@ -988,12 +988,12 @@ class _FilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? FarmioColors.primary
-              : FarmioColors.background,
+              : context.colors.background,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: selected
                 ? FarmioColors.primary
-                : FarmioColors.border,
+                : context.colors.border,
           ),
         ),
         child: Text(label,
@@ -1002,7 +1002,7 @@ class _FilterChip extends StatelessWidget {
               fontWeight: FontWeight.w700,
               color: selected
                   ? Colors.white
-                  : FarmioColors.textMuted,
+                  : context.colors.textMuted,
             )),
       ),
     );
@@ -1040,13 +1040,13 @@ class _ToolbarButton extends StatelessWidget {
           border: Border.all(
             color: active
                 ? FarmioColors.primary
-                : FarmioColors.border,
+                : context.colors.border,
           ),
         ),
         child: Row(children: [
           Icon(icon,
               size:  14,
-              color: active ? Colors.white : FarmioColors.textMuted),
+              color: active ? Colors.white : context.colors.textMuted),
           const SizedBox(width: 6),
           Text(label,
               style: TextStyle(
@@ -1054,7 +1054,7 @@ class _ToolbarButton extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 color: active
                     ? Colors.white
-                    : FarmioColors.textMuted,
+                    : context.colors.textMuted,
               )),
           if (badge != null) ...[
             const SizedBox(width: 6),
@@ -1082,16 +1082,17 @@ class _ToolbarButton extends StatelessWidget {
 
 class _MetaChip extends StatelessWidget {
   final String label;
-  final Color  color;
+  final Color? color;
   final IconData? icon;
   const _MetaChip({
     required this.label,
-    this.color = FarmioColors.textMuted,
+    this.color,
     this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
+    final color = this.color ?? context.colors.textMuted;
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: 7, vertical: 3),
@@ -1183,10 +1184,10 @@ class _EmptyState extends StatelessWidget {
               hasFilters
                   ? 'No activities match these filters'
                   : 'No activities yet',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize:   16,
                 fontWeight: FontWeight.w800,
-                color:      FarmioColors.textPrimary,
+                color:      context.colors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -1196,7 +1197,7 @@ class _EmptyState extends StatelessWidget {
                   ? 'Try adjusting or clearing your filters'
                   : 'Tap + to log your first farm activity',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: FarmioColors.textMuted),
+              style: TextStyle(color: context.colors.textMuted),
             ),
             if (hasFilters) ...[
               const SizedBox(height: 16),
@@ -1244,11 +1245,11 @@ class _ErrorView extends StatelessWidget {
           const Icon(Icons.error_outline_rounded,
               size: 48, color: FarmioColors.danger),
           const SizedBox(height: 12),
-          const Text('Could not load activities',
+          Text('Could not load activities',
               style: TextStyle(
                 fontSize:   16,
                 fontWeight: FontWeight.w700,
-                color:      FarmioColors.textPrimary,
+                color:      context.colors.textPrimary,
               )),
           const SizedBox(height: 20),
           ElevatedButton.icon(
