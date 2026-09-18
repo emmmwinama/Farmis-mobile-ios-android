@@ -16,7 +16,7 @@ void main() {
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
-    repo = ActivitiesRepository(db);
+    repo = ActivitiesRepository(db, fakeApiDio([]));
     fields = FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')]));
     crops = CropsRepository(db, fakeApiDio([fakeCropsResource()]));
     employees = EmployeesRepository(db, fakeApiDio([FakeRestResource('/api/mobile/employees')]));

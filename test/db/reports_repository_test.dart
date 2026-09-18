@@ -28,7 +28,7 @@ void main() {
     repo = ReportsRepository(db);
     fields = FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')]));
     crops = CropsRepository(db, fakeApiDio([fakeCropsResource()]));
-    activities = ActivitiesRepository(db);
+    activities = ActivitiesRepository(db, fakeApiDio([]));
     finance = FinanceRepository(db);
     employees = EmployeesRepository(db, fakeApiDio([FakeRestResource('/api/mobile/employees')]));
     yields = YieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/yields')]));

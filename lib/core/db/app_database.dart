@@ -134,6 +134,17 @@ class Activities extends Table {
   TextColumn get fieldId => text()();
   TextColumn get cropFieldId => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
+  // Ulimi's mobile API mints its own id for a row created through the
+  // offline batch queue (POST /api/mobile/sync), decoupled from our local
+  // `id` — keeping the local id stable (rather than rewriting it to match)
+  // avoids cascading the change through ActivityInputs/Labour/OtherCost's
+  // activityId foreign keys. Null until the first successful sync.
+  TextColumn get serverId => text().nullable()();
+  // True from creation until a POST /sync push confirms this row server-side
+  // (assigning serverId). See docs/MOBILE-API.md §8.1 — create-only queue;
+  // editing/deleting an already-synced row goes through the direct PUT/
+  // POST .../delete endpoint instead, keyed by serverId, not this flag.
+  BoolColumn get pendingSync => boolean().withDefault(const Constant(true))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -485,7 +496,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -515,6 +526,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             await m.createTable(equipment);
             await m.createTable(equipmentMaintenanceLogs);
+          }
+          if (from < 5) {
+            await m.addColumn(activities, activities.serverId);
+            await m.addColumn(activities, activities.pendingSync);
           }
         },
       );

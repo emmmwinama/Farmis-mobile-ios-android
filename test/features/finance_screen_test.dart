@@ -36,7 +36,7 @@ void main() {
     // A field-only activity (no cropFieldId) — exercises the "ALL
     // activities, not just crop-tied ones" behaviour the Finance activity
     // cost total is meant to cover.
-    await ActivitiesRepository(db).createActivity({
+    await ActivitiesRepository(db, fakeApiDio([])).createActivity({
       'activityType': 'Weeding',
       'fieldId': field.id,
       'date': DateTime.now().toIso8601String(),

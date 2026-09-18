@@ -1,4 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../api/api_client.dart';
+import '../db/database_provider.dart';
+import 'sync_service.dart';
 
 enum SyncStatus { disabled, idle, syncing, synced, error }
 
@@ -17,22 +23,53 @@ class AutoSyncState {
       );
 }
 
-/// Placeholder pending the per-entity API port: the old whole-farm backup
-/// blob this used to push (`/api/mobile/backup`) doesn't exist on the real
-/// backend — every screen now reads/writes Ulimi's mobile API directly
-/// per-entity instead, which makes an explicit "sync" step largely moot for
-/// the entities that are already ported. This stays wired up (rather than
-/// deleted) as the home for a real offline-queue flush via
-/// `POST /api/mobile/sync` once the entities that still write local-only
-/// (offline captures) are identified.
+/// Watches every local write (`db.tableUpdates()`, fires regardless of
+/// which repository made it) and, after a short debounce, flushes the
+/// offline batch queue and pulls in whatever changed elsewhere — see
+/// `SyncService` and docs/MOBILE-API.md §8. Runs for every signed-in
+/// account, not gated on plan/tier: unlike the old Node backend, where
+/// cloud sync was a paid-only backup of otherwise-local data, Ulimi's
+/// mobile API is the actual source of truth for every farm, and reaching
+/// any screen that can trigger this already implies a signed-in session
+/// (the router redirects to /login otherwise — see account_provider.dart).
 class AutoSyncNotifier extends StateNotifier<AutoSyncState> {
-  AutoSyncNotifier() : super(const AutoSyncState.initial());
+  AutoSyncNotifier(this._ref) : super(const AutoSyncState.initial()) {
+    _subscription = _ref.read(databaseProvider).tableUpdates().listen((_) => _scheduleSync());
+  }
 
-  Future<void> syncNow() async {}
+  final Ref _ref;
+  StreamSubscription<void>? _subscription;
+  Timer? _debounce;
+
+  static const _debounceDelay = Duration(seconds: 8);
+
+  void _scheduleSync() {
+    _debounce?.cancel();
+    _debounce = Timer(_debounceDelay, syncNow);
+  }
+
+  Future<void> syncNow() async {
+    state = state.copyWith(status: SyncStatus.syncing);
+    try {
+      final service = SyncService(_ref.read(databaseProvider), _ref.read(apiClientProvider));
+      await service.pushQueued();
+      await service.pullChanges();
+      state = state.copyWith(status: SyncStatus.synced, lastSyncedAt: DateTime.now(), errorMessage: null);
+    } catch (e) {
+      state = state.copyWith(status: SyncStatus.error, errorMessage: e.toString());
+    }
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _subscription?.cancel();
+    super.dispose();
+  }
 }
 
 final autoSyncProvider = StateNotifierProvider<AutoSyncNotifier, AutoSyncState>(
-  (ref) => AutoSyncNotifier(),
+  (ref) => AutoSyncNotifier(ref),
 );
 
 String describeSyncStatus(AutoSyncState state) {

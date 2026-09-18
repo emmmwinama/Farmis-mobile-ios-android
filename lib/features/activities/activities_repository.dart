@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import '../../core/db/app_database.dart';
 import '../../core/db/db_utils.dart';
@@ -16,10 +17,20 @@ class _Agg {
   }
 }
 
+/// Activities are one of docs/MOBILE-API.md §8.1's offline-batch-queue
+/// resources: create is always local-first (instant, works offline,
+/// flagged `pendingSync` for `SyncService` to push later via `POST
+/// /api/mobile/sync`), never a direct API call. Update/delete of a row
+/// that's already been assigned a `serverId` by a successful sync do call
+/// the direct `PUT`/`POST .../delete` endpoint immediately, matching the
+/// docs' "editing/deleting always goes through the regular endpoint, once
+/// online" — a row that's never been synced yet has nothing server-side to
+/// update/delete, so those stay purely local.
 class ActivitiesRepository {
-  ActivitiesRepository(this._db);
+  ActivitiesRepository(this._db, this._dio);
 
   final AppDatabase _db;
+  final Dio _dio;
 
   Future<ActivitiesData> getActivities({
     String? fieldId,
@@ -326,9 +337,22 @@ class ActivitiesRepository {
             );
       }
     }
+
+    final row = await (_db.select(_db.activities)..where((t) => t.id.equals(id))).getSingle();
+    if (row.serverId != null) {
+      await _dio.put('/api/mobile/activities/${row.serverId}', data: _apiBody(row));
+    }
   }
 
+  Map<String, dynamic> _apiBody(Activity row) => {
+        'activity_type': row.activityType,
+        'date': row.date.toIso8601String().split('T').first,
+        'field_id': row.fieldId,
+        'notes': row.notes,
+      };
+
   Future<void> deleteActivity(String id) async {
+    final row = await (_db.select(_db.activities)..where((t) => t.id.equals(id))).getSingleOrNull();
     await (_db.delete(_db.activityInputs)
           ..where((t) => t.activityId.equals(id)))
         .go();
@@ -339,6 +363,10 @@ class ActivitiesRepository {
           ..where((t) => t.activityId.equals(id)))
         .go();
     await (_db.delete(_db.activities)..where((t) => t.id.equals(id))).go();
+
+    if (row?.serverId != null) {
+      await _dio.post('/api/mobile/activities/${row!.serverId}/delete');
+    }
   }
 
   Future<String> _cropTypeName(String cropTypeId) async {

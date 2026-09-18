@@ -15,6 +15,7 @@ class SecureStorage {
   static const _keyPinHash = 'pin_hash';
   static const _keyPinSalt = 'pin_salt';
   static const _keyThemeMode = 'theme_mode';
+  static const _keySyncCursor = 'sync_cursor';
 
   // Local app-lock PIN — replaces server login. The salt is random per
   // device/install; OS keychain-backed storage (already used for the old
@@ -104,6 +105,14 @@ class SecureStorage {
   // user should never hit this (clearAuth()/clearPin() are the targeted,
   // user-facing equivalents).
   static Future<void> deleteAll() => _storage.deleteAll();
+
+  // GET /api/mobile/sync's cursor — an opaque "as of" timestamp string the
+  // server hands back and expects verbatim on the next call, not something
+  // this app parses or computes. Null means "never synced", which the
+  // server treats as "send everything".
+  static Future<void> saveSyncCursor(String cursor) =>
+      _storage.write(key: _keySyncCursor, value: cursor);
+  static Future<String?> getSyncCursor() => _storage.read(key: _keySyncCursor);
 
   static Future<bool> isLoggedIn() async {
     final token = await getToken();

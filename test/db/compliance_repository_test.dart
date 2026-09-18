@@ -25,7 +25,7 @@ void main() {
     repo = ComplianceRepository(db);
     fields = FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')]));
     crops = CropsRepository(db, fakeApiDio([fakeCropsResource()]));
-    activities = ActivitiesRepository(db);
+    activities = ActivitiesRepository(db, fakeApiDio([]));
     yields = YieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/yields')]));
     inventory = InventoryRepository(db, fakeApiDio([FakeRestResource('/api/mobile/inventory')]));
     finance = FinanceRepository(db);

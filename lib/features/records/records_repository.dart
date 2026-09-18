@@ -57,7 +57,7 @@ class RecordsData {
 class RecordsRepository {
   RecordsRepository(AppDatabase db, Dio dio)
       : _fields = FieldsRepository(db, dio),
-        _activities = ActivitiesRepository(db),
+        _activities = ActivitiesRepository(db, dio),
         _finance = FinanceRepository(db),
         _employees = EmployeesRepository(db, dio),
         _livestock = LivestockRepository(db, dio),

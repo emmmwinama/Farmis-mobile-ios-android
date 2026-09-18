@@ -2984,9 +2984,34 @@ class $ActivitiesTable extends Activities
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _serverIdMeta =
+      const VerificationMeta('serverId');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, activityType, date, notes, fieldId, cropFieldId, createdAt];
+  late final GeneratedColumn<String> serverId = GeneratedColumn<String>(
+      'server_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _pendingSyncMeta =
+      const VerificationMeta('pendingSync');
+  @override
+  late final GeneratedColumn<bool> pendingSync = GeneratedColumn<bool>(
+      'pending_sync', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("pending_sync" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        activityType,
+        date,
+        notes,
+        fieldId,
+        cropFieldId,
+        createdAt,
+        serverId,
+        pendingSync
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3038,6 +3063,16 @@ class $ActivitiesTable extends Activities
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('server_id')) {
+      context.handle(_serverIdMeta,
+          serverId.isAcceptableOrUnknown(data['server_id']!, _serverIdMeta));
+    }
+    if (data.containsKey('pending_sync')) {
+      context.handle(
+          _pendingSyncMeta,
+          pendingSync.isAcceptableOrUnknown(
+              data['pending_sync']!, _pendingSyncMeta));
+    }
     return context;
   }
 
@@ -3061,6 +3096,10 @@ class $ActivitiesTable extends Activities
           .read(DriftSqlType.string, data['${effectivePrefix}crop_field_id']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      serverId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}server_id']),
+      pendingSync: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}pending_sync'])!,
     );
   }
 
@@ -3078,6 +3117,8 @@ class Activity extends DataClass implements Insertable<Activity> {
   final String fieldId;
   final String? cropFieldId;
   final DateTime createdAt;
+  final String? serverId;
+  final bool pendingSync;
   const Activity(
       {required this.id,
       required this.activityType,
@@ -3085,7 +3126,9 @@ class Activity extends DataClass implements Insertable<Activity> {
       this.notes,
       required this.fieldId,
       this.cropFieldId,
-      required this.createdAt});
+      required this.createdAt,
+      this.serverId,
+      required this.pendingSync});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3100,6 +3143,10 @@ class Activity extends DataClass implements Insertable<Activity> {
       map['crop_field_id'] = Variable<String>(cropFieldId);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || serverId != null) {
+      map['server_id'] = Variable<String>(serverId);
+    }
+    map['pending_sync'] = Variable<bool>(pendingSync);
     return map;
   }
 
@@ -3115,6 +3162,10 @@ class Activity extends DataClass implements Insertable<Activity> {
           ? const Value.absent()
           : Value(cropFieldId),
       createdAt: Value(createdAt),
+      serverId: serverId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverId),
+      pendingSync: Value(pendingSync),
     );
   }
 
@@ -3129,6 +3180,8 @@ class Activity extends DataClass implements Insertable<Activity> {
       fieldId: serializer.fromJson<String>(json['fieldId']),
       cropFieldId: serializer.fromJson<String?>(json['cropFieldId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      serverId: serializer.fromJson<String?>(json['serverId']),
+      pendingSync: serializer.fromJson<bool>(json['pendingSync']),
     );
   }
   @override
@@ -3142,6 +3195,8 @@ class Activity extends DataClass implements Insertable<Activity> {
       'fieldId': serializer.toJson<String>(fieldId),
       'cropFieldId': serializer.toJson<String?>(cropFieldId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'serverId': serializer.toJson<String?>(serverId),
+      'pendingSync': serializer.toJson<bool>(pendingSync),
     };
   }
 
@@ -3152,7 +3207,9 @@ class Activity extends DataClass implements Insertable<Activity> {
           Value<String?> notes = const Value.absent(),
           String? fieldId,
           Value<String?> cropFieldId = const Value.absent(),
-          DateTime? createdAt}) =>
+          DateTime? createdAt,
+          Value<String?> serverId = const Value.absent(),
+          bool? pendingSync}) =>
       Activity(
         id: id ?? this.id,
         activityType: activityType ?? this.activityType,
@@ -3161,6 +3218,8 @@ class Activity extends DataClass implements Insertable<Activity> {
         fieldId: fieldId ?? this.fieldId,
         cropFieldId: cropFieldId.present ? cropFieldId.value : this.cropFieldId,
         createdAt: createdAt ?? this.createdAt,
+        serverId: serverId.present ? serverId.value : this.serverId,
+        pendingSync: pendingSync ?? this.pendingSync,
       );
   Activity copyWithCompanion(ActivitiesCompanion data) {
     return Activity(
@@ -3174,6 +3233,9 @@ class Activity extends DataClass implements Insertable<Activity> {
       cropFieldId:
           data.cropFieldId.present ? data.cropFieldId.value : this.cropFieldId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      serverId: data.serverId.present ? data.serverId.value : this.serverId,
+      pendingSync:
+          data.pendingSync.present ? data.pendingSync.value : this.pendingSync,
     );
   }
 
@@ -3186,14 +3248,16 @@ class Activity extends DataClass implements Insertable<Activity> {
           ..write('notes: $notes, ')
           ..write('fieldId: $fieldId, ')
           ..write('cropFieldId: $cropFieldId, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('serverId: $serverId, ')
+          ..write('pendingSync: $pendingSync')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, activityType, date, notes, fieldId, cropFieldId, createdAt);
+  int get hashCode => Object.hash(id, activityType, date, notes, fieldId,
+      cropFieldId, createdAt, serverId, pendingSync);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3204,7 +3268,9 @@ class Activity extends DataClass implements Insertable<Activity> {
           other.notes == this.notes &&
           other.fieldId == this.fieldId &&
           other.cropFieldId == this.cropFieldId &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.serverId == this.serverId &&
+          other.pendingSync == this.pendingSync);
 }
 
 class ActivitiesCompanion extends UpdateCompanion<Activity> {
@@ -3215,6 +3281,8 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
   final Value<String> fieldId;
   final Value<String?> cropFieldId;
   final Value<DateTime> createdAt;
+  final Value<String?> serverId;
+  final Value<bool> pendingSync;
   final Value<int> rowid;
   const ActivitiesCompanion({
     this.id = const Value.absent(),
@@ -3224,6 +3292,8 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     this.fieldId = const Value.absent(),
     this.cropFieldId = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.serverId = const Value.absent(),
+    this.pendingSync = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ActivitiesCompanion.insert({
@@ -3234,6 +3304,8 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     required String fieldId,
     this.cropFieldId = const Value.absent(),
     required DateTime createdAt,
+    this.serverId = const Value.absent(),
+    this.pendingSync = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         activityType = Value(activityType),
@@ -3248,6 +3320,8 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     Expression<String>? fieldId,
     Expression<String>? cropFieldId,
     Expression<DateTime>? createdAt,
+    Expression<String>? serverId,
+    Expression<bool>? pendingSync,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3258,6 +3332,8 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
       if (fieldId != null) 'field_id': fieldId,
       if (cropFieldId != null) 'crop_field_id': cropFieldId,
       if (createdAt != null) 'created_at': createdAt,
+      if (serverId != null) 'server_id': serverId,
+      if (pendingSync != null) 'pending_sync': pendingSync,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3270,6 +3346,8 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
       Value<String>? fieldId,
       Value<String?>? cropFieldId,
       Value<DateTime>? createdAt,
+      Value<String?>? serverId,
+      Value<bool>? pendingSync,
       Value<int>? rowid}) {
     return ActivitiesCompanion(
       id: id ?? this.id,
@@ -3279,6 +3357,8 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
       fieldId: fieldId ?? this.fieldId,
       cropFieldId: cropFieldId ?? this.cropFieldId,
       createdAt: createdAt ?? this.createdAt,
+      serverId: serverId ?? this.serverId,
+      pendingSync: pendingSync ?? this.pendingSync,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3307,6 +3387,12 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (serverId.present) {
+      map['server_id'] = Variable<String>(serverId.value);
+    }
+    if (pendingSync.present) {
+      map['pending_sync'] = Variable<bool>(pendingSync.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3323,6 +3409,8 @@ class ActivitiesCompanion extends UpdateCompanion<Activity> {
           ..write('fieldId: $fieldId, ')
           ..write('cropFieldId: $cropFieldId, ')
           ..write('createdAt: $createdAt, ')
+          ..write('serverId: $serverId, ')
+          ..write('pendingSync: $pendingSync, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -12301,11 +12389,7 @@ class $$FarmProfileTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$FarmProfileTable, FarmProfileData>(table),
-                    BaseReferences<_$AppDatabase, $FarmProfileTable,
-                        FarmProfileData>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -12535,11 +12619,7 @@ class $$FieldsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$FieldsTable, Field>(table),
-                    BaseReferences<_$AppDatabase, $FieldsTable, Field>(
-                        db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -12725,11 +12805,7 @@ class $$FieldBoundariesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$FieldBoundariesTable, FieldBoundaryRow>(table),
-                    BaseReferences<_$AppDatabase, $FieldBoundariesTable,
-                        FieldBoundaryRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -12975,11 +13051,7 @@ class $$FieldZonesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$FieldZonesTable, FieldZoneRow>(table),
-                    BaseReferences<_$AppDatabase, $FieldZonesTable,
-                        FieldZoneRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -13197,11 +13269,7 @@ class $$FarmMarkersTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$FarmMarkersTable, FarmMarkerRow>(table),
-                    BaseReferences<_$AppDatabase, $FarmMarkersTable,
-                        FarmMarkerRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -13339,11 +13407,7 @@ class $$CropTypesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$CropTypesTable, CropTypeRow>(table),
-                    BaseReferences<_$AppDatabase, $CropTypesTable, CropTypeRow>(
-                        db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -13601,11 +13665,7 @@ class $$CropFieldsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$CropFieldsTable, CropField>(table),
-                    BaseReferences<_$AppDatabase, $CropFieldsTable, CropField>(
-                        db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -13631,6 +13691,8 @@ typedef $$ActivitiesTableCreateCompanionBuilder = ActivitiesCompanion Function({
   required String fieldId,
   Value<String?> cropFieldId,
   required DateTime createdAt,
+  Value<String?> serverId,
+  Value<bool> pendingSync,
   Value<int> rowid,
 });
 typedef $$ActivitiesTableUpdateCompanionBuilder = ActivitiesCompanion Function({
@@ -13641,6 +13703,8 @@ typedef $$ActivitiesTableUpdateCompanionBuilder = ActivitiesCompanion Function({
   Value<String> fieldId,
   Value<String?> cropFieldId,
   Value<DateTime> createdAt,
+  Value<String?> serverId,
+  Value<bool> pendingSync,
   Value<int> rowid,
 });
 
@@ -13673,6 +13737,12 @@ class $$ActivitiesTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get serverId => $composableBuilder(
+      column: $table.serverId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get pendingSync => $composableBuilder(
+      column: $table.pendingSync, builder: (column) => ColumnFilters(column));
 }
 
 class $$ActivitiesTableOrderingComposer
@@ -13705,6 +13775,12 @@ class $$ActivitiesTableOrderingComposer
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get serverId => $composableBuilder(
+      column: $table.serverId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get pendingSync => $composableBuilder(
+      column: $table.pendingSync, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ActivitiesTableAnnotationComposer
@@ -13736,6 +13812,12 @@ class $$ActivitiesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get serverId =>
+      $composableBuilder(column: $table.serverId, builder: (column) => column);
+
+  GeneratedColumn<bool> get pendingSync => $composableBuilder(
+      column: $table.pendingSync, builder: (column) => column);
 }
 
 class $$ActivitiesTableTableManager extends RootTableManager<
@@ -13768,6 +13850,8 @@ class $$ActivitiesTableTableManager extends RootTableManager<
             Value<String> fieldId = const Value.absent(),
             Value<String?> cropFieldId = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
+            Value<String?> serverId = const Value.absent(),
+            Value<bool> pendingSync = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ActivitiesCompanion(
@@ -13778,6 +13862,8 @@ class $$ActivitiesTableTableManager extends RootTableManager<
             fieldId: fieldId,
             cropFieldId: cropFieldId,
             createdAt: createdAt,
+            serverId: serverId,
+            pendingSync: pendingSync,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -13788,6 +13874,8 @@ class $$ActivitiesTableTableManager extends RootTableManager<
             required String fieldId,
             Value<String?> cropFieldId = const Value.absent(),
             required DateTime createdAt,
+            Value<String?> serverId = const Value.absent(),
+            Value<bool> pendingSync = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ActivitiesCompanion.insert(
@@ -13798,14 +13886,12 @@ class $$ActivitiesTableTableManager extends RootTableManager<
             fieldId: fieldId,
             cropFieldId: cropFieldId,
             createdAt: createdAt,
+            serverId: serverId,
+            pendingSync: pendingSync,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$ActivitiesTable, Activity>(table),
-                    BaseReferences<_$AppDatabase, $ActivitiesTable, Activity>(
-                        db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -14021,11 +14107,7 @@ class $$ActivityInputsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$ActivityInputsTable, ActivityInputRow>(table),
-                    BaseReferences<_$AppDatabase, $ActivityInputsTable,
-                        ActivityInputRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -14218,12 +14300,7 @@ class $$ActivityLabourRecordsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$ActivityLabourRecordsTable,
-                        ActivityLabourRecord>(table),
-                    BaseReferences<_$AppDatabase, $ActivityLabourRecordsTable,
-                        ActivityLabourRecord>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -14386,12 +14463,7 @@ class $$ActivityOtherCostsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$ActivityOtherCostsTable, ActivityOtherCostRow>(
-                        table),
-                    BaseReferences<_$AppDatabase, $ActivityOtherCostsTable,
-                        ActivityOtherCostRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -14590,11 +14662,7 @@ class $$EmployeesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$EmployeesTable, Employee>(table),
-                    BaseReferences<_$AppDatabase, $EmployeesTable, Employee>(
-                        db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -14841,11 +14909,7 @@ class $$TransactionsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$TransactionsTable, Transaction>(table),
-                    BaseReferences<_$AppDatabase, $TransactionsTable,
-                        Transaction>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -15049,12 +15113,7 @@ class $$OverheadExpensesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$OverheadExpensesTable, OverheadExpenseRow>(
-                        table),
-                    BaseReferences<_$AppDatabase, $OverheadExpensesTable,
-                        OverheadExpenseRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -15272,11 +15331,7 @@ class $$HarvestYieldsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$HarvestYieldsTable, HarvestYield>(table),
-                    BaseReferences<_$AppDatabase, $HarvestYieldsTable,
-                        HarvestYield>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -15559,11 +15614,7 @@ class $$InventoryItemsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$InventoryItemsTable, InventoryItemRow>(table),
-                    BaseReferences<_$AppDatabase, $InventoryItemsTable,
-                        InventoryItemRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -15801,11 +15852,7 @@ class $$InventorySalesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$InventorySalesTable, InventorySaleRow>(table),
-                    BaseReferences<_$AppDatabase, $InventorySalesTable,
-                        InventorySaleRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -16038,11 +16085,7 @@ class $$FarmDocumentsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$FarmDocumentsTable, FarmDocumentRow>(table),
-                    BaseReferences<_$AppDatabase, $FarmDocumentsTable,
-                        FarmDocumentRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -16260,11 +16303,7 @@ class $$NotificationsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$NotificationsTable, NotificationRow>(table),
-                    BaseReferences<_$AppDatabase, $NotificationsTable,
-                        NotificationRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -16423,11 +16462,7 @@ class $$LivestockTypesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$LivestockTypesTable, LivestockTypeRow>(table),
-                    BaseReferences<_$AppDatabase, $LivestockTypesTable,
-                        LivestockTypeRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -16753,11 +16788,7 @@ class $$AnimalsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$AnimalsTable, AnimalRow>(table),
-                    BaseReferences<_$AppDatabase, $AnimalsTable, AnimalRow>(
-                        db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -16992,12 +17023,7 @@ class $$AnimalHealthRecordsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$AnimalHealthRecordsTable, AnimalHealthRecord>(
-                        table),
-                    BaseReferences<_$AppDatabase, $AnimalHealthRecordsTable,
-                        AnimalHealthRecord>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -17237,12 +17263,7 @@ class $$AnimalProductionRecordsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$AnimalProductionRecordsTable,
-                        AnimalProductionRecord>(table),
-                    BaseReferences<_$AppDatabase, $AnimalProductionRecordsTable,
-                        AnimalProductionRecord>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -17436,12 +17457,7 @@ class $$AnimalWeightRecordsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$AnimalWeightRecordsTable, AnimalWeightRecord>(
-                        table),
-                    BaseReferences<_$AppDatabase, $AnimalWeightRecordsTable,
-                        AnimalWeightRecord>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -17649,12 +17665,7 @@ class $$AnimalExpenseRecordsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$AnimalExpenseRecordsTable,
-                        AnimalExpenseRecord>(table),
-                    BaseReferences<_$AppDatabase, $AnimalExpenseRecordsTable,
-                        AnimalExpenseRecord>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -17892,12 +17903,7 @@ class $$AnimalSaleRecordsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$AnimalSaleRecordsTable, AnimalSaleRecord>(
-                        table),
-                    BaseReferences<_$AppDatabase, $AnimalSaleRecordsTable,
-                        AnimalSaleRecord>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -18102,11 +18108,7 @@ class $$EquipmentTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$EquipmentTable, EquipmentRow>(table),
-                    BaseReferences<_$AppDatabase, $EquipmentTable,
-                        EquipmentRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -18314,14 +18316,7 @@ class $$EquipmentMaintenanceLogsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable<$EquipmentMaintenanceLogsTable,
-                        EquipmentMaintenanceLogRow>(table),
-                    BaseReferences<
-                        _$AppDatabase,
-                        $EquipmentMaintenanceLogsTable,
-                        EquipmentMaintenanceLogRow>(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
         ));

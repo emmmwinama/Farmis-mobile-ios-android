@@ -21,7 +21,7 @@ void main() {
     repo = NotificationsRepository(db, fakeApiDio([fakeCropsResource()]));
     fields = FieldsRepository(db, fakeApiDio([FakeRestResource('/api/mobile/fields')]));
     crops = CropsRepository(db, fakeApiDio([fakeCropsResource()]));
-    activities = ActivitiesRepository(db);
+    activities = ActivitiesRepository(db, fakeApiDio([]));
     inventory = InventoryRepository(db, fakeApiDio([FakeRestResource('/api/mobile/inventory')]));
   });
 
