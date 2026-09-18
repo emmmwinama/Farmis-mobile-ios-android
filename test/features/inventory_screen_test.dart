@@ -32,17 +32,19 @@ void main() {
   testWidgets('selecting a category filter hides items from other categories',
       (tester) async {
     final repo = InventoryRepository(db, fakeDio);
-    await repo.createItem({
-      'name': 'Maize bags',
-      'category': 'Grain',
-      'unit': 'bag',
-      'quantity': '40',
-    });
-    await repo.createItem({
-      'name': 'DAP fertilizer',
-      'category': 'Input',
-      'unit': 'kg',
-      'quantity': '200',
+    await tester.runAsync(() async {
+      await repo.createItem({
+        'name': 'Maize bags',
+        'category': 'Grain',
+        'unit': 'bag',
+        'quantity': '40',
+      });
+      await repo.createItem({
+        'name': 'DAP fertilizer',
+        'category': 'Input',
+        'unit': 'kg',
+        'quantity': '200',
+      });
     });
 
     await tester.pumpWidget(wrap());

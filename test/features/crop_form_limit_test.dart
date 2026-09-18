@@ -84,17 +84,19 @@ void main() {
 
   testWidgets('saving is blocked with an upgrade sheet once the season hits the free crop limit',
       (tester) async {
-    for (var i = 0; i < FreeTierLimits.maxCropFieldsPerSeason; i++) {
-      await CropsRepository(db, fakeDio).createCrop({
-        'fieldId': fieldId,
-        'cropTypeId': cropType.id,
-        'variety': 'Existing $i',
-        'areaPlanted': '1.0',
-        'season': season,
-        'plantingDate': DateTime.now().toIso8601String(),
-        'expectedHarvestDate': DateTime.now().toIso8601String(),
-      });
-    }
+    await tester.runAsync(() async {
+      for (var i = 0; i < FreeTierLimits.maxCropFieldsPerSeason; i++) {
+        await CropsRepository(db, fakeDio).createCrop({
+          'fieldId': fieldId,
+          'cropTypeId': cropType.id,
+          'variety': 'Existing $i',
+          'areaPlanted': '1.0',
+          'season': season,
+          'plantingDate': DateTime.now().toIso8601String(),
+          'expectedHarvestDate': DateTime.now().toIso8601String(),
+        });
+      }
+    });
 
     await tester.pumpWidget(wrap());
     await tester.pumpAndSettle();
@@ -104,8 +106,9 @@ void main() {
     expect(find.text("You've reached your Free plan limit"), findsOneWidget);
     expect(find.byType(CropFormScreen), findsOneWidget);
 
-    final crops = await CropsRepository(db, fakeDio).getCrops(archived: 'false');
-    expect(crops.where((c) => c.season == season).length, FreeTierLimits.maxCropFieldsPerSeason);
+    final crops = await tester.runAsync(
+        () => CropsRepository(db, fakeDio).getCrops(archived: 'false'));
+    expect(crops!.where((c) => c.season == season).length, FreeTierLimits.maxCropFieldsPerSeason);
   });
 
   testWidgets('saving proceeds normally while under the free per-season crop limit', (tester) async {
@@ -116,7 +119,8 @@ void main() {
 
     expect(find.text("You've reached your Free plan limit"), findsNothing);
 
-    final crops = await CropsRepository(db, fakeDio).getCrops(archived: 'false');
-    expect(crops.where((c) => c.season == season).length, 1);
+    final crops = await tester.runAsync(
+        () => CropsRepository(db, fakeDio).getCrops(archived: 'false'));
+    expect(crops!.where((c) => c.season == season).length, 1);
   });
 }

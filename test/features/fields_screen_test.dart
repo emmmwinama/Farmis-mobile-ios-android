@@ -52,12 +52,12 @@ void main() {
   testWidgets(
       'confirming delete from the popup menu removes the field without crashing the shell navigator',
       (tester) async {
-    await FieldsRepository(db, fakeDio).createField({
+    await tester.runAsync(() => FieldsRepository(db, fakeDio).createField({
       'name': 'North block',
       'totalArea': 4.0,
       'cultivatableArea': 3.5,
       'soilType': 'Loam',
-    });
+    }));
 
     await tester.pumpWidget(wrap());
     await tester.pumpAndSettle();

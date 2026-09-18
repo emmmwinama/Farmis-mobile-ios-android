@@ -59,7 +59,7 @@ void main() {
 
   testWidgets('tapping add is blocked with an upgrade sheet once the free field limit is reached',
       (tester) async {
-    await seedFields(FreeTierLimits.maxFields);
+    await tester.runAsync(() => seedFields(FreeTierLimits.maxFields));
 
     await tester.pumpWidget(wrap(overrides: []));
     await tester.pumpAndSettle();
@@ -73,7 +73,7 @@ void main() {
   });
 
   testWidgets('tapping add proceeds normally while under the free field limit', (tester) async {
-    await seedFields(FreeTierLimits.maxFields - 1);
+    await tester.runAsync(() => seedFields(FreeTierLimits.maxFields - 1));
 
     await tester.pumpWidget(wrap(overrides: []));
     await tester.pumpAndSettle();
