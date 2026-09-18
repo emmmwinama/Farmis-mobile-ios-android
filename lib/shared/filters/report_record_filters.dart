@@ -352,7 +352,7 @@ class _FilterMenu extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 44),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: FarmioColors.slate50,
+            color: context.colors.surface,
             borderRadius: BorderRadius.circular(999),
             border: Border.all(color: context.colors.softBorder),
           ),

@@ -254,7 +254,7 @@ class _EmployeeCard extends StatelessWidget {
           CircleAvatar(
             backgroundColor: employee.isActive
                 ? FarmioColors.infoBg
-                : FarmioColors.slate100,
+                : context.colors.softBorder,
             child: Text(
               employee.name.isEmpty ? '?' : employee.name[0].toUpperCase(),
               style: const TextStyle(
@@ -288,7 +288,7 @@ class _EmployeeCard extends StatelessWidget {
             ),
           ),
           if (!employee.isActive) ...[
-            const _StatusPill(label: 'Inactive', color: FarmioColors.slate500),
+            _StatusPill(label: 'Inactive', color: context.colors.textMuted),
             const SizedBox(width: 4),
           ],
           PopupMenuButton<String>(

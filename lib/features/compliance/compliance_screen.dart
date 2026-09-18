@@ -201,7 +201,7 @@ class _ReadinessGauge extends StatelessWidget {
                   value: pct / 100,
                   strokeWidth: 6,
                   color: color,
-                  backgroundColor: FarmioColors.slate100,
+                  backgroundColor: context.colors.softBorder,
                 ),
                 Text('${pct.round()}%',
                     style: const TextStyle(fontWeight: FontWeight.w900)),

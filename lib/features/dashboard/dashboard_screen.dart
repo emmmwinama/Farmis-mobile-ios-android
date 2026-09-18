@@ -873,7 +873,7 @@ class _ExpenseBreakdownCard extends StatelessWidget {
                       child: LinearProgressIndicator(
                         value: pct,
                         minHeight: 7,
-                        backgroundColor: FarmioColors.slate100,
+                        backgroundColor: context.colors.softBorder,
                         valueColor: const AlwaysStoppedAnimation<Color>(
                           FarmioColors.danger,
                         ),
@@ -1024,8 +1024,8 @@ class _StatCard extends StatelessWidget {
                   child: Icon(item.icon,
                       size: 15, color: Colors.white),
                 ),
-                const Icon(Icons.arrow_forward_ios_rounded,
-                    size: 10, color: FarmioColors.slate300),
+                Icon(Icons.arrow_forward_ios_rounded,
+                    size: 10, color: context.colors.textMuted),
               ],
             ),
             const SizedBox(height: 8),
@@ -1101,7 +1101,7 @@ class _LandUseRow extends StatelessWidget {
           child: LinearProgressIndicator(
             value:           pct,
             minHeight:       7,
-            backgroundColor: FarmioColors.slate100,
+            backgroundColor: context.colors.softBorder,
             valueColor:      AlwaysStoppedAnimation<Color>(
               pct >= 1.0
                   ? FarmioColors.danger

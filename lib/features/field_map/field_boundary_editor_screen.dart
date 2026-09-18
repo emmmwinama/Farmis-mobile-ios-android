@@ -215,7 +215,7 @@ class _ZonesStrip extends StatelessWidget {
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: FarmioColors.slate100,
+              color: context.colors.softBorder,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(

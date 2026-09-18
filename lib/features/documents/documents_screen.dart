@@ -266,7 +266,7 @@ class _Thumbnail extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!doc.isImage) {
       return Container(
-        color: FarmioColors.slate100,
+        color: context.colors.softBorder,
         alignment: Alignment.center,
         child: Icon(Icons.insert_drive_file_outlined,
             size: 36, color: context.colors.textMuted),
@@ -278,7 +278,7 @@ class _Thumbnail extends StatelessWidget {
       fit: BoxFit.cover,
       width: double.infinity,
       errorBuilder: (_, __, ___) => Container(
-        color: FarmioColors.slate100,
+        color: context.colors.softBorder,
         alignment: Alignment.center,
         child: Icon(Icons.broken_image_outlined,
             size: 36, color: context.colors.textMuted),

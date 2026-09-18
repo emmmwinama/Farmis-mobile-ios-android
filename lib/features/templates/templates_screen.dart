@@ -327,7 +327,7 @@ class _DetailLine extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: FarmioColors.slate50,
+        color: context.colors.softBorder,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: context.colors.border),
       ),

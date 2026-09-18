@@ -1492,9 +1492,8 @@ class _ListMetric extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: FarmioColors.slate100,
+        color: context.colors.softBorder,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: context.colors.softBorder),
       ),
       child: Text(
         '$label: $value',
