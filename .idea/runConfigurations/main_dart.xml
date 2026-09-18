@@ -1,6 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="main.dart" type="FlutterRunConfigurationType" factoryName="Flutter">
     <option name="filePath" value="$PROJECT_DIR$/lib/main.dart" />
+    <!-- 10.0.2.2 is the Android emulator's alias for the host machine's
+         localhost — points the app at a local Ulimi-app dev server bound
+         to 127.0.0.1:8085 on this PC. Remove/change this for a physical
+         device or a non-local backend. -->
+    <option name="additionalArgs" value="--dart-define=API_BASE_URL=http://10.0.2.2:8085" />
     <method />
   </configuration>
 </component>
