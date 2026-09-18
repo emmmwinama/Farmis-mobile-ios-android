@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import '../../models/report.dart';
 import '../../shared/filters/report_record_filters.dart';
 import '../../shared/utils/formatters.dart';
+import '../../core/theme/app_spacing.dart';
 
 const _reportLabels = {
   'season': 'Season P&L',
@@ -169,7 +170,7 @@ Future<Uint8List> buildReportPdf({
 }
 
 pw.Widget _sectionTitle(String title) => pw.Padding(
-      padding: const pw.EdgeInsets.only(top: 16, bottom: 4),
+      padding: const pw.EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.xs),
       child: pw.Text(
         title,
         style: pw.TextStyle(
@@ -198,7 +199,7 @@ pw.Widget _table(List<String> headers, List<List<String>> rows) {
       ),
       if (rows.length > _maxRowsPerTable)
         pw.Padding(
-          padding: const pw.EdgeInsets.only(top: 4),
+          padding: const pw.EdgeInsets.only(top: AppSpacing.xs),
           child: pw.Text(
             'Showing first $_maxRowsPerTable of ${rows.length} rows. Narrow the filters for a shorter PDF.',
             style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),

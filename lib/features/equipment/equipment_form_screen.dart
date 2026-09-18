@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/equipment.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'equipment_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class EquipmentFormScreen extends ConsumerStatefulWidget {
   final EquipmentModel? existing;
@@ -95,7 +96,7 @@ class _EquipmentFormScreenState extends ConsumerState<EquipmentFormScreen> {
             style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

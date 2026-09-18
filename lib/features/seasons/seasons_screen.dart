@@ -6,6 +6,7 @@ import '../../models/season.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import 'seasons_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class SeasonsScreen extends ConsumerStatefulWidget {
   const SeasonsScreen({super.key});
@@ -69,7 +70,7 @@ class _SeasonsScreenState extends ConsumerState<SeasonsScreen> {
           if (data.seasons.isEmpty) {
             return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: EdgeInsets.all(AppSpacing.xxl),
                 child: Text(
                   'No seasons found yet. Seasons are derived from crop records.',
                   textAlign: TextAlign.center,
@@ -81,12 +82,12 @@ class _SeasonsScreenState extends ConsumerState<SeasonsScreen> {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(seasonsProvider),
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 96),
               itemCount: data.seasons.length + 1,
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: _SeasonsSummary(seasons: data.seasons),
                   );
                 }
@@ -148,8 +149,8 @@ class _SeasonCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -255,7 +256,7 @@ class SeasonCompareScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(seasonCompareProvider(pair)),
         ),
         data: (data) => ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 40),
           children: [
             Row(
               children: [
@@ -323,7 +324,7 @@ class _OverallVerdict extends StatelessWidget {
 
     if (verdict == null) {
       return Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: BorderRadius.circular(14),
@@ -346,7 +347,7 @@ class _OverallVerdict extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: FarmioColors.success.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
@@ -440,8 +441,8 @@ class _DeltaRow extends StatelessWidget {
             : FarmioColors.danger;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -464,7 +465,7 @@ class _DeltaRow extends StatelessWidget {
               if (delta.pct != null)
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                      horizontal: AppSpacing.sm, vertical: 3),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(999),
@@ -499,7 +500,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

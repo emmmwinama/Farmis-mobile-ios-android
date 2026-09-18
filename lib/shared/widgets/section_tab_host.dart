@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_spacing.dart';
 
 /// One tab within a [SectionTabHost] — a label plus the already-embeddable
 /// screen widget to show for it (pass `embedded: true` to that screen).
@@ -81,7 +82,7 @@ class _PillStrip extends StatelessWidget {
     return Container(
       height: 52,
       alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: labels.length,
@@ -93,7 +94,7 @@ class _PillStrip extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: isSelected ? FarmioColors.primary : context.colors.surface,
                 borderRadius: BorderRadius.circular(999),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_spacing.dart';
 
 /// Standard inline error banner for forms — keeps validation/API error
 /// styling identical everywhere instead of each screen hand-rolling its
@@ -12,7 +13,7 @@ class FarmioErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: FarmioColors.dangerBg,
         borderRadius: BorderRadius.circular(14),

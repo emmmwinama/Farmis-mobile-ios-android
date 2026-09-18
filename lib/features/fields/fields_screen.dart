@@ -10,6 +10,7 @@ import '../../shared/widgets/farmio_card.dart';
 import '../../shared/widgets/farmio_shimmer.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import 'fields_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class FieldsScreen extends ConsumerStatefulWidget {
   final bool embedded;
@@ -58,14 +59,14 @@ class _FieldsScreenState extends ConsumerState<FieldsScreen> {
             color:     FarmioColors.primary,
             onRefresh: () async => ref.invalidate(fieldsProvider),
             child: ListView.separated(
-              padding:   const EdgeInsets.all(20),
+              padding:   const EdgeInsets.all(AppSpacing.xl),
               itemCount: (filtered.isEmpty ? 1 : filtered.length) + 2,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (_, i) {
                 if (i == 0) return _FieldsSummary(fields: list);
                 if (i == 1) {
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                     child: EntityFilterBar(
                       dimensions: [
                         FilterDimension(
@@ -82,7 +83,7 @@ class _FieldsScreenState extends ConsumerState<FieldsScreen> {
                 }
                 if (filtered.isEmpty) {
                   return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.xl2),
                     child: Center(
                       child: Text(
                         'No fields match this filter',
@@ -207,7 +208,7 @@ class _FieldCard extends StatelessWidget {
 
     return FarmioCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.lg2),
       radius: 18,
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,7 +325,7 @@ class _FieldCard extends StatelessWidget {
                 runSpacing: 4,
                 children: field.crops.map((c) => Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                      horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     color: FarmioColors.primary.withValues(alpha:0.08),
                     borderRadius: BorderRadius.circular(20),
@@ -361,7 +362,7 @@ class _AreaChip extends StatelessWidget {
     final colors = context.colors;
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.sm),
         decoration: BoxDecoration(
           color:        colors.background,
           borderRadius: BorderRadius.circular(10),
@@ -393,7 +394,7 @@ class _FieldsSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding:          const EdgeInsets.all(20),
+      padding:          const EdgeInsets.all(AppSpacing.xl),
       itemCount:        3,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder:      (_, __) => const FarmioShimmer(
@@ -444,7 +445,7 @@ class _ErrorView extends StatelessWidget {
     final colors = context.colors;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

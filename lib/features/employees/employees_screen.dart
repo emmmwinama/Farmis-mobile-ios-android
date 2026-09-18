@@ -7,6 +7,7 @@ import '../../models/employee.dart';
 import '../../shared/filters/entity_filter_bar.dart';
 import '../../shared/utils/formatters.dart';
 import 'employees_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class EmployeesScreen extends ConsumerStatefulWidget {
   final bool embedded;
@@ -78,7 +79,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(employeesProvider),
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 96),
               children: [
                 _SummaryCard(
                   total: data.length,
@@ -123,7 +124,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                 const SizedBox(height: 10),
                 if (filtered.isEmpty)
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.xl2),
                     child: Center(
                       child: Text(
                         'No employees match this filter',
@@ -187,7 +188,7 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.lg2),
       decoration: BoxDecoration(
         color: FarmioColors.slate800,
         borderRadius: BorderRadius.circular(18),
@@ -242,8 +243,8 @@ class _EmployeeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
@@ -330,7 +331,7 @@ class _RoleBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: FarmioColors.infoBg,
         borderRadius: BorderRadius.circular(20),
@@ -356,7 +357,7 @@ class _StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
@@ -378,7 +379,7 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: EdgeInsets.all(AppSpacing.xxl),
         child: Text(
           'No employees yet. Add workers to build payroll and loan-readiness evidence.',
           textAlign: TextAlign.center,
@@ -399,7 +400,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

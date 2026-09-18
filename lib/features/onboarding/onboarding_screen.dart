@@ -5,6 +5,7 @@ import '../../core/onboarding/onboarding_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_brand_mark.dart';
 import '../profile/farm_profile_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -61,7 +62,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       backgroundColor: context.colors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.xl2),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

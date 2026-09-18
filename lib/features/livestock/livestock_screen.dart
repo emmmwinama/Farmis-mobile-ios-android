@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/livestock.dart';
 import '../../shared/filters/entity_filter_bar.dart';
 import 'livestock_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class LivestockScreen extends ConsumerStatefulWidget {
   final bool embedded;
@@ -55,7 +56,7 @@ class _LivestockScreenState extends ConsumerState<LivestockScreen> {
           if (data.animals.isEmpty) {
             return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: EdgeInsets.all(AppSpacing.xxl),
                 child: Text(
                   'No animals registered yet.',
                   style: TextStyle(color: context.colors.textMuted),
@@ -84,7 +85,7 @@ class _LivestockScreenState extends ConsumerState<LivestockScreen> {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(livestockProvider),
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 96),
               itemCount: (filtered.isEmpty ? 1 : filtered.length) + 1,
               itemBuilder: (context, index) {
                 if (index == 0) {
@@ -116,7 +117,7 @@ class _LivestockScreenState extends ConsumerState<LivestockScreen> {
                 }
                 if (filtered.isEmpty) {
                   return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.xl2),
                     child: Center(
                       child: Text(
                         'No animals match this filter',
@@ -150,8 +151,8 @@ class _AnimalCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(bottom: AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -182,7 +183,7 @@ class _AnimalCard extends StatelessWidget {
             if (animal.status != 'Active')
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                 decoration: BoxDecoration(
                   color: context.colors.softBorder,
                   borderRadius: BorderRadius.circular(8),
@@ -210,7 +211,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

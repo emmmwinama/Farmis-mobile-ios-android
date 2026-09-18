@@ -11,6 +11,7 @@ import '../../shared/widgets/farmio_card.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import '../yields/yields_provider.dart';
 import 'crops_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class CropDetailScreen extends ConsumerWidget {
   final String cropId;
@@ -146,7 +147,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
     final timelinePlan = CropTimelineCatalog.buildPlan(crop: crop);
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
         if (crop.isActive && timelinePlan.entries.isNotEmpty) ...[
           _TimelineSummaryRow(plan: timelinePlan),
@@ -179,7 +180,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
               )),
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
+                    horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                 decoration: BoxDecoration(
                   color:        accentColor.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -284,7 +285,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
               icon: const Icon(Icons.add, size: 14),
               label: const Text('Add harvest'),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 textStyle: const TextStyle(
@@ -306,7 +307,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
                     ? FarmioColors.infoBg
                     : Colors.transparent,
                 side: const BorderSide(color: FarmioColors.primaryLight),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 textStyle: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -319,7 +320,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
 
         if (_showPriceSuggestion)
           Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: _PriceSuggestionPanel(
               totalCost: crop.costs.total,
               totalYieldKg: crop.totalYieldKg,
@@ -331,14 +332,14 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
         if (crop.yields.isEmpty)
           FarmioCard(child: Center(
             child: Padding(
-              padding: EdgeInsets.all(12),
+              padding: EdgeInsets.all(AppSpacing.md),
               child: Text('No harvests recorded yet',
                   style: TextStyle(color: context.colors.textMuted)),
             ),
           ))
         else ...[
           ...crop.yields.map((y) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child:   _YieldTile(y: y, cropId: crop.id),
           )),
           FarmioCard(child: Row(
@@ -372,14 +373,14 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
         if (crop.activities.isEmpty)
           FarmioCard(child: Center(
             child: Padding(
-              padding: EdgeInsets.all(12),
+              padding: EdgeInsets.all(AppSpacing.md),
               child: Text('No activities recorded',
                   style: TextStyle(color: context.colors.textMuted)),
             ),
           ))
         else
           ...crop.activities.map((a) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child:   _ActivityTile(a: a, onTap: () => context.push('/activities/${a.id}')),
           )),
 
@@ -617,7 +618,7 @@ class _TimelineStepRow extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 0, 0, 12),
+        padding: const EdgeInsets.fromLTRB(0, 0, 0, AppSpacing.md),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -729,7 +730,7 @@ void _showTimelineEntryDetails(
     ),
     builder: (context) => SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md, AppSpacing.xl, AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -845,7 +846,7 @@ void _showRecommendedActivities(
       builder: (context, controller) => SafeArea(
         child: ListView(
           controller: controller,
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md, AppSpacing.xl, AppSpacing.xl2),
           children: [
             Center(
               child: Container(
@@ -893,12 +894,12 @@ class _RecommendedActivitySheetRow extends StatelessWidget {
     final status = _TimelineStepRow._statusLabel(entry);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: InkWell(
         onTap: () => _showTimelineEntryDetails(context, entry),
         borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: context.colors.background,
             borderRadius: BorderRadius.circular(14),
@@ -951,7 +952,7 @@ class _DetailLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -994,7 +995,7 @@ class _CostRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(children: [
         Icon(icon, size: 16, color: context.colors.textMuted),
         const SizedBox(width: 8),
@@ -1058,7 +1059,7 @@ class _YieldTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -1108,7 +1109,7 @@ class _ActivityTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return FarmioCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       radius: 12,
       child: Row(children: [
         Icon(
@@ -1191,7 +1192,7 @@ class _PriceSuggestionPanel extends StatelessWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        FarmioColors.infoBg,
         borderRadius: BorderRadius.circular(14),
@@ -1231,7 +1232,7 @@ class _PriceSuggestionPanel extends StatelessWidget {
                   ),
                   decoration: InputDecoration(
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                    contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                     filled: true,
                     fillColor: context.colors.surface,
                     border: OutlineInputBorder(
@@ -1299,7 +1300,7 @@ class _PriceTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 148,
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(10),

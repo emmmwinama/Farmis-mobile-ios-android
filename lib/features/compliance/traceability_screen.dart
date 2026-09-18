@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/compliance.dart';
 import '../../shared/utils/formatters.dart';
 import 'compliance_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class TraceabilityScreen extends ConsumerWidget {
   const TraceabilityScreen({super.key});
@@ -34,7 +35,7 @@ class TraceabilityScreen extends ConsumerWidget {
           if (list.isEmpty) {
             return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: EdgeInsets.all(AppSpacing.xxl),
                 child: Text('No crop lots found yet.',
                     style: TextStyle(color: context.colors.textMuted)),
               ),
@@ -43,7 +44,7 @@ class TraceabilityScreen extends ConsumerWidget {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(traceabilityProvider),
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 40),
               itemCount: list.length,
               itemBuilder: (context, index) => _LotCard(lot: list[index]),
             ),
@@ -61,8 +62,8 @@ class _LotCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
@@ -83,7 +84,7 @@ class _LotCard extends StatelessWidget {
               ),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                 decoration: BoxDecoration(
                   color: (lot.buyerReady
                           ? FarmioColors.success
@@ -156,7 +157,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

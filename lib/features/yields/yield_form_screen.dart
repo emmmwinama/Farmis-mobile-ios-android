@@ -5,6 +5,7 @@ import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import '../crops/crops_provider.dart';
 import 'yields_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class YieldFormScreen extends ConsumerStatefulWidget {
   final String? preselectedCropFieldId;
@@ -111,7 +112,7 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
             style: TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -128,7 +129,7 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
                     .toList();
                 return Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14),
+                      horizontal: AppSpacing.md),
                   decoration: BoxDecoration(
                     color:        context.colors.background,
                     borderRadius: BorderRadius.circular(12),
@@ -177,7 +178,7 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
                   _label('Unit *'),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14),
+                        horizontal: AppSpacing.md),
                     decoration: BoxDecoration(
                       color:        context.colors.background,
                       borderRadius: BorderRadius.circular(12),
@@ -214,7 +215,7 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
               const SizedBox(height: 8),
               if (_quantityCtrl.text.isNotEmpty)
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color:        FarmioColors.primary
                         .withValues(alpha: 0.08),
@@ -245,7 +246,7 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 14),
+                    horizontal: AppSpacing.md, vertical: AppSpacing.md),
                 decoration: BoxDecoration(
                   color:        context.colors.background,
                   borderRadius: BorderRadius.circular(12),
@@ -316,7 +317,7 @@ class _YieldFormScreenState extends ConsumerState<YieldFormScreen> {
   }
 
   Widget _label(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
+    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
     child: Text(text,
         style: TextStyle(
           fontSize:   12,

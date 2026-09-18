@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/livestock.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'livestock_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class AnimalFormScreen extends ConsumerWidget {
   final Animal? existing;
@@ -24,7 +25,7 @@ class AnimalFormScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.xl2),
             child: Text('Could not load livestock types: $error',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: context.colors.textMuted)),
@@ -112,7 +113,7 @@ class _AnimalFormBodyState extends ConsumerState<_AnimalFormBody> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_spacing.dart';
 
 /// One stat shown inside a [FarmioSummaryBar].
 class FarmioSummaryStat {
@@ -31,7 +32,7 @@ class FarmioSummaryBar extends StatelessWidget {
     );
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.lg2),
       decoration: BoxDecoration(
         color: fill.color,
         gradient: fill.gradient,

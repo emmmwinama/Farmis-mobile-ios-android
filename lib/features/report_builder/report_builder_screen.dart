@@ -6,6 +6,7 @@ import '../../models/report_builder.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'report_builder_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 String _sectionLabel(String key) {
   switch (key) {
@@ -80,7 +81,7 @@ class _ReportBuilderScreenState extends ConsumerState<ReportBuilderScreen> {
           onRetry: () => ref.invalidate(reportBuilderProvider),
         ),
         data: (report) => ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 40),
           children: [
             Text('Select sections to export',
                 style: TextStyle(
@@ -132,8 +133,8 @@ class _ReportBuilderScreenState extends ConsumerState<ReportBuilderScreen> {
                       color: context.colors.textPrimary)),
               const SizedBox(height: 8),
               ...report.cropProfitability.map((row) => Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: context.colors.surface,
                       borderRadius: BorderRadius.circular(12),
@@ -183,7 +184,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

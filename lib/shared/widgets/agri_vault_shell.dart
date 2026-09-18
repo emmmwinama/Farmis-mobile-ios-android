@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/sync/auto_sync_service.dart';
 import '../../core/theme/app_theme.dart';
 import 'app_brand_mark.dart';
+import '../../core/theme/app_spacing.dart';
 
 class _ShellItem {
   final String label;
@@ -81,7 +82,7 @@ class AgriVaultShell extends ConsumerWidget {
               indicatorColor: FarmioColors.primaryBg,
               labelType: NavigationRailLabelType.all,
               leading: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 14),
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
                 child: BrandMark(size: 46, radius: 16),
               ),
               destinations: _shellItems
@@ -129,7 +130,7 @@ class AgriVaultShell extends ConsumerWidget {
         child: child,
       ),
       bottomNavigationBar: Padding(
-        padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset + pillMargin),
+        padding: EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, bottomInset + pillMargin),
         child: Container(
           height: pillHeight,
           decoration: BoxDecoration(
@@ -155,7 +156,7 @@ class AgriVaultShell extends ConsumerWidget {
                     width: 1,
                   ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -214,7 +215,7 @@ class _NavPill extends StatelessWidget {
                 curve: Curves.easeOutCubic,
                 child: selected
                     ? Padding(
-                        padding: const EdgeInsets.only(left: 7),
+                        padding: const EdgeInsets.only(left: AppSpacing.sm),
                         child: Text(
                           item.label,
                           style: const TextStyle(

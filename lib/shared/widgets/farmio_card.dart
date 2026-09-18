@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_spacing.dart';
 
 class FarmioCard extends StatelessWidget {
   final Widget      child;
@@ -24,7 +25,7 @@ class FarmioCard extends StatelessWidget {
     final colors = context.colors;
     final card = Container(
       width:   double.infinity,
-      padding: padding ?? const EdgeInsets.all(16),
+      padding: padding ?? const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color:        color ?? colors.surface,
         borderRadius: BorderRadius.circular(radius),
@@ -86,7 +87,7 @@ class FarmioGradientCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(radius),
         child: Container(
           width:   double.infinity,
-          padding: padding ?? const EdgeInsets.all(20),
+          padding: padding ?? const EdgeInsets.all(AppSpacing.xl),
           decoration: BoxDecoration(
             color: fill.color,
             gradient: fill.gradient,

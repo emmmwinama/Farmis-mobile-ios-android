@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/seasonal_template.dart';
 import '../crops/crops_provider.dart';
 import 'templates_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class TemplatesScreen extends ConsumerStatefulWidget {
   const TemplatesScreen({super.key});
@@ -54,7 +55,7 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(templatesProvider),
             child: ListView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               children: [
                 const _IntroCard(),
                 const SizedBox(height: 16),
@@ -85,7 +86,7 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
                           ? 'Active crops only'
                           : 'Show all (incl. inactive)'),
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                         textStyle: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -117,7 +118,7 @@ class _EmptyFilteredState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(18),
@@ -153,7 +154,7 @@ class _IntroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.lg2),
       decoration: BoxDecoration(
         color: FarmioColors.primary,
         borderRadius: BorderRadius.circular(18),
@@ -197,7 +198,7 @@ class _TemplateCardState extends State<_TemplateCard> {
     final template = widget.template;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(18),
@@ -207,7 +208,7 @@ class _TemplateCardState extends State<_TemplateCard> {
         borderRadius: BorderRadius.circular(18),
         onTap: () => setState(() => _expanded = !_expanded),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -296,7 +297,7 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -324,8 +325,8 @@ class _DetailLine extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.softBorder,
         borderRadius: BorderRadius.circular(12),
@@ -364,7 +365,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

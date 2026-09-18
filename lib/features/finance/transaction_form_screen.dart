@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/transaction.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'finance_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class TransactionFormScreen extends ConsumerStatefulWidget {
   final TransactionModel? existing;
@@ -104,7 +105,7 @@ class _TransactionFormScreenState
             style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -179,7 +180,7 @@ class _TransactionFormScreenState
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 14),
+                    horizontal: AppSpacing.md, vertical: AppSpacing.md),
                 decoration: BoxDecoration(
                   color:        context.colors.background,
                   borderRadius: BorderRadius.circular(12),
@@ -227,7 +228,7 @@ class _TransactionFormScreenState
   }
 
   Widget _label(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
+    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
     child: Text(text,
         style: TextStyle(
           fontSize:   12,
@@ -265,7 +266,7 @@ class _TransactionFormScreenState
     required void Function(String?) onChanged,
   }) =>
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         decoration: BoxDecoration(
           color:        context.colors.background,
           borderRadius: BorderRadius.circular(12),
@@ -304,7 +305,7 @@ class _TypeButton extends StatelessWidget {
       onTap:        onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         decoration: BoxDecoration(
           color: selected
               ? color.withValues(alpha:0.1)

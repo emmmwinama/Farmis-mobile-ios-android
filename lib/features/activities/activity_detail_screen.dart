@@ -6,6 +6,7 @@ import '../../models/activity_detail.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_card.dart';
 import 'activities_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class ActivityDetailScreen extends ConsumerWidget {
   final String activityId;
@@ -82,7 +83,7 @@ class _DetailContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
 
         // Header card
@@ -199,7 +200,7 @@ class _DetailContent extends StatelessWidget {
           _EmptySection(label: 'No inputs recorded')
         else
           ...activity.inputs.map((i) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child:   _InputTile(input: i),
           )),
 
@@ -215,7 +216,7 @@ class _DetailContent extends StatelessWidget {
           _EmptySection(label: 'No labour recorded')
         else
           ...activity.labourRecords.map((l) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child:   _LabourTile(labour: l),
           )),
 
@@ -231,7 +232,7 @@ class _DetailContent extends StatelessWidget {
           _EmptySection(label: 'No other costs recorded')
         else
           ...activity.otherCosts.map((o) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child:   _OtherCostTile(cost: o),
           )),
 
@@ -249,7 +250,7 @@ class _InputTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -302,7 +303,7 @@ class _LabourTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -348,7 +349,7 @@ class _OtherCostTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -404,7 +405,7 @@ class _EmptySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -437,7 +438,7 @@ class _CostRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(children: [
         Icon(icon, size: 16, color: context.colors.textMuted),
         const SizedBox(width: 8),

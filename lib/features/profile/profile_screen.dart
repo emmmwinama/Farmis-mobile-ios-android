@@ -9,6 +9,7 @@ import '../../core/dev/dev_reset_service.dart';
 import '../../core/theme/app_theme.dart';
 import 'account_sync_section.dart';
 import 'farm_profile_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -30,10 +31,10 @@ class ProfileScreen extends ConsumerWidget {
           child: Text('Could not load the farm profile.'),
         ),
         data: (data) => ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
                 color: context.colors.surface,
                 borderRadius: BorderRadius.circular(16),
@@ -244,7 +245,7 @@ class _ProfileAction extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -358,7 +359,7 @@ class _FarmProfileFormState extends ConsumerState<_FarmProfileForm> {
     return Padding(
       padding: EdgeInsets.only(bottom: bottom),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -420,7 +421,7 @@ class _FarmProfileFormState extends ConsumerState<_FarmProfileForm> {
                   ],
                 ),
                 Padding(
-                  padding: EdgeInsets.only(top: 6),
+                  padding: EdgeInsets.only(top: AppSpacing.xs),
                   child: Text(
                     'Latitude/longitude sharpen the weather forecast; otherwise the location name is used.',
                     style: TextStyle(

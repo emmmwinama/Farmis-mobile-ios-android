@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_spacing.dart';
 
 class FarmioBadge extends StatelessWidget {
   final String  label;
@@ -19,7 +20,7 @@ class FarmioBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: 10, vertical: 5),
+          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color:        color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),

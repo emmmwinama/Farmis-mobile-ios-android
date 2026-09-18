@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/api/api_config.dart';
 import '../../core/auth/account_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_spacing.dart';
 
 /// In-app checkout needs a mobile PayPal endpoint and a way to read the
 /// farm's live subscription status, neither of which exist on the backend
@@ -24,7 +25,7 @@ class UpgradeScreen extends ConsumerWidget {
       backgroundColor: colors.background,
       appBar: AppBar(title: const Text('Upgrade', style: TextStyle(fontWeight: FontWeight.w800))),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

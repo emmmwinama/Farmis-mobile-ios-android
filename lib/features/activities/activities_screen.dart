@@ -10,6 +10,7 @@ import '../../shared/widgets/farmio_shimmer.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import '../fields/fields_provider.dart';
 import 'activities_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class ActivitiesScreen extends ConsumerStatefulWidget {
   const ActivitiesScreen({super.key});
@@ -75,7 +76,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
             color:     FarmioColors.primary,
             onRefresh: () async => ref.invalidate(activitiesDataProvider),
             child: ListView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               children: [
 
                 // Summary
@@ -127,7 +128,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                       style: TextButton.styleFrom(
                         foregroundColor: context.colors.textMuted,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
+                            horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                       ),
                     ),
                   ],
@@ -153,7 +154,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
 
                 // Count line
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                   child: Text(
                     '${filtered.length} activit${filtered.length != 1 ? "ies" : "y"}'
                         '${_activeFilterCount > 0 ? " (filtered)" : ""}',
@@ -172,7 +173,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                   )
                 else
                   ...filtered.map((a) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                     child:   _ActivityCard(
                       activity:   a,
                       expanded:   _expandedId == a.id,
@@ -279,7 +280,7 @@ class _ActivityCard extends StatelessWidget {
                   : const Radius.circular(16),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Row(children: [
                 // Icon
                 Container(
@@ -385,7 +386,7 @@ class _ActivityCard extends StatelessWidget {
                         onTap:        onDelete,
                         borderRadius: BorderRadius.circular(6),
                         child: const Padding(
-                          padding: EdgeInsets.all(4),
+                          padding: EdgeInsets.all(AppSpacing.xs),
                           child: Icon(Icons.delete_outline,
                               size: 16, color: FarmioColors.danger),
                         ),
@@ -418,7 +419,7 @@ class _ActivityCard extends StatelessWidget {
                   Divider(
                       height: 1, color: context.colors.border),
                   Padding(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     child: Column(
                       children: [
                         // Cost summary row
@@ -542,7 +543,7 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -573,8 +574,8 @@ class _LabourRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin:  const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.all(10),
+      margin:  const EdgeInsets.only(bottom: AppSpacing.xs),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color:        Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -623,8 +624,8 @@ class _InputRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin:  const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.all(10),
+      margin:  const EdgeInsets.only(bottom: AppSpacing.xs),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color:        Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -667,8 +668,8 @@ class _OtherCostRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin:  const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.all(10),
+      margin:  const EdgeInsets.only(bottom: AppSpacing.xs),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color:        Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -726,8 +727,8 @@ class _FilterPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin:  const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin:  const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -805,8 +806,8 @@ class _AnalyticsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin:  const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin:  const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -876,7 +877,7 @@ class _AnalyticsPanel extends StatelessWidget {
                 if (s.types.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(
-                        left: 4, bottom: 8),
+                        left: AppSpacing.xs, bottom: AppSpacing.sm),
                     child: Wrap(
                       spacing: 6,
                       children: s.types
@@ -915,7 +916,7 @@ class _AnalyticsBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = maxCount > 0 ? count / maxCount : 0.0;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -984,7 +985,7 @@ class _FilterChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: 10, vertical: 6),
+            horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
         decoration: BoxDecoration(
           color: selected
               ? FarmioColors.primary
@@ -1031,7 +1032,7 @@ class _ToolbarButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: 12, vertical: 8),
+            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: active
               ? FarmioColors.primary
@@ -1095,7 +1096,7 @@ class _MetaChip extends StatelessWidget {
     final color = this.color ?? context.colors.textMuted;
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: 7, vertical: 3),
+          horizontal: AppSpacing.sm, vertical: 3),
       decoration: BoxDecoration(
         color:        color.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(6),
@@ -1134,7 +1135,7 @@ class _CostChip extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(
-            vertical: 8, horizontal: 10),
+            vertical: AppSpacing.sm, horizontal: AppSpacing.sm),
         decoration: BoxDecoration(
           color:        color.withValues(alpha:0.08),
           borderRadius: BorderRadius.circular(10),
@@ -1219,7 +1220,7 @@ class _Skeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding:          const EdgeInsets.all(20),
+      padding:          const EdgeInsets.all(AppSpacing.xl),
       itemCount:        5,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, __) => const FarmioShimmer(

@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/field_boundary.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'field_map_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 const _defaultCenter = LatLng(-13.9626, 33.7741);
 
@@ -110,7 +111,7 @@ class _FieldBoundaryEditorScreenState
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 color: FarmioColors.infoBg,
                 child: const Text(
                   'Tap the map to place boundary points, then save. '
@@ -168,11 +169,11 @@ class _FieldBoundaryEditorScreenState
               ),
               if (_error != null)
                 Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: FarmioErrorBanner(message: _error!),
                 ),
               SafeArea(
-                minimum: const EdgeInsets.all(16),
+                minimum: const EdgeInsets.all(AppSpacing.lg),
                 child: SizedBox(
                   height: 52,
                   width: double.infinity,
@@ -206,14 +207,14 @@ class _ZonesStrip extends StatelessWidget {
     return SizedBox(
       height: 60,
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         scrollDirection: Axis.horizontal,
         itemCount: zones.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final zone = zones[index];
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
             decoration: BoxDecoration(
               color: context.colors.softBorder,
               borderRadius: BorderRadius.circular(10),

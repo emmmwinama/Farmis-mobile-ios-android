@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/inventory_item.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'inventory_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class InventoryItemFormScreen extends ConsumerStatefulWidget {
   final InventoryItem? existing;
@@ -84,7 +85,7 @@ class _InventoryItemFormScreenState
             style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

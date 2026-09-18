@@ -6,6 +6,7 @@ import '../../models/compliance.dart';
 import '../../shared/filters/entity_filter_bar.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import 'compliance_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class ComplianceScreen extends ConsumerStatefulWidget {
   const ComplianceScreen({super.key});
@@ -65,7 +66,7 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(complianceProvider),
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 40),
               children: [
                 _ReadinessGauge(pct: data.readinessPct),
                 const SizedBox(height: 12),
@@ -121,7 +122,7 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
                   ),
                   if (filteredLots.isEmpty)
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
                       child: Text('No crop lots match this filter.',
                           style: TextStyle(color: context.colors.textMuted)),
                     )
@@ -183,7 +184,7 @@ class _ReadinessGauge extends StatelessWidget {
             ? FarmioColors.warning
             : FarmioColors.danger;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(18),
@@ -228,8 +229,8 @@ class _ChecklistTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -264,7 +265,7 @@ class _LotTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -276,7 +277,7 @@ class _LotTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onReview,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
               Expanded(
@@ -323,7 +324,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

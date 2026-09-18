@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../shared/filters/report_record_filters.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'records_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class RecordsScreen extends ConsumerStatefulWidget {
   const RecordsScreen({super.key});
@@ -41,12 +42,12 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.xl2),
             child: FarmioErrorBanner(message: 'Could not load your farm records: $e'),
           ),
         ),
         data: (data) => ListView(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 96),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg2, AppSpacing.lg2, AppSpacing.lg2, 96),
           children: [
             _RecordsHero(pack: selected),
             ReportRecordFilterBar(
@@ -113,7 +114,7 @@ class _RecordsHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -332,7 +333,7 @@ class _RecordPackTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -340,7 +341,7 @@ class _RecordPackTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(18),
@@ -429,7 +430,7 @@ class _SectionToggle extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             constraints: const BoxConstraints(minHeight: 132),
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: selected
                   ? FarmioColors.primary.withValues(alpha: 0.14)
@@ -527,7 +528,7 @@ class _ExportPanelState extends ConsumerState<_ExportPanel> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.lg2),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -595,7 +596,7 @@ class _DarkPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: FarmioColors.primaryBg,
         borderRadius: BorderRadius.circular(999),

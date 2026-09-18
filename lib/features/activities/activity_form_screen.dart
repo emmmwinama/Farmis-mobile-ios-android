@@ -11,6 +11,7 @@ import '../employees/employees_provider.dart';
 import '../fields/fields_provider.dart';
 import '../crops/crops_provider.dart';
 import 'activities_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class ActivityFormScreen extends ConsumerStatefulWidget {
   final ActivityDetail? existing;
@@ -256,7 +257,7 @@ class _ActivityFormScreenState
             style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -268,7 +269,7 @@ class _ActivityFormScreenState
               error:   (_, __) =>
               const Text('Failed to load fields'),
               data: (list) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 decoration: BoxDecoration(
                   color:        context.colors.background,
                   borderRadius: BorderRadius.circular(12),
@@ -306,7 +307,7 @@ class _ActivityFormScreenState
                     : list;
                 return Container(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 14),
+                  const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                   decoration: BoxDecoration(
                     color:        context.colors.background,
                     borderRadius: BorderRadius.circular(12),
@@ -347,7 +348,7 @@ class _ActivityFormScreenState
             // Activity type
             _label('Activity type *'),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               decoration: BoxDecoration(
                 color:        context.colors.background,
                 borderRadius: BorderRadius.circular(12),
@@ -389,7 +390,7 @@ class _ActivityFormScreenState
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                     decoration: BoxDecoration(
                       color: context.colors.background,
                       borderRadius: BorderRadius.circular(12),
@@ -446,7 +447,7 @@ class _ActivityFormScreenState
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 14),
+                    horizontal: AppSpacing.md, vertical: AppSpacing.md),
                 decoration: BoxDecoration(
                   color:        context.colors.background,
                   borderRadius: BorderRadius.circular(12),
@@ -508,7 +509,7 @@ class _ActivityFormScreenState
               ],
             ),
             ..._inputs.asMap().entries.map((e) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child:   _InputForm(
                 controllers: e.value,
                 categories:  _inputCategories,
@@ -536,7 +537,7 @@ class _ActivityFormScreenState
               ],
             ),
             ..._labour.asMap().entries.map((e) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: _LabourForm(
                 entry: e.value,
                 employees: employees.valueOrNull ?? const [],
@@ -566,7 +567,7 @@ class _ActivityFormScreenState
               ],
             ),
             ..._otherCosts.asMap().entries.map((e) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child:   _OtherCostForm(
                 controllers: e.value,
                 onRemove:    () => _removeOtherCost(e.key),
@@ -601,7 +602,7 @@ class _ActivityFormScreenState
   }
 
   Widget _label(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
+    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
     child: Text(text,
         style: TextStyle(
           fontSize:   12,
@@ -679,7 +680,7 @@ class _InputForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -762,7 +763,7 @@ class _LabourForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -773,7 +774,7 @@ class _LabourForm extends StatelessWidget {
           Row(children: [
             Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: context.colors.background,
                   borderRadius: BorderRadius.circular(8),
@@ -852,7 +853,7 @@ class _OtherCostForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -907,7 +908,7 @@ class _SmallField extends StatelessWidget {
         hintStyle:       const TextStyle(fontSize: 12),
         isDense:         true,
         contentPadding:  const EdgeInsets.symmetric(
-            horizontal: 10, vertical: 10),
+            horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: context.colors.border),

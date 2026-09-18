@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/weather.dart';
 import 'weather_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class WeatherScreen extends ConsumerWidget {
   const WeatherScreen({super.key});
@@ -32,7 +33,7 @@ class WeatherScreen extends ConsumerWidget {
         data: (data) => RefreshIndicator(
           onRefresh: () async => ref.invalidate(weatherProvider),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 40),
             children: [
               if (data.current != null) _CurrentCard(data: data),
               const SizedBox(height: 16),
@@ -58,8 +59,8 @@ class WeatherScreen extends ConsumerWidget {
                       color: context.colors.textPrimary)),
               const SizedBox(height: 8),
               ...data.guidance.map((tip) => Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: FarmioColors.infoBg,
                       borderRadius: BorderRadius.circular(10),
@@ -98,7 +99,7 @@ class _CurrentCard extends StatelessWidget {
       flat: FarmioColors.primaryDark,
     );
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: fill.color,
         gradient: fill.gradient,
@@ -177,7 +178,7 @@ class _DayCard extends StatelessWidget {
     const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return Container(
       width: 84,
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -213,7 +214,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

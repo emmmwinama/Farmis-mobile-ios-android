@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/app_notification.dart';
 import 'notifications_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -38,7 +39,7 @@ class NotificationsScreen extends ConsumerWidget {
           if (data.notifications.isEmpty) {
             return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: EdgeInsets.all(AppSpacing.xxl),
                 child: Text(
                   'No notifications yet.',
                   style: TextStyle(color: context.colors.textMuted),
@@ -49,7 +50,7 @@ class NotificationsScreen extends ConsumerWidget {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(notificationsProvider),
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 40),
               itemCount: data.notifications.length,
               itemBuilder: (context, index) {
                 final item = data.notifications[index];
@@ -57,8 +58,8 @@ class NotificationsScreen extends ConsumerWidget {
                   key: ValueKey(item.id),
                   direction: DismissDirection.endToStart,
                   background: Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                     alignment: Alignment.centerRight,
                     decoration: BoxDecoration(
                       color: FarmioColors.danger,
@@ -99,7 +100,7 @@ class _NotificationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       decoration: BoxDecoration(
         color: item.isRead ? colors.surface : FarmioColors.infoBg,
         borderRadius: BorderRadius.circular(14),
@@ -114,7 +115,7 @@ class _NotificationTile extends StatelessWidget {
           onTap: item.link != null ? onTap : null,
           borderRadius: BorderRadius.circular(14),
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -159,7 +160,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

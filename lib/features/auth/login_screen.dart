@@ -7,6 +7,7 @@ import '../../core/auth/account_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_brand_mark.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
+import '../../core/theme/app_spacing.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -59,7 +60,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       appBar: AppBar(title: const Text('Sign in')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.xl2),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

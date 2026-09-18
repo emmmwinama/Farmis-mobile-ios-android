@@ -15,6 +15,7 @@ import '../notifications/notifications_provider.dart';
 import '../weather/weather_provider.dart';
 import 'dashboard_provider.dart';
 import 'sync_status_icon.dart';
+import '../../core/theme/app_spacing.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -105,7 +106,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               GestureDetector(
                 onTap: () => context.push('/profile'),
                 child: Container(
-                  margin: const EdgeInsets.only(right: 16),
+                  margin: const EdgeInsets.only(right: AppSpacing.lg),
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
@@ -127,7 +128,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ],
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.xl),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 _DashboardFilterToggle(
@@ -166,7 +167,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   const SizedBox(height: 8),
                   ...data.fieldLandUse.map(
                     (f) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                       child: _LandUseRow(field: f),
                     ),
                   ),
@@ -185,7 +186,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   )
                 else
                   ...data.recentActivities.map((a) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                         child: _ActivityRow(
                           activity: a,
                           onTap: () => context.push('/activities/${a.id}'),
@@ -256,7 +257,7 @@ class _HeroBanner extends StatelessWidget {
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 36, 76, 22),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 36, 76, AppSpacing.xl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -334,7 +335,7 @@ class _NetBadge extends StatelessWidget {
     final positive = net >= 0;
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: 12, vertical: 6),
+          horizontal: AppSpacing.md, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color:        Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
@@ -389,7 +390,7 @@ class _NeedsAttentionSection extends ConsumerWidget {
         return Column(
           children: items
               .map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                     child: _NeedsAttentionRow(item: item),
                   ))
               .toList(),
@@ -445,7 +446,7 @@ class _NeedsAttentionRow extends StatelessWidget {
         onTap: item.link == null ? null : () => context.push(item.link!),
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: colors.softBorder),
@@ -517,7 +518,7 @@ class _WeatherLine extends ConsumerWidget {
         if (current == null) return const SizedBox.shrink();
         return FarmioCard(
           onTap: () => context.push('/weather'),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
           radius: 16,
           child: Row(
             children: [
@@ -580,7 +581,7 @@ class _DashboardFilterToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return FarmioCard(
       radius: 16,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       onTap: onTap,
       child: Row(
         children: [
@@ -620,7 +621,7 @@ class _DashboardFilterToggle extends StatelessWidget {
           ),
           if (_hasActiveFilters)
             Container(
-              margin: const EdgeInsets.only(right: 8),
+              margin: const EdgeInsets.only(right: AppSpacing.sm),
               width: 8,
               height: 8,
               decoration: const BoxDecoration(
@@ -669,7 +670,7 @@ class _DashboardFilterPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return FarmioCard(
       radius: 16,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -691,7 +692,7 @@ class _DashboardFilterPanel extends StatelessWidget {
                   style: TextButton.styleFrom(
                     foregroundColor: context.colors.textMuted,
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -799,7 +800,7 @@ class _ExpenseBreakdownCard extends StatelessWidget {
         .toList();
 
     return FarmioCard(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
       radius: 20,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -842,7 +843,7 @@ class _ExpenseBreakdownCard extends StatelessWidget {
                   ? (item.amount / data.expense).clamp(0.0, 1.0)
                   : 0.0;
               return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: Column(
                   children: [
                     Row(
@@ -964,7 +965,7 @@ class _StatStrip extends StatelessWidget {
           children: [
             for (final stat in stats)
               Padding(
-                padding: const EdgeInsets.only(right: 10),
+                padding: const EdgeInsets.only(right: AppSpacing.sm),
                 child: SizedBox(
                   width: 108,
                   child: _StatCard(item: stat),
@@ -1004,7 +1005,7 @@ class _StatCard extends StatelessWidget {
     final badgeFill = HeroFill(context, colors: item.gradient, flat: item.gradient.first);
     return FarmioCard(
       onTap: item.onTap,
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.md),
       radius: 16,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1074,7 +1075,7 @@ class _LandUseRow extends StatelessWidget {
         : 0.0;
 
     return FarmioCard(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       radius: 16,
       child: Column(children: [
         Row(children: [
@@ -1145,7 +1146,7 @@ class _ActivityRow extends StatelessWidget {
     final colors = context.colors;
     return FarmioCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       radius: 12,
       child: Row(children: [
         Container(
@@ -1186,7 +1187,7 @@ class _ActivityRow extends StatelessWidget {
         ),
         Container(
           padding: const EdgeInsets.symmetric(
-              horizontal: 8, vertical: 4),
+              horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
           decoration: BoxDecoration(
             color:        colors.background,
             borderRadius: BorderRadius.circular(6),
@@ -1251,7 +1252,7 @@ class _EmptyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xl2),
       decoration: BoxDecoration(
         color:        colors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -1291,7 +1292,7 @@ class _Skeleton extends StatelessWidget {
           flexibleSpace:   const FlexibleSpaceBar(),
         ),
         SliverPadding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           sliver:  SliverList(
             delegate: SliverChildListDelegate([
               GridView.builder(
@@ -1353,7 +1354,7 @@ class _ErrorView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
             child: Text(
               message,
               textAlign: TextAlign.center,

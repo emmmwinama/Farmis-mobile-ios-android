@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/compliance.dart';
 import '../../shared/utils/formatters.dart';
 import 'compliance_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class CreditScoreScreen extends ConsumerWidget {
   final bool embedded;
@@ -36,7 +37,7 @@ class CreditScoreScreen extends ConsumerWidget {
         data: (data) => RefreshIndicator(
           onRefresh: () async => ref.invalidate(creditReadinessProvider),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 40),
             children: [
               _ScoreCard(data: data),
               const SizedBox(height: 16),
@@ -46,8 +47,8 @@ class CreditScoreScreen extends ConsumerWidget {
                       color: context.colors.textPrimary)),
               const SizedBox(height: 8),
               ...data.checks.map((item) => Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: context.colors.surface,
                       borderRadius: BorderRadius.circular(12),
@@ -80,7 +81,7 @@ class CreditScoreScreen extends ConsumerWidget {
                       color: context.colors.textPrimary)),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: context.colors.surface,
                   borderRadius: BorderRadius.circular(14),
@@ -122,7 +123,7 @@ class _ScoreCard extends StatelessWidget {
       flat: FarmioColors.primaryDark,
     );
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: fill.color,
         gradient: fill.gradient,
@@ -197,7 +198,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

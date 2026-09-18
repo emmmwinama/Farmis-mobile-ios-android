@@ -10,6 +10,7 @@ import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_shimmer.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import 'finance_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 bool _inRange(DateTime date, DateTimeRange range) =>
     !date.isBefore(range.start) && !date.isAfter(range.end);
@@ -166,7 +167,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen>
             onChanged: (filters) => setState(() => _filters = filters),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
             child: Row(
               children: [
                 _SimpleFilterChip(
@@ -269,7 +270,7 @@ class _TransactionsTab extends ConsumerWidget {
           color:     FarmioColors.primary,
           onRefresh: () async => ref.invalidate(financeProvider),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 96),
             children: [
 
               // Balance card
@@ -278,7 +279,7 @@ class _TransactionsTab extends ConsumerWidget {
 
               // Transaction list
               ...transactions.map((t) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child:   _TransactionTile(
                   transaction: t,
                   onEdit: () => context.push('/finance/new-transaction', extra: t),
@@ -338,7 +339,7 @@ class _OverheadTab extends ConsumerWidget {
           color:     FarmioColors.primary,
           onRefresh: () async => ref.invalidate(overheadProvider),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 96),
             children: [
 
               // Overhead summary
@@ -348,7 +349,7 @@ class _OverheadTab extends ConsumerWidget {
               const SizedBox(height: 20),
 
               ...expenses.map((e) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child:   _OverheadTile(
                   expense: e,
                   onEdit: () => context.push('/finance/new-overhead', extra: e),
@@ -424,12 +425,12 @@ class _SummaryTab extends ConsumerWidget {
           );
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 96),
             children: [
 
               // Net P&L card
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
                   color: netFill.color,
                   gradient: netFill.gradient,
@@ -511,7 +512,7 @@ class _SummaryTab extends ConsumerWidget {
                         label: 'No activity costs in this period',
                         hint: 'Log field activities to see them here')
                     : Container(
-                        padding: const EdgeInsets.all(14),
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
                           color: context.colors.surface,
                           borderRadius: BorderRadius.circular(12),
@@ -549,7 +550,7 @@ class _SummaryTab extends ConsumerWidget {
               else
                 ...summary.byCategory.map(
                       (c) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                     child:   _CategoryRow(breakdown: c),
                   ),
                 ),
@@ -611,7 +612,7 @@ class _SimpleFilterChip extends StatelessWidget {
           .toList(),
       child: Container(
         constraints: const BoxConstraints(minHeight: 40),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: BorderRadius.circular(999),
@@ -690,7 +691,7 @@ class _TransactionTile extends StatelessWidget {
         : FarmioColors.danger;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -816,7 +817,7 @@ class _OverheadTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -951,7 +952,7 @@ class _CategoryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPositive = breakdown.net >= 0;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -1009,7 +1010,7 @@ class _SmallBadge extends StatelessWidget {
     final color = this.color ?? context.colors.textMuted;
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: 7, vertical: 3),
+          horizontal: AppSpacing.sm, vertical: 3),
       decoration: BoxDecoration(
         color:        color.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(6),
@@ -1030,7 +1031,7 @@ class _Skeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding:          const EdgeInsets.all(20),
+      padding:          const EdgeInsets.all(AppSpacing.xl),
       itemCount:        5,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, __) => const FarmioShimmer(
@@ -1050,7 +1051,7 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

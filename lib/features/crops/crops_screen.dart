@@ -8,6 +8,7 @@ import '../../shared/widgets/farmio_shimmer.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import '../fields/fields_provider.dart';
 import 'crops_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class CropsScreen extends ConsumerStatefulWidget {
   final bool embedded;
@@ -79,7 +80,7 @@ class _CropsScreenState extends ConsumerState<CropsScreen> {
             color:     FarmioColors.primary,
             onRefresh: () async => ref.invalidate(allCropsProvider),
             child: ListView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               children: [
 
                 // Summary
@@ -115,7 +116,7 @@ class _CropsScreenState extends ConsumerState<CropsScreen> {
                   onTap: () => setState(() => _showFilters = !_showFilters),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
+                        horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -160,7 +161,7 @@ class _CropsScreenState extends ConsumerState<CropsScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: _statuses.map((s) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.only(right: AppSpacing.sm),
                         child: _FilterChip(
                           label:    s,
                           selected: _statusFilter == s,
@@ -318,7 +319,7 @@ class _GroupedList extends StatelessWidget {
           children: [
             // Season header
             Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: Row(children: [
                 Text(season,
                     style: TextStyle(
@@ -329,7 +330,7 @@ class _GroupedList extends StatelessWidget {
                 const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                      horizontal: AppSpacing.sm, vertical: 3),
                   decoration: BoxDecoration(
                     color:        FarmioColors.warningBg,
                     borderRadius: BorderRadius.circular(8),
@@ -351,7 +352,7 @@ class _GroupedList extends StatelessWidget {
               ]),
             ),
             ...list.map((c) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child:   _CropCard(
                 crop:      c,
                 onTap:     () => onTap(c),
@@ -388,7 +389,7 @@ class _FlatList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: crops.map((c) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
         child:   _CropCard(
           crop:      c,
           onTap:     () => onTap(c),
@@ -450,7 +451,7 @@ class _CropCard extends StatelessWidget {
       onTap:        onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
           color:        context.colors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -511,7 +512,7 @@ class _CropCard extends StatelessWidget {
               // Status badge
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 4),
+                    horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                 decoration: BoxDecoration(
                   color:        color.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -628,7 +629,7 @@ class _InfoBox extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: 10, vertical: 8),
+            horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color:        context.colors.background,
           borderRadius: BorderRadius.circular(8),
@@ -673,7 +674,7 @@ class _FilterChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: 14, vertical: 8),
+            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: selected
               ? FarmioColors.primary
@@ -717,7 +718,7 @@ class _DropdownFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(10),
@@ -758,7 +759,7 @@ class _GroupToggle extends StatelessWidget {
       onTap:        onToggle,
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
           color: active
               ? FarmioColors.primary
@@ -787,7 +788,7 @@ class _Skeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding:          const EdgeInsets.all(20),
+      padding:          const EdgeInsets.all(AppSpacing.xl),
       itemCount:        4,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, __) => const FarmioShimmer(

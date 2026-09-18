@@ -7,6 +7,7 @@ import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import 'equipment_detail_screen.dart';
 import 'equipment_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class EquipmentScreen extends ConsumerWidget {
   final bool embedded;
@@ -56,7 +57,7 @@ class _EquipmentList extends StatelessWidget {
     if (items.isEmpty) {
       return Center(
         child: Padding(
-          padding: EdgeInsets.all(32),
+          padding: EdgeInsets.all(AppSpacing.xxl),
           child: Text(
             'No equipment registered yet.',
             style: TextStyle(color: context.colors.textMuted),
@@ -65,12 +66,12 @@ class _EquipmentList extends StatelessWidget {
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 96),
       itemCount: items.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: _EquipmentSummary(items: items),
           );
         }
@@ -79,8 +80,8 @@ class _EquipmentList extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           onTap: () => context.push('/equipment/${item.id}'),
           child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(14),
+            margin: const EdgeInsets.only(bottom: AppSpacing.md),
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: context.colors.surface,
               borderRadius: BorderRadius.circular(14),
@@ -139,7 +140,7 @@ class _StatusChip extends StatelessWidget {
       _ => FarmioColors.success,
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
@@ -184,7 +185,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

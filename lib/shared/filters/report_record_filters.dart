@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_spacing.dart';
 
 enum ArchiveFilter { active, archived, all }
 
@@ -185,8 +186,8 @@ class _ReportRecordFilterBarState extends State<ReportRecordFilterBar> {
   Widget build(BuildContext context) {
     final value = widget.value;
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
@@ -333,7 +334,7 @@ class _FilterMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(right: AppSpacing.sm),
       child: PopupMenuButton<String>(
         tooltip: label,
         color: Colors.white,
@@ -350,7 +351,7 @@ class _FilterMenu extends StatelessWidget {
             .toList(),
         child: Container(
           constraints: const BoxConstraints(minHeight: 44),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           decoration: BoxDecoration(
             color: context.colors.surface,
             borderRadius: BorderRadius.circular(999),

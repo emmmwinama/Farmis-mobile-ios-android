@@ -7,6 +7,7 @@ import '../../shared/filters/entity_filter_bar.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'inventory_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   final bool embedded;
@@ -53,7 +54,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           if (list.isEmpty) {
             return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: EdgeInsets.all(AppSpacing.xxl),
                 child: Text(
                   'No inventory items yet.',
                   style: TextStyle(color: context.colors.textMuted),
@@ -74,7 +75,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(inventoryItemsProvider),
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 96),
               itemCount: (filtered.isEmpty ? 1 : filtered.length) + 1,
               itemBuilder: (context, index) {
                 if (index == 0) {
@@ -94,7 +95,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                         ],
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                         child: FilterChip(
                           label: const Text('Low stock only'),
                           selected: _lowStockOnly,
@@ -122,7 +123,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 }
                 if (filtered.isEmpty) {
                   return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.xl2),
                     child: Center(
                       child: Text(
                         'No items match this filter',
@@ -180,8 +181,8 @@ class _ItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
@@ -212,7 +213,7 @@ class _ItemCard extends StatelessWidget {
               if (item.lowStock) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 4),
+                      horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     color: FarmioColors.warningBg,
                     borderRadius: BorderRadius.circular(8),
@@ -353,7 +354,7 @@ class _SellFormState extends ConsumerState<_SellForm> {
     return Padding(
       padding: EdgeInsets.only(bottom: bottom),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -443,7 +444,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

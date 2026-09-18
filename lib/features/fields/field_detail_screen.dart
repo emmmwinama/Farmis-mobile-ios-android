@@ -8,6 +8,7 @@ import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_card.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import 'fields_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class FieldDetailScreen extends ConsumerWidget {
   final String fieldId;
@@ -79,7 +80,7 @@ class _FieldErrorView extends StatelessWidget {
     final colors = context.colors;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -132,7 +133,7 @@ class _DetailContent extends StatelessWidget {
         : 0.0;
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       children: [
 
         // Summary
@@ -154,7 +155,7 @@ class _DetailContent extends StatelessWidget {
 
         // Info card
         FarmioCard(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(AppSpacing.lg2),
           radius: 18,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,7 +249,7 @@ class _DetailContent extends StatelessWidget {
           FarmioCard(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Text('No crops on this field',
                     style: TextStyle(color: colors.textMuted)),
               ),
@@ -256,7 +257,7 @@ class _DetailContent extends StatelessWidget {
           )
         else
           ...field.crops.map((c) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child:   _CropTile(crop: c, onTap: () => context.push('/crops/${c.id}')),
           )),
 
@@ -274,7 +275,7 @@ class _DetailContent extends StatelessWidget {
           FarmioCard(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Text('No activities recorded',
                     style: TextStyle(color: colors.textMuted)),
               ),
@@ -282,7 +283,7 @@ class _DetailContent extends StatelessWidget {
           )
         else
           ...field.recentActivities.map((a) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child:   _ActivityTile(activity: a, onTap: () => context.push('/activities/${a.id}')),
           )),
       ],
@@ -309,7 +310,7 @@ class _CropTile extends StatelessWidget {
 
     return FarmioCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       radius: 14,
       child: Row(
         children: [
@@ -346,7 +347,7 @@ class _CropTile extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 3),
+                    horizontal: AppSpacing.sm, vertical: 3),
                 decoration: BoxDecoration(
                   color:        statusColor.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -387,7 +388,7 @@ class _ActivityTile extends StatelessWidget {
     final colors = context.colors;
     return FarmioCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       radius: 12,
       child: Row(
         children: [

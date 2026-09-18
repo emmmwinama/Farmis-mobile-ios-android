@@ -13,6 +13,7 @@ import '../../shared/widgets/farmio_shimmer.dart';
 import '../../shared/widgets/farmio_summary_bar.dart';
 import '../report_builder/report_builder_provider.dart';
 import 'reports_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 // Report tabs matching the web app
 enum ReportTab {
@@ -292,18 +293,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   color: context.colors.background,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.md),
                     child: Row(
                       children: ReportTab.values.map((tab) {
                         final selected = _tab == tab;
                         return Padding(
-                          padding: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.only(right: AppSpacing.sm),
                           child: InkWell(
                             onTap: () => setState(() => _tab = tab),
                             borderRadius: BorderRadius.circular(14),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 10),
+                                  horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                               decoration: BoxDecoration(
                                 color: selected
                                     ? FarmioColors.primary
@@ -333,7 +334,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
                 // Report content
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   child: Column(
                     children: [
                       _ReportExportPanel(
@@ -413,7 +414,7 @@ class _FinanceBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.sm),
       child: FarmioSummaryBar(stats: [
         FarmioSummaryStat(
             label: 'Income',
@@ -465,12 +466,12 @@ class _QuickLinksRow extends StatelessWidget {
       child: SingleChildScrollView(
         key: const Key('reports_quick_links_scroll'),
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
         child: Row(
           children: [
             for (final link in _quickLinks)
               Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: AppSpacing.sm),
                 child: _QuickLinkChip(link: link),
               ),
           ],
@@ -490,7 +491,7 @@ class _QuickLinkChip extends StatelessWidget {
             onTap: () => context.push(link.route),
             borderRadius: BorderRadius.circular(999),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: link.color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(999),
@@ -522,8 +523,8 @@ class _AnalyticsIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 14, 16, 2),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 2),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(22),
@@ -583,7 +584,7 @@ class _ChartsOverview extends StatelessWidget {
       height: 306,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
         children: [
           _FinanceMixChart(summary: data.financeSummary),
           const SizedBox(width: 12),
@@ -622,7 +623,7 @@ class _ReportExportPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(22),
@@ -849,7 +850,7 @@ class _TableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(22),
@@ -869,7 +870,7 @@ class _TableCard extends StatelessWidget {
           const SizedBox(height: 14),
           if (rows.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
               child: Text(
                 emptyLabel,
                 style: TextStyle(
@@ -1414,7 +1415,7 @@ class _ChartCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 288,
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(22),
@@ -1490,7 +1491,7 @@ class _ListMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: context.colors.softBorder,
         borderRadius: BorderRadius.circular(999),
@@ -1589,7 +1590,7 @@ class _SeasonTab extends StatelessWidget {
           sub:   'Cost breakdown per growing season',
         ),
         ...data.map((s) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child:   _SeasonCard(season: s),
         )),
       ],
@@ -1713,7 +1714,7 @@ class _CropTab extends StatelessWidget {
           sub:   'Aggregated costs per crop type',
         ),
         ...data.map((c) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child:   _CropReportCard(crop: c, maxCost: maxCost),
         )),
       ],
@@ -1838,7 +1839,7 @@ class _FieldTab extends StatelessWidget {
           sub:   'Total costs incurred per field',
         ),
         ...data.map((f) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child:   _FieldReportCard(field: f),
         )),
       ],
@@ -1982,7 +1983,7 @@ class _CropFieldTab extends StatelessWidget {
         // Totals bar
         if (filtered.isNotEmpty)
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color:        FarmioColors.slate800,
               borderRadius: BorderRadius.circular(12),
@@ -2016,7 +2017,7 @@ class _CropFieldTab extends StatelessWidget {
           const _Empty(label: 'No records match these filters')
         else
           ...filtered.map((c) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child:   _CropFieldCard(item: c),
           )),
       ],
@@ -2116,7 +2117,7 @@ class _LabourTab extends StatelessWidget {
 
         // Totals
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color:        FarmioColors.slate800,
             borderRadius: BorderRadius.circular(12),
@@ -2147,7 +2148,7 @@ class _LabourTab extends StatelessWidget {
         const SizedBox(height: 10),
 
         ...data.map((e) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child:   _EmployeeCard(employee: e),
         )),
       ],
@@ -2239,7 +2240,7 @@ class _InputsTab extends StatelessWidget {
 
         // Totals
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color:        FarmioColors.slate800,
             borderRadius: BorderRadius.circular(12),
@@ -2260,7 +2261,7 @@ class _InputsTab extends StatelessWidget {
         const SizedBox(height: 10),
 
         ...data.map((i) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child:   _InputCard(input: i, maxCost: data.first.totalCost),
         )),
       ],
@@ -2358,7 +2359,7 @@ class _YieldsTab extends StatelessWidget {
         else ...[
           // By type
           ...data.byType.map((t) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child:   _YieldTypeCard(item: t),
           )),
           const SizedBox(height: 16),
@@ -2372,7 +2373,7 @@ class _YieldsTab extends StatelessWidget {
               )),
           const SizedBox(height: 10),
           ...data.records.map((r) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child:   _YieldDetailCard(record: r),
           )),
         ],
@@ -2524,7 +2525,7 @@ class _LivestockTab extends StatelessWidget {
           sub:   'Sales and production income vs health and other costs',
         ),
         ...data.map((l) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child:   _LivestockReportCard(item: l, maxRevenue: maxRevenue),
         )),
       ],
@@ -2628,7 +2629,7 @@ class _ReportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width:   double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(22),
@@ -2667,7 +2668,7 @@ class _ReportHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2734,7 +2735,7 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: 8, vertical: 4),
+          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color:        color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
@@ -2757,7 +2758,7 @@ class _Tag extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: 8, vertical: 3),
+          horizontal: AppSpacing.sm, vertical: 3),
       decoration: BoxDecoration(
         color:        FarmioColors.primary
             .withValues(alpha: 0.08),
@@ -2787,7 +2788,7 @@ class _DropdownFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       decoration: BoxDecoration(
         color:        context.colors.surface,
         borderRadius: BorderRadius.circular(10),
@@ -2849,7 +2850,7 @@ class _Skeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding:          const EdgeInsets.all(16),
+      padding:          const EdgeInsets.all(AppSpacing.lg),
       itemCount:        5,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, i) => FarmioShimmer(
@@ -2870,7 +2871,7 @@ class _ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

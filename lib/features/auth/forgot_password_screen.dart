@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/api/api_config.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_brand_mark.dart';
+import '../../core/theme/app_spacing.dart';
 
 /// There is no mobile password-reset endpoint yet — reset your password on
 /// the web app instead. This just points there rather than presenting a
@@ -19,7 +20,7 @@ class ForgotPasswordScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Reset password')),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.xl2),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

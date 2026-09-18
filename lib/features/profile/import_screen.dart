@@ -12,6 +12,7 @@ import '../../core/migration/export_service.dart';
 import '../../core/migration/import_service.dart';
 import '../../core/theme/app_theme.dart';
 import 'farm_profile_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 /// Import brings a `mobile-export.json` into this install's database —
 /// either the one-time bridge from the old backend-connected app (see
@@ -102,7 +103,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
             style: TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         children: [
           Text(
             'Bring your existing fields, crops, finances and records into '
@@ -142,7 +143,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
           if (_summary != null) ...[
             const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: FarmioColors.successBg,
                 borderRadius: BorderRadius.circular(12),
@@ -207,7 +208,7 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(16),

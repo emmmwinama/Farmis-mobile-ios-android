@@ -6,6 +6,7 @@ import '../../models/equipment.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'equipment_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class EquipmentDetailScreen extends ConsumerWidget {
   final String equipmentId;
@@ -53,7 +54,7 @@ class EquipmentDetailScreen extends ConsumerWidget {
           child: Text('Failed to load equipment: $error'),
         ),
         data: (data) => ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 96),
           children: [
             _HeaderCard(item: data),
             const SizedBox(height: 16),
@@ -66,14 +67,14 @@ class EquipmentDetailScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             logs.when(
               loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.xl2),
                 child: Center(child: CircularProgressIndicator()),
               ),
               error: (error, _) => FarmioErrorBanner(message: '$error'),
               data: (rows) => rows.isEmpty
                   ? Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(AppSpacing.xl),
                       decoration: BoxDecoration(
                         color: context.colors.surface,
                         borderRadius: BorderRadius.circular(14),
@@ -164,7 +165,7 @@ class _HeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
@@ -256,8 +257,8 @@ class _LogRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -366,7 +367,7 @@ class _LogFormSheetState extends ConsumerState<_LogFormSheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: bottom),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),

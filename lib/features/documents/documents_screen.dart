@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/farm_document.dart';
 import '../../shared/filters/entity_filter_bar.dart';
 import 'documents_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class DocumentsScreen extends ConsumerStatefulWidget {
   const DocumentsScreen({super.key});
@@ -50,7 +51,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
           if (list.isEmpty) {
             return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: EdgeInsets.all(AppSpacing.xxl),
                 child: Text(
                   'No evidence uploaded yet. Add receipts, field photos, certificates and other documents.',
                   textAlign: TextAlign.center,
@@ -92,7 +93,7 @@ class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
                           ),
                         )
                       : GridView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+                          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, 96),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
@@ -148,7 +149,7 @@ class _DocumentCard extends StatelessWidget {
           children: [
             Expanded(child: _Thumbnail(doc: doc)),
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -183,7 +184,7 @@ class _DocumentSheet extends ConsumerWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -297,7 +298,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

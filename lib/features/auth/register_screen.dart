@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/api/api_config.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_brand_mark.dart';
+import '../../core/theme/app_spacing.dart';
 
 /// There is no mobile registration endpoint — a farm account is created on
 /// the web app, then this app signs in to it. This screen just points new
@@ -19,7 +20,7 @@ class RegisterScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Create account')),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.xl2),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

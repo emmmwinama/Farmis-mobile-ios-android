@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/field_boundary.dart';
 import 'field_map_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 const _defaultCenter = LatLng(-13.9626, 33.7741); // Lilongwe, Malawi
 
@@ -142,7 +143,7 @@ class _ReadinessBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
       color: context.colors.surface,
       child: Row(
         children: [
@@ -195,7 +196,7 @@ class _FieldReadinessList extends StatelessWidget {
     return SizedBox(
       height: 108,
       child: ListView.separated(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.md),
         scrollDirection: Axis.horizontal,
         itemCount: fields.length,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
@@ -207,7 +208,7 @@ class _FieldReadinessList extends StatelessWidget {
             onTap: () => context.push('/fields/${field.id}/boundary'),
             child: Container(
               width: 168,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: context.colors.surface,
                 borderRadius: BorderRadius.circular(14),
@@ -274,7 +275,7 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

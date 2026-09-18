@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/account_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_spacing.dart';
 
 /// "Account" card on the Profile screen. Signing in is mandatory now (see
 /// the router's redirect), so this is just an identity/sign-out card, not
@@ -19,7 +20,7 @@ class AccountSyncSection extends ConsumerWidget {
     final farm = state.farmContext?.activeFarm;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),

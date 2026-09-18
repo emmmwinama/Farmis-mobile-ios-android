@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/overhead.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'finance_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class OverheadFormScreen extends ConsumerStatefulWidget {
   final OverheadExpense? existing;
@@ -97,7 +98,7 @@ class _OverheadFormScreenState
             style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -111,7 +112,7 @@ class _OverheadFormScreenState
 
             _label('Category *'),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               decoration: BoxDecoration(
                 color:        context.colors.background,
                 borderRadius: BorderRadius.circular(12),
@@ -146,7 +147,7 @@ class _OverheadFormScreenState
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 14),
+                    horizontal: AppSpacing.md, vertical: AppSpacing.md),
                 decoration: BoxDecoration(
                   color:        context.colors.background,
                   borderRadius: BorderRadius.circular(12),
@@ -171,7 +172,7 @@ class _OverheadFormScreenState
             // Recurring toggle
             Container(
               padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 14),
+                  horizontal: AppSpacing.lg, vertical: AppSpacing.md),
               decoration: BoxDecoration(
                 color:        context.colors.surface,
                 borderRadius: BorderRadius.circular(12),
@@ -252,7 +253,7 @@ class _OverheadFormScreenState
   }
 
   Widget _label(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
+    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
     child: Text(text,
         style: TextStyle(
           fontSize:   12,

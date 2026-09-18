@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_spacing.dart';
 
 const int kPinLength = 4;
 
@@ -15,7 +16,7 @@ class PinDots extends StatelessWidget {
       children: [
         for (var i = 0; i < kPinLength; i++)
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8),
+            margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             width: 16,
             height: 16,
             decoration: BoxDecoration(
@@ -61,7 +62,7 @@ class PinKeypad extends StatelessWidget {
       children: [
         for (final row in rows)
           Padding(
-            padding: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

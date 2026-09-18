@@ -10,6 +10,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/farm_document.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'documents_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 const _maxUploadBytes = 10 * 1024 * 1024;
 
@@ -133,7 +134,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
             style: TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

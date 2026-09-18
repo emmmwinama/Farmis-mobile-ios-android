@@ -5,6 +5,7 @@ import '../../core/limits/limits_gate.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/farmio_card.dart';
 import '../../shared/widgets/glass_panel.dart';
+import '../../core/theme/app_spacing.dart';
 
 class CaptureHubScreen extends ConsumerWidget {
   const CaptureHubScreen({super.key});
@@ -102,10 +103,10 @@ class _HubScaffold extends StatelessWidget {
       ),
       body: FrostedScaffoldBackground(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(18, 14, 18, 96),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg2, AppSpacing.md, AppSpacing.lg2, 96),
           children: [
             GlassPanel(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(AppSpacing.lg2),
               radius: 24,
               gradient: heroFill.gradient,
               color: heroFill.color,
@@ -174,7 +175,7 @@ class _ActionCard extends ConsumerWidget {
               if (resource != null && !await ensureCanAdd(context, ref, resource)) return;
               if (context.mounted) context.push(route!);
             },
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       radius: 18,
       child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_spacing.dart';
 
 /// One filterable dimension shown as a pill in an [EntityFilterBar] — e.g.
 /// "Soil type", "Category", "Status". [options] should NOT include 'All';
@@ -52,8 +53,8 @@ class _EntityFilterBarState extends State<EntityFilterBar> {
         : active.map((d) => d.value).join(' / ');
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(22),
@@ -109,7 +110,7 @@ class _EntityFilterBarState extends State<EntityFilterBar> {
                 children: [
                   for (final dimension in widget.dimensions)
                     Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
                       child: _DimensionMenu(dimension: dimension),
                     ),
                 ],
@@ -145,7 +146,7 @@ class _DimensionMenu extends StatelessWidget {
           .toList(),
       child: Container(
         constraints: const BoxConstraints(minHeight: 44),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: dimension.isActive
               ? FarmioColors.primaryBg

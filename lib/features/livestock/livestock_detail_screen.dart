@@ -6,6 +6,7 @@ import '../../models/livestock.dart';
 import '../../shared/utils/formatters.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'livestock_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class AnimalDetailScreen extends ConsumerWidget {
   final String animalId;
@@ -41,7 +42,7 @@ class AnimalDetailScreen extends ConsumerWidget {
           child: Text('Failed to load animal: $error'),
         ),
         data: (data) => ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 40),
           children: [
             _HeaderCard(animal: data),
             const SizedBox(height: 16),
@@ -167,7 +168,7 @@ class _HeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.lg2),
       decoration: BoxDecoration(
         color: FarmioColors.slate800,
         borderRadius: BorderRadius.circular(18),
@@ -258,8 +259,8 @@ class _RecordSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
@@ -295,14 +296,14 @@ class _RecordSection extends ConsumerWidget {
           ),
           if (rows.isEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 4, bottom: 4),
+              padding: const EdgeInsets.only(top: AppSpacing.xs, bottom: AppSpacing.xs),
               child: Text('No $title records yet.',
                   style: TextStyle(
                       fontSize: 12, color: context.colors.textMuted)),
             )
           else
             ...rows.map((row) => Padding(
-                  padding: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
                   child: Row(
                     children: [
                       Expanded(
@@ -649,7 +650,7 @@ class _RecordFormSheetState extends ConsumerState<_RecordFormSheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: bottom),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: context.colors.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),

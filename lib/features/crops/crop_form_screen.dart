@@ -7,6 +7,7 @@ import '../../models/crop_field.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import '../fields/fields_provider.dart';
 import 'crops_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class CropFormScreen extends ConsumerStatefulWidget {
   final CropFieldModel? existing;
@@ -116,7 +117,7 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
             style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -284,7 +285,7 @@ class _CropFormScreenState extends ConsumerState<CropFormScreen> {
   }
 
   Widget _label(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
+    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
     child: Text(text,
         style: TextStyle(
           fontSize: 12, fontWeight: FontWeight.w700,
@@ -316,7 +317,7 @@ class _DateButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: 14, vertical: 14),
+            horizontal: AppSpacing.md, vertical: AppSpacing.md),
         decoration: BoxDecoration(
           color:        context.colors.background,
           borderRadius: BorderRadius.circular(12),

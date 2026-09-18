@@ -5,6 +5,7 @@ import '../../core/auth/pin_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/app_brand_mark.dart';
 import 'pin_pad.dart';
+import '../../core/theme/app_spacing.dart';
 
 class PinUnlockScreen extends ConsumerStatefulWidget {
   const PinUnlockScreen({super.key});
@@ -81,7 +82,7 @@ class _PinUnlockScreenState extends ConsumerState<PinUnlockScreen> {
       backgroundColor: context.colors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.xl2),
           child: Column(
             children: [
               const SizedBox(height: 32),

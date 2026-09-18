@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/field.dart';
 import '../../shared/widgets/farmio_error_banner.dart';
 import 'fields_provider.dart';
+import '../../core/theme/app_spacing.dart';
 
 class FieldFormScreen extends ConsumerStatefulWidget {
   final FieldModel? existing;
@@ -84,7 +85,7 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
             style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -165,7 +166,7 @@ class _FieldFormScreenState extends ConsumerState<FieldFormScreen> {
   }
 
   Widget _label(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
+    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
     child: Text(text,
         style: TextStyle(
           fontSize: 12, fontWeight: FontWeight.w700,
